@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="计算机网络笔记链路层, 欢迎来到尹熙喆的个人博客">
+    <meta name="keywords" content="欢迎来到尹熙喆的个人博客">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>计算机网络笔记链路层 | 欢迎来到尹熙喆的个人博客</title>
+    <title>欢迎来到尹熙喆的个人博客</title>
     <link rel="icon" type="image/jpeg" href="/logo.jpg">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -249,12 +249,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/6.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/0.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">计算机网络笔记链路层</h1>
+                    <h1 class="description center-align post-title"></h1>
                 </div>
             </div>
         </div>
@@ -375,15 +375,6 @@
                 </div>
                 <div class="col s5 right-align">
                     
-                    <div class="post-cate">
-                        <i class="fas fa-bookmark fa-fw icon-category"></i>
-                        
-                            <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="post-category">
-                                计算机网络
-                            </a>
-                        
-                    </div>
-                    
                 </div>
             </div>
 
@@ -410,7 +401,8 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="直接链路"><a href="#直接链路" class="headerlink" title="直接链路"></a>直接链路</h1><p>主机和路由器都是节点。连接相邻结点的信道叫做链路。</p>
+                <p>title: 计算机网络笔记链路层<br>top: false<br>cover: false<br>toc: true<br>mathjax: true<br>date: 2021-06-07 13:36:44<br>password:<br>summary:<br>tags:<br>categories: 计算机网络</p>
+<h1 id="直接链路"><a href="#直接链路" class="headerlink" title="直接链路"></a>直接链路</h1><p>主机和路由器都是节点。连接相邻结点的信道叫做链路。</p>
 <p>链路的不同类型：</p>
 <ul>
 <li>有线点对点链路</li>
@@ -419,8 +411,7 @@
 </ul>
 <h1 id="数据链路层"><a href="#数据链路层" class="headerlink" title="数据链路层"></a>数据链路层</h1><p>二层分组（链路层分组）：帧，封装了网络层数据报</p>
 <p>在相邻节点之间或者同一个局域网中的节点之间传送数据</p>
-<img src="picture\image-20210607210230081.png" alt="image-20210607210230081" style="zoom:50%;">
-
+<p><img src="%5Cpicture%5Cimage-20210607210230081.png"></p>
 <h2 id="链路层的实现"><a href="#链路层的实现" class="headerlink" title="链路层的实现"></a>链路层的实现</h2><p>在主机，路由器，交换机中实现。</p>
 <p>链路层被实现在适配器中<code>"adaptor"</code>，比如网络接口卡（<code>NIC</code>）。以太网卡，802.11卡。</p>
 <p>实现链路层和物理层，和主机的系统总线相连</p>
@@ -444,8 +435,7 @@
 </ul>
 </li>
 </ul>
-<img src="picture\image-20210607212004381.png" alt="image-20210607212004381" style="zoom:60%;">
-
+<p><img src="picture%5Cimage-20210607212004381.png"></p>
 <h4 id="多路访问控制（MAC）"><a href="#多路访问控制（MAC）" class="headerlink" title="多路访问控制（MAC）"></a>多路访问控制（MAC）</h4><p>环境是一个共享的广播信道，它必须避免多个节点同时传送信息，否则碰撞导致数据错误！所以需要一个分布式的算法来决定哪一个节点可以传输数据，这样多路访问协议就诞生了。</p>
 <p>多路访问协议是一个决定节点如何共享信道的分布式的算法，比如决定节点什么时候可以传输数据。关于信道共享的交流必须用到信道本身来交流（没有带外通道进行协作）</p>
 <h4 id="MAC协议"><a href="#MAC协议" class="headerlink" title="MAC协议"></a>MAC协议</h4><p>这里有三种方式</p>
@@ -461,51 +451,43 @@
 <h4 id="3-1停等协议"><a href="#3-1停等协议" class="headerlink" title="3-1停等协议"></a>3-1停等协议</h4><p>源主机传输帧，目的主机接收帧并且回复ACK</p>
 <p>源主机在收到ACK之前不发送下一个包，目的主机可以通过不发送ACK来停止流</p>
 <p>这种对于大型帧工作得很好</p>
-<img src="picture\image-20210607224657108.png" alt="image-20210607224657108" style="zoom:50%;">
-
+<p><img src="picture%5Cimage-20210607224657108.png"></p>
 <h4 id="3-2滑动窗口协议"><a href="#3-2滑动窗口协议" class="headerlink" title="3-2滑动窗口协议"></a>3-2滑动窗口协议</h4><p>允许多个帧同时传送。接收者有一个大小为WIn得buffer（窗口），发送者可以发送最多Win个没有收到ACK的帧。每一个帧都被标号，ACK包含了下一个期待的帧的编号。序号被size域的大小k限制，帧的大小以2的k次方取模。</p>
 <p>有一个问题：如果给定WIn，那么如何设置k？Win&lt;=2^k</p>
-<img src="picture\image-20210607224627065.png" alt="image-20210607224627065" style="zoom:50%;">
-
+<p><img src="picture%5Cimage-20210607224627065.png"></p>
 <p>下面的图帮助理解滑动窗口</p>
-<img src="picture\image-20210607224804564.png" alt="image-20210607224804564" style="zoom:67%;">
+<p><img src="picture%5Cimage-20210607224804564.png"></p>
+<img src="picture\image-20210607224848191.png">
 
-<img src="picture\image-20210607224848191.png" alt="image-20210607224848191" style="zoom:67%;">
+
 
 <h5 id="3-2-1后退n帧"><a href="#3-2-1后退n帧" class="headerlink" title="3-2-1后退n帧"></a>3-2-1后退n帧</h5><p>如果出现错误就恢复NAK，错误的帧和后面的所有帧都需要重传</p>
 <h5 id="3-2-2选择性拒绝（选择重传）"><a href="#3-2-2选择性拒绝（选择重传）" class="headerlink" title="3-2-2选择性拒绝（选择重传）"></a>3-2-2选择性拒绝（选择重传）</h5><p>只有被拒绝的错误帧需要重传，接收者需要维护一个足够大的buffer</p>
 <h3 id="4-错误检测和纠正"><a href="#4-错误检测和纠正" class="headerlink" title="4.错误检测和纠正"></a>4.错误检测和纠正</h3><p>处理由信号衰减和噪声导致的错误。接收者检测错误的出现，让信号发送者重传或者直接丢弃帧</p>
-<img src="picture\image-20210607225210550.png" alt="image-20210607225210550" style="zoom:50%;">
-
+<p><img src="picture%5Cimage-20210607225210550.png"></p>
 <p>EDC是错误检测纠正码（冗余码），D是被错误检查保护的数据（包括头）</p>
 <p>注意错误检测不是百分百可靠！比较大的EDC能更好的检测和纠正错误</p>
 <h4 id="4-1奇偶校验法"><a href="#4-1奇偶校验法" class="headerlink" title="4-1奇偶校验法"></a>4-1奇偶校验法</h4><p>单比特奇偶校验：只能检测一位错误</p>
-<img src="picture\image-20210607225453805.png" alt="image-20210607225453805" style="zoom:60%;">
-
+<p><img src="picture%5Cimage-20210607225453805.png"></p>
 <p>二维奇偶校验：能够检测和纠正单比特错</p>
-<img src="picture\image-20210607225658684.png" alt="image-20210607225658684" style="zoom:67%;">
-
+<p><img src="picture%5Cimage-20210607225658684.png"></p>
 <h4 id="4-2CRC循环冗余码"><a href="#4-2CRC循环冗余码" class="headerlink" title="4-2CRC循环冗余码"></a>4-2CRC循环冗余码</h4><p>CRC被广泛运用硬件实现。数据部分D是二进制数字，有d位。选择一个<code>r+1</code>位的模式串G（生成多项式）<br>$$<br>𝐷∗2^𝑟=𝑎∗𝐺⊕𝑅, so 𝐷∗2^𝑟⊕R=a*G<br>$$<br>发送方发送左侧的<code>𝐷∗2^𝑟⊕R</code>代表<code>&lt;D,R&gt;</code></p>
 <p>接收方当收到<code>&lt;D,R&gt;</code>的时候，如果被G整除就没错，否则就有错</p>
 <p>限制：只可以检测出少于r+1位的突发错误</p>
-<img src="picture\image-20210607230618063.png" alt="image-20210607230618063" style="zoom:67%;">
-
+<p><img src="picture%5Cimage-20210607230618063.png"></p>
 <h1 id="不同类型的局域网"><a href="#不同类型的局域网" class="headerlink" title="不同类型的局域网"></a>不同类型的局域网</h1><p>局域网有不同的拓扑</p>
-<img src="picture\image-20210607205650526.png" alt="image-20210607205650526" style="zoom:50%;">
-
+<p><img src="picture%5Cimage-20210607205650526.png"></p>
 <h2 id="1-令牌环Token-Ring"><a href="#1-令牌环Token-Ring" class="headerlink" title="1.令牌环Token Ring"></a>1.令牌环Token Ring</h2><p>令牌环是一种局域网协议（IEEE802.5）</p>
 <p>从IBM的商业的令牌环开始发展。因为IBM，令牌环获得了广泛的接受，但是从来没有达到以太网的流行程度</p>
 <h3 id="环的操作"><a href="#环的操作" class="headerlink" title="环的操作"></a>环的操作</h3><p>每一个转发器（repeater）通过单向的传输链路连接另外两个，转发器扮演连接点的角色。</p>
-<img src="picture\image-20210607202641735.png" alt="image-20210607202641735" style="zoom:60%;">
-
+<p><img src="picture%5Cimage-20210607202641735.png"></p>
 <p>数据一个比特一个比特地从一个转发器到另一个转发器传输。</p>
 <ul>
 <li>转发器重新生成和重传每一个比特</li>
 <li>转发器执行数据插入，数据接收，数据删除的功能</li>
 </ul>
 <p>帧再进行一个循环的传递之后被发送器移除</p>
-<h4 id="不同的状态"><a href="#不同的状态" class="headerlink" title="不同的状态"></a>不同的状态</h4><img src="picture\image-20210607203827632.png" alt="image-20210607203827632" style="zoom:67%;">
-
+<h4 id="不同的状态"><a href="#不同的状态" class="headerlink" title="不同的状态"></a>不同的状态</h4><p><img src="picture%5Cimage-20210607203827632.png"></p>
 <h5 id="侦听状态"><a href="#侦听状态" class="headerlink" title="侦听状态"></a>侦听状态</h5><ul>
 <li>扫描通过的比特流的模式：<ul>
 <li>相连的站点的地址和目的站点的地址</li>
@@ -534,10 +516,8 @@
 <p>改变令牌的一个bit让它变成SOF（Start of Frame），然后再后面添加剩下的数据帧的内容</p>
 <p>帧进行一个环形的旅行，然后被某一个传输站点吸收。然后站台当传输结束的时候插入新令牌</p>
 <p>轻负载的时候有点效率底下，高度负载的时候，进行轮询</p>
-<img src="picture\image-20210607204827237.png" alt="image-20210607204827237" style="zoom:67%;">
-
-<h4 id="802-5的物理层"><a href="#802-5的物理层" class="headerlink" title="802.5的物理层"></a>802.5的物理层</h4><img src="picture\image-20210607205538538.png" alt="image-20210607205538538" style="zoom:67%;">
-
+<p><img src="picture%5Cimage-20210607204827237.png"></p>
+<h4 id="802-5的物理层"><a href="#802-5的物理层" class="headerlink" title="802.5的物理层"></a>802.5的物理层</h4><p><img src="picture%5Cimage-20210607205538538.png"></p>
 <h2 id="2-以太网Ethernet"><a href="#2-以太网Ethernet" class="headerlink" title="2.以太网Ethernet"></a>2.以太网Ethernet</h2><p>以太网是一种主导有线局域网的技术，有如下的好处：</p>
 <ul>
 <li>NIC比较便宜</li>
@@ -547,8 +527,7 @@
 </ul>
 <h3 id="以太网的物理拓扑"><a href="#以太网的物理拓扑" class="headerlink" title="以太网的物理拓扑"></a>以太网的物理拓扑</h3><h4 id="总线：在90年代中期很流行"><a href="#总线：在90年代中期很流行" class="headerlink" title="总线：在90年代中期很流行"></a>总线：在90年代中期很流行</h4><p>所有节点在同一个碰撞域中，可以互相碰撞</p>
 <h4 id="星型拓扑：现在比较盛行"><a href="#星型拓扑：现在比较盛行" class="headerlink" title="星型拓扑：现在比较盛行"></a>星型拓扑：现在比较盛行</h4><p>每一个节点运行一个分离的以太网协议，不会相互碰撞</p>
-<img src="picture\image-20210607141806849.png" alt="image-20210607141806849" style="zoom:50%;">
-
+<p><img src="picture%5Cimage-20210607141806849.png"></p>
 <p>下面说说他们的比较；广播vs交换以太网</p>
 <p>总线拓扑是一种广播技术</p>
 <ul>
@@ -580,21 +559,25 @@
 <h3 id="成帧Framing-frames"><a href="#成帧Framing-frames" class="headerlink" title="成帧Framing frames"></a>成帧Framing frames</h3><p>物理层把bit放入链路，但是两个联通在相同物理媒介的主机需要交换帧，这个服务由链路层提供，由网络适配器来实现！</p>
 <p>那么有一个问题：链路层如何判断每个帧的起止位置呢？</p>
 <ol>
-<li>简单的方法：比特计数，在帧的开始填入后面所跟的数据的大小，然后接受者根据这个值来解析！有一个缺点就是，如果这个计数的数值错了，将导致后面的帧全部错误！</li>
-<li>哨兵位：用哨兵来标记帧的起止位置，<code>01111110</code>表示开始，<code>01111111</code>表示结束。但是有一个问题，如果在数据里面有哨兵怎么办？问题的解决办法是比特填充，如果在内容里面遇到5个1就在后面插入一个0，然后接收方每遇到5个1就拿掉后面的1个0！</li>
+<li><p>简单的方法：比特计数，在帧的开始填入后面所跟的数据的大小，然后接受者根据这个值来解析！有一个缺点就是，如果这个计数的数值错了，将导致后面的帧全部错误！</p>
+</li>
+<li><p>哨兵位：用哨兵来标记帧的起止位置，<code>01111110</code>表示开始，<code>01111111</code>表示结束。但是有一个问题，如果在数据里面有哨兵怎么办？问题的解决办法是比特填充，如果在内容里面遇到5个1就在后面插入一个0，然后接收方每遇到5个1就拿掉后面的1个0！</p>
+<p><img src="/picture/image-20210607145115984.png"></p>
+</li>
 </ol>
-<img src="/picture/image-20210607145115984.png" alt="alt" style="zoom:67%;">
-
 <p>举个例子，如果接收者看见了5个1：后面如果是0，那么就移走它继续解析；如果后面是1的话再看下一位，下一位是0，说明是帧的开始，否则是帧的结束！</p>
-<h3 id="IEEE802-3"><a href="#IEEE802-3" class="headerlink" title="IEEE802.3"></a>IEEE802.3</h3><img src="\picture\image-20210607145201877.png" alt="image-20210607145201877" style="zoom:50%;">
-
+<h3 id="IEEE802-3"><a href="#IEEE802-3" class="headerlink" title="IEEE802.3"></a>IEEE802.3</h3><p><img src="%5Cpicture%5Cimage-20210607145201877.png"></p>
 <h4 id="802-3的物理层"><a href="#802-3的物理层" class="headerlink" title="802.3的物理层"></a>802.3的物理层</h4><p>有许多不同的标准：</p>
 <ul>
-<li>类似的MAC协议和帧格式</li>
-<li>不同的速率：2Mbps，10Mbps，100Mbps，1Gbps，10Gbps</li>
-<li>不同的物理媒介：线缆，光纤</li>
+<li><p>类似的MAC协议和帧格式</p>
+</li>
+<li><p>不同的速率：2Mbps，10Mbps，100Mbps，1Gbps，10Gbps</p>
+</li>
+<li><p>不同的物理媒介：线缆，光纤</p>
+<p><img src="/picture/image-20210607145639218.png"></p>
+</li>
 </ul>
-<img src="\picture\image-20210607145639218.png" alt="image-20210607145639218" style="zoom:70%;">
+
                 
             </div>
             <hr/>
@@ -829,13 +812,13 @@
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/2021/06/07/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0/">
+                <a href="/2021/06/07/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%AC%94%E8%AE%B0%E7%BD%91%E7%BB%9C%E5%B1%82/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/15.jpg" class="responsive-img" alt="动态规划">
+                        <img src="/medias/featureimages/12.jpg" class="responsive-img" alt="计算机网络笔记网络层">
                         
-                        <span class="card-title">动态规划</span>
+                        <span class="card-title">计算机网络笔记网络层</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -852,8 +835,8 @@
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/%E7%AE%97%E6%B3%95/" class="post-category">
-                                    算法
+                            <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="post-category">
+                                    计算机网络
                                 </a>
                             
                             
@@ -867,16 +850,16 @@
         
         <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge right-badge text-color">
-                本篇&nbsp;<i class="far fa-dot-circle"></i>
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2021/06/07/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%AC%94%E8%AE%B0%E9%93%BE%E8%B7%AF%E5%B1%82/">
+                <a href="/2021/06/07/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/6.jpg" class="responsive-img" alt="计算机网络笔记链路层">
+                        <img src="/medias/featureimages/15.jpg" class="responsive-img" alt="动态规划">
                         
-                        <span class="card-title">计算机网络笔记链路层</span>
+                        <span class="card-title">动态规划</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -893,15 +876,14 @@
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="post-category">
-                                    计算机网络
+                            <a href="/categories/%E7%AE%97%E6%B3%95/" class="post-category">
+                                    算法
                                 </a>
                             
                             
                         </span>
                     </div>
                 </div>
-
                 
             </div>
         </div>
