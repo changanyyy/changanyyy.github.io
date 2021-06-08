@@ -594,7 +594,7 @@
 <li>两个或以上的节点同时发送数据就会相互干扰</li>
 <li>碰撞：节点同时接收两个或者更多信号</li>
 </ul>
-<h2 id="多路访问协议："><a href="#多路访问协议：" class="headerlink" title="多路访问协议："></a>多路访问协议：</h2><ul>
+<h2 id="多路访问协议"><a href="#多路访问协议" class="headerlink" title="多路访问协议"></a>多路访问协议</h2><ul>
 <li>决定节点如何共享信道的分布式算法，比如决定节点什么时候可以传输</li>
 <li>关于信道共享的规划需要用到信道本身</li>
 </ul>
@@ -713,6 +713,49 @@
 <p><img src="/picture/ethernetcsmacd.png"></p>
 <p>流程图</p>
 <p><img src="/picture/cdmacdliuchengtu.png"></p>
+<h2 id="多路访问协议的性能分析"><a href="#多路访问协议的性能分析" class="headerlink" title="多路访问协议的性能分析"></a>多路访问协议的性能分析</h2><h3 id="1-没有ACK的点到点链路"><a href="#1-没有ACK的点到点链路" class="headerlink" title="1.没有ACK的点到点链路"></a>1.没有ACK的点到点链路</h3><p>不管对于大型帧还是小型帧来说，利用率等于传输时间占总时间的比值。（<strong>总时间是指这个帧发出的时间到下一个帧发出的间隔时间</strong>）</p>
+<p>假设传输时间为1，传播时间为a，那么总时间为<br>$$<br>U=1/(1+a)<br>$$</p>
+<h3 id="2-令牌环"><a href="#2-令牌环" class="headerlink" title="2.令牌环"></a>2.令牌环</h3><p>对于大的令牌环来说，令牌从<code>t0</code>开始传输，然后在<code>t0+1</code>时候，帧的最后一个bit发送出去并且第一个比特回来，令牌开始传送，在<code>t=t0+1+a/n</code>到达下一个站点，这个时候下一个站点开始传输。</p>
+<p>对于小的令牌环来说，令牌从<code>t0</code>开始传输，然后在<code>t0+a</code>从站点完全释放并且第一个比特回来，这时候令牌开始传给下一个站点，在<code>t=t0+a+a/N</code>时候令牌到达下一个站点</p>
+<p>两种情况：</p>
+<ol>
+<li><p>case1：a&lt;1（当帧比环长）<br>$$<br>U=1/(1+a/N)<br>$$</p>
+</li>
+<li><p>case2：a&gt;1（帧比环短）<br>$$<br>U=1/(a+a/N)<br>$$</p>
+</li>
+</ol>
+<h3 id="3-时隙ALOHA"><a href="#3-时隙ALOHA" class="headerlink" title="3.时隙ALOHA"></a>3.时隙ALOHA</h3><p>所有的帧有相同的大小，时间被同一分割，各个节点是同步的，传输在时隙的开始部分开始，帧要么全部碰撞要么就不碰撞。</p>
+<p>假定N个节点有帧要发送，每一个在以p的概率在时隙发送，那么一个节点成功发送的概率是<code>p * (1-p)^(N-1)</code>，那么N个节点成功的概率是<code>A = N * p * (1-p)^(N-1)</code>。</p>
+<p>如何找到成功概率，那么就是让<code>p=1/N</code>，<code>A=(1-1/N)^(N-1)</code>（利用函数求导）</p>
+<p>如果能够被成功利用，信道的利用率<code>Us=1/(1+2α)</code></p>
+<p>因为A是成功的概率，所以成功传送的利用率是<code>U=UsXA=(1-1/N)^(N-1)</code>，让N等于正无穷，U约等于<code>1/e</code></p>
+<h3 id="4-纯ALOHA"><a href="#4-纯ALOHA" class="headerlink" title="4.纯ALOHA"></a>4.纯ALOHA</h3><p>更简单但是碰撞概率更高。当我t0发送一个帧的时候，我在<code>[t0-1,t0+1]</code></p>
+<p><code>A=N*P(一个人在时隙传输)*P(没人在t0-1~t0传输)*P(没人在t0~t0+1传输)</code><br>$$<br>U=A=N<em>p</em>(1-p)^{2N-1}<br>$$<br>当<code>p=1/2N</code>并且N趋于无穷时，<code>U=1/(2e)</code></p>
+<h3 id="5-CSMA-CD"><a href="#5-CSMA-CD" class="headerlink" title="5.CSMA/CD"></a>5.CSMA/CD</h3><p>暂时略</p>
+<h2 id="MAC地址和它的发现"><a href="#MAC地址和它的发现" class="headerlink" title="MAC地址和它的发现"></a>MAC地址和它的发现</h2><p><img src="/picture/123.png"></p>
+<p>一个主机A被制造时只有他自己的mac地址，那么我要联系主机B却不知道它的MAC地址，怎么办呢？</p>
+<h3 id="链路层发现协议"><a href="#链路层发现协议" class="headerlink" title="链路层发现协议"></a>链路层发现协议</h3><p>ARP：Address Resolution Protocols</p>
+<p>DHCP：Dynamic Host Configuration Protocol</p>
+<p>被限制在单一局域网里，依靠广播能力</p>
+<p>它们有两个功能：</p>
+<ol>
+<li>发现局域终端设备</li>
+<li>辅助远程主机的交流</li>
+</ol>
+<h3 id="DHCP"><a href="#DHCP" class="headerlink" title="DHCP"></a>DHCP</h3><p>主机用DHCP来找到它自己的IP地址，网络掩码，DNS服务器的IP地址，默认的第一跳路由器的IP地址（默认网关）</p>
+<h4 id="DHCP的标准过程"><a href="#DHCP的标准过程" class="headerlink" title="DHCP的标准过程"></a>DHCP的标准过程</h4><p><img src="/picture/dhcp.png"></p>
+<h5 id="建立"><a href="#建立" class="headerlink" title="建立"></a>建立</h5><ol>
+<li>客户在它所在的子网广播一个DHCP-Discover消息</li>
+<li>每一个服务器都可能用一个DHCP-Offer消息回复</li>
+<li>客户机选择一个服务器广播一个包含服务器IP地址的DHCP-Request消息</li>
+<li>被选择的服务器确认绑定，用一个DHCP-ACK消息回复！</li>
+<li>客户机根据DHCP-ACK设置它的配置参数</li>
+</ol>
+<h5 id="废除"><a href="#废除" class="headerlink" title="废除"></a>废除</h5><ol>
+<li>客户机通过发送DHCP-RELEASE消息废除绑定</li>
+<li>如果客户机不更新之前绑定的关系，绑定会过期</li>
+</ol>
+<p><img src="/picture/guocheng.png"></p>
 
                 
             </div>
