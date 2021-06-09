@@ -719,10 +719,8 @@
 <p>对于小的令牌环来说，令牌从<code>t0</code>开始传输，然后在<code>t0+a</code>从站点完全释放并且第一个比特回来，这时候令牌开始传给下一个站点，在<code>t=t0+a+a/N</code>时候令牌到达下一个站点</p>
 <p>两种情况：</p>
 <ol>
-<li><p>case1：a&lt;1（当帧比环长）<br>$$<br>U=1/(1+a/N)<br>$$</p>
-</li>
-<li><p>case2：a&gt;1（帧比环短）<br>$$<br>U=1/(a+a/N)<br>$$</p>
-</li>
+<li>case1：a&lt;1（当帧比环长）<br>$$<br>U=1/(1+a/N)<br>$$</li>
+<li>case2：a&gt;1（帧比环短）<br>$$<br>U=1/(a+a/N)<br>$$</li>
 </ol>
 <h3 id="3-时隙ALOHA"><a href="#3-时隙ALOHA" class="headerlink" title="3.时隙ALOHA"></a>3.时隙ALOHA</h3><p>所有的帧有相同的大小，时间被同一分割，各个节点是同步的，传输在时隙的开始部分开始，帧要么全部碰撞要么就不碰撞。</p>
 <p>假定N个节点有帧要发送，每一个在以p的概率在时隙发送，那么一个节点成功发送的概率是<code>p * (1-p)^(N-1)</code>，那么N个节点成功的概率是<code>A = N * p * (1-p)^(N-1)</code>。</p>
@@ -734,7 +732,7 @@
 <h3 id="5-CSMA-CD"><a href="#5-CSMA-CD" class="headerlink" title="5.CSMA/CD"></a>5.CSMA/CD</h3><p>暂时略</p>
 <h2 id="MAC地址和它的发现"><a href="#MAC地址和它的发现" class="headerlink" title="MAC地址和它的发现"></a>MAC地址和它的发现</h2><p><img src="/picture/123.png"></p>
 <p>一个主机A被制造时只有他自己的mac地址，那么我要联系主机B却不知道它的MAC地址，怎么办呢？</p>
-<h3 id="链路层发现协议"><a href="#链路层发现协议" class="headerlink" title="链路层发现协议"></a>链路层发现协议</h3><p>ARP：Address Resolution Protocols</p>
+<h3 id="1-链路层发现协议"><a href="#1-链路层发现协议" class="headerlink" title="1.链路层发现协议"></a>1.链路层发现协议</h3><p>ARP：Address Resolution Protocols</p>
 <p>DHCP：Dynamic Host Configuration Protocol</p>
 <p>被限制在单一局域网里，依靠广播能力</p>
 <p>它们有两个功能：</p>
@@ -742,7 +740,7 @@
 <li>发现局域终端设备</li>
 <li>辅助远程主机的交流</li>
 </ol>
-<h3 id="DHCP"><a href="#DHCP" class="headerlink" title="DHCP"></a>DHCP</h3><p>主机用DHCP来找到它自己的IP地址，网络掩码，DNS服务器的IP地址，默认的第一跳路由器的IP地址（默认网关）</p>
+<h3 id="2-DHCP"><a href="#2-DHCP" class="headerlink" title="2.DHCP"></a>2.DHCP</h3><p>主机用DHCP来找到它自己的IP地址，网络掩码，DNS服务器的IP地址，默认的第一跳路由器的IP地址（默认网关）</p>
 <h4 id="DHCP的标准过程"><a href="#DHCP的标准过程" class="headerlink" title="DHCP的标准过程"></a>DHCP的标准过程</h4><p><img src="/picture/dhcp.png"></p>
 <h5 id="建立"><a href="#建立" class="headerlink" title="建立"></a>建立</h5><ol>
 <li>客户在它所在的子网广播一个DHCP-Discover消息</li>
@@ -756,6 +754,76 @@
 <li>如果客户机不更新之前绑定的关系，绑定会过期</li>
 </ol>
 <p><img src="/picture/guocheng.png"></p>
+<h4 id="当DHCP出现问题怎么办"><a href="#当DHCP出现问题怎么办" class="headerlink" title="当DHCP出现问题怎么办"></a>当DHCP出现问题怎么办</h4><p><img src="/picture/dhcphd.png"></p>
+<h3 id="3-ARP"><a href="#3-ARP" class="headerlink" title="3.ARP"></a>3.ARP</h3><p>用户137.196.7.23想要ping 137.196.7.88</p>
+<ul>
+<li>源IP：137.196.7.23</li>
+<li>目的IP：137.196.7.88</li>
+<li>源MAC：71-65-F7-2B-08-53</li>
+<li>目的MAC是多少呢？？？？？？？</li>
+</ul>
+<p>我们需要目的主机的MAC地址才可以传输数据，在局域网中，我们用ARP来获得MAC地址，需要给定目的主机IP地址！</p>
+<p>ARP是一种IP到MAC地址的映射，只在局域网中起作用。对比DNS服务，DNS服务是域名到IP地址的映射！</p>
+<h4 id="ARP的运行过程"><a href="#ARP的运行过程" class="headerlink" title="ARP的运行过程"></a>ARP的运行过程</h4><p>每一个主机都维护一个ARP表（IP地址到MAC地址的映射表），其中表项在一段时间之后会过期被删除</p>
+<h5 id="发送方-1"><a href="#发送方-1" class="headerlink" title="发送方"></a>发送方</h5><ol>
+<li>先查看本地的cache（ARP表）</li>
+<li>如果没有发现目的IP对应的MAC地址的话，就构建一个ARP请求插入&lt;发送方IP，发送方MAC，目的IP&gt;</li>
+<li>用MAC帧进行广播</li>
+<li>收到ARP回复，进行缓存（加上时间戳）！</li>
+</ol>
+<h5 id="接收方-1"><a href="#接收方-1" class="headerlink" title="接收方"></a>接收方</h5><ol>
+<li>检查ARP包的目的IP</li>
+<li>如果目的IP是我的某个接口，构建一个ARP回复，插入&lt;目的IP，目的MAC&gt;</li>
+<li>用MAC帧发送给发送</li>
+<li>把发送方的&lt;IP,MAC&gt;存入cache</li>
+</ol>
+<p>但如果目的地址很远不在局域网之内怎么办？</p>
+<p>我们要先用ARP查找第一跳路由器的MAC地址</p>
+<p>那么主机如何知道我和目的没有在同一个局域网里？</p>
+<p>通过子网掩码！</p>
+<p>那么主机咋知道第一跳路由器在哪？</p>
+<p>通过DHCP协议！！！（默认网关）</p>
+<p>下面是ARP的一个具体例子</p>
+<p><img src="/picture/arpex.png"></p>
+<h3 id="4-ARP和DHCP的关键"><a href="#4-ARP和DHCP的关键" class="headerlink" title="4.ARP和DHCP的关键"></a>4.ARP和DHCP的关键</h3><p>广播：通过广播来交流</p>
+<p>缓存：在一定时间内记住过去的记录，存储信息来减少一定查询开销</p>
+<p>软状态：记录最终会被删除</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>例子</th>
+<th>结构</th>
+<th>配置</th>
+<th>解决服务</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>应用层</td>
+<td>p.nju.edu.cn</td>
+<td>组织层级</td>
+<td>根据手册</td>
+<td>DNS（应用层-网络层）</td>
+</tr>
+<tr>
+<td>网络层</td>
+<td>123.23.88.66</td>
+<td>拓扑层级</td>
+<td>DHCP</td>
+<td></td>
+</tr>
+<tr>
+<td>链路层</td>
+<td>45-CD-AC-38</td>
+<td>供应商</td>
+<td>硬编码</td>
+<td>ARP（网络层-链路层）</td>
+</tr>
+</tbody></table>
+<h3 id="补充总结"><a href="#补充总结" class="headerlink" title="补充总结"></a>补充总结</h3><h4 id="发现机制"><a href="#发现机制" class="headerlink" title="发现机制"></a>发现机制</h4><p>广播（ARP，DHCP）</p>
+<p>洪泛，没有非常关键的中心化节点，不需要手动配置</p>
+<p>目录服务（DNS）</p>
+<p>不洪泛，可扩充，根目录是容易受到攻击的，需要辅助程序配置</p>
 
                 
             </div>
