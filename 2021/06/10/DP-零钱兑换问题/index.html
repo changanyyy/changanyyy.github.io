@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="计算机网络笔记网络层, yxz的博客">
+    <meta name="keywords" content="DP-零钱兑换问题, yxz的博客">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>计算机网络笔记网络层 | yxz的博客</title>
+    <title>DP-零钱兑换问题 | yxz的博客</title>
     <link rel="icon" type="image/jpeg" href="/logo.jpg">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -249,12 +249,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/12.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/15.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">计算机网络笔记网络层</h1>
+                    <h1 class="description center-align post-title">DP-零钱兑换问题</h1>
                 </div>
             </div>
         </div>
@@ -378,8 +378,8 @@
                     <div class="post-cate">
                         <i class="fas fa-bookmark fa-fw icon-category"></i>
                         
-                            <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="post-category">
-                                计算机网络
+                            <a href="/categories/%E7%AE%97%E6%B3%95/" class="post-category">
+                                算法
                             </a>
                         
                     </div>
@@ -395,7 +395,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.1k
+                    930
                 </div>
                 
 
@@ -420,67 +420,70 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="一-网络层的功能"><a href="#一-网络层的功能" class="headerlink" title="一.网络层的功能"></a>一.网络层的功能</h2><ol>
-<li>从发送主机到接收主机传送报文段</li>
-<li>在发送端把运输层报文段封装进网络层数据报</li>
-<li>在接收方，把报文段递交给运输层</li>
-<li>在每一个主机和路由器都有运输层协议</li>
-<li>路由器检查IP数据报的header域，然后通过它传递</li>
-</ol>
-<p>两个关键的功能：</p>
-<p>交换和路由：运用路由算法决定从源到目的发包的路由路线，找到从源到目的最短路线（路由决定转发表）</p>
-<p>转发：从输入端口转发到特定的输出端口，进行错误处理排队和调度</p>
-<p>连接建立：在数据报开始发送之前，终端主机和路由器之间建立虚拟连接（和运输层对比，网络层的连接建立是包括主机和路由器，而运输层是在两个主机进程之间！）</p>
-<h2 id="二-网络服务模型"><a href="#二-网络服务模型" class="headerlink" title="二.网络服务模型"></a>二.网络服务模型</h2><p>信道的什么服务模型来从发送方到接收方传输数据报？</p>
-<h3 id="例子：ATM的网络服务模型"><a href="#例子：ATM的网络服务模型" class="headerlink" title="例子：ATM的网络服务模型"></a>例子：ATM的网络服务模型</h3><p>恒定比特率（CBR）和可变比特率（VBR），有效比特率和未定义比特率</p>
-<p><img src="/picture/atm.png"></p>
-<h3 id="例子：IP的网络服务模型"><a href="#例子：IP的网络服务模型" class="headerlink" title="例子：IP的网络服务模型"></a>例子：IP的网络服务模型</h3><p>尽力而为</p>
-<p><img src="/picture/ip.png"></p>
-<h2 id="三-IP路由器"><a href="#三-IP路由器" class="headerlink" title="三.IP路由器"></a>三.IP路由器</h2><p>互联网基础设施的核心！</p>
-<p>路由器的容量=NXR（其中N是外部路由端口的数量，R是每个端口的速率）</p>
-<p><img src="/picture/isp.png"></p>
-<h3 id="不同类型的路由器"><a href="#不同类型的路由器" class="headerlink" title="不同类型的路由器"></a>不同类型的路由器</h3><h4 id="1-核心路由器"><a href="#1-核心路由器" class="headerlink" title="1.核心路由器"></a>1.核心路由器</h4><p>R = 10/40/100/200/400 Gbps  NR = O(100) Tbps (总共)</p>
-<h4 id="2-边缘路由器"><a href="#2-边缘路由器" class="headerlink" title="2.边缘路由器"></a>2.边缘路由器</h4><p>R = 1/10/40/100 Gbps NR = O(100) Gbps</p>
-<h4 id="2-小型商用"><a href="#2-小型商用" class="headerlink" title="2.小型商用"></a>2.小型商用</h4><p>R = 1 Gbps  NR &lt; 10 Gbps</p>
-<h3 id="路由器的内部：架构概览"><a href="#路由器的内部：架构概览" class="headerlink" title="路由器的内部：架构概览"></a>路由器的内部：架构概览</h3><h4 id="1-总览"><a href="#1-总览" class="headerlink" title="1.总览"></a>1.总览</h4><p><img src="/picture/router%E6%9E%B6%E6%9E%84%E6%A6%82%E8%A7%88.png"></p>
-<h4 id="2-输入端口"><a href="#2-输入端口" class="headerlink" title="2.输入端口"></a>2.输入端口</h4><p><img src="/picture/11.png"></p>
-<p>输入端口的任务：</p>
+                <h1 id="零钱兑换系列问题"><a href="#零钱兑换系列问题" class="headerlink" title="零钱兑换系列问题"></a>零钱兑换系列问题</h1><h2 id="1-零钱兑换1"><a href="#1-零钱兑换1" class="headerlink" title="1.零钱兑换1"></a>1.零钱兑换1</h2><h3 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h3><p>这道题目是力扣上面的题目，最近正好在学DP就做了个题解</p>
+<p>给定不同面额的硬币 <code>coins</code> 和一个总金额 <code>amount</code>。编写一个函数来计算可以凑成总金额所需的最少的硬币个数。如果没有任何一种硬币组合能组成总金额，返回 -1。</p>
+<p>你可以认为每种硬币的数量是无限的。</p>
+<p>提示</p>
 <ul>
-<li>收到包（物理层的任务）</li>
-<li>更新IP头：TTL，checksum，可选字段等</li>
-<li>查找目的IP对应的合适的输出端口</li>
-<li>排队：如果包到达太快就要缓存排队</li>
+<li><code>1 &lt;= coins.length &lt;= 12</code></li>
+<li><code>1 &lt;= coins[i] &lt;= 231 - 1</code></li>
+<li><code>0 &lt;= amount &lt;= 104</code></li>
 </ul>
-<h5 id="查找合适的输出端口"><a href="#查找合适的输出端口" class="headerlink" title="查找合适的输出端口"></a>查找合适的输出端口</h5><p>如果一个表项对应一个地址就要有40亿个表项，为了可扩展性，地址是聚合的，目标地址按一定范围映射。<strong>按照最长前缀匹配规则</strong></p>
-<p><img src="/picture/%E6%9C%80%E9%95%BF%E5%89%8D%E7%BC%80.png"></p>
-<h5 id="处理速度"><a href="#处理速度" class="headerlink" title="处理速度"></a>处理速度</h5><p>输入端口的任务要更新包头还有转发表查询，大多数被硬件处理！</p>
-<h4 id="3-输出端口"><a href="#3-输出端口" class="headerlink" title="3.输出端口"></a>3.输出端口</h4><p><img src="/picture/outputport.png"></p>
-<p>输出端口任务：</p>
-<ul>
-<li>包分类：把包映射到流里面</li>
-<li>缓冲处理：决定什么时候和哪些包要扔掉</li>
-<li>调度：决定哪些包什么时候传输（从排队的包里面选择进行传输，当buffer满了就要选择包丢弃）</li>
-</ul>
-<p>缓冲处理先进先出：最简单，没有分类，buffer满了的话就丢掉后来的包</p>
-<p><img src="/picture/fifo.png"></p>
-<p>包分类：根据header域来把IP包分类，比如源和目的的IP地址，源和目的的TCP端口号，服务类型，协议类型……</p>
-<h5 id="调度"><a href="#调度" class="headerlink" title="调度"></a>调度</h5><p>每一个流（“flow”）都有一个队列，调度器决定什么时候才能够哪个队列发包。调度器的目标是：快！</p>
-<h6 id="轮转调度"><a href="#轮转调度" class="headerlink" title="轮转调度"></a>轮转调度</h6><p>轮转：每个队列里的包被轮流调度</p>
-<p>公平排队（FQ）：对于不同大小的队列进行轮转调度</p>
-<p>加权公平队列（WFQ）：按照权重比例来调度</p>
-<h4 id="4-交换结构"><a href="#4-交换结构" class="headerlink" title="4.交换结构"></a>4.交换结构</h4><p>交换结构用来连接输入端口和输出端口，从输入buffer传送到合适的输出buffer。</p>
-<p>交换速率：包可以从输入端口到输出端口传送的速率</p>
-<p>有三种结构来交换：</p>
-<ul>
-<li>通过共享内存交换</li>
-<li>通过总线交换</li>
-<li>通过物联的网络交换：比如横梁</li>
-</ul>
-<p><img src="/picture/3%E7%A7%8D.png" alt="三种交换结构"></p>
-<h5 id="4-1-通过共享内存交换"><a href="#4-1-通过共享内存交换" class="headerlink" title="4-1 通过共享内存交换"></a>4-1 通过共享内存交换</h5><p>第一代路由器采用这种，它是一种直接在CPU控制下交换的传统的电脑，分组被拷贝到系统的内存里面。速度被内存的带宽限制</p>
-<h5 id="4-2-通过总线交换"><a href="#4-2-通过总线交换" class="headerlink" title="4-2 通过总线交换"></a>4-2 通过总线交换</h5><p>数据报通过共享总线从输入端口内存传送到输出端口内存，速率被总线的带宽限制</p>
-<h5 id="4-3-通过网状结构交换"><a href="#4-3-通过网状结构交换" class="headerlink" title="4-3 通过网状结构交换"></a>4-3 通过网状结构交换</h5><p>克服了总线带宽的限制</p>
-<h2 id="四-虚电路和数据报网络"><a href="#四-虚电路和数据报网络" class="headerlink" title="四.虚电路和数据报网络"></a>四.虚电路和数据报网络</h2><h3 id="回顾：虚电路网络和分组交换网络"><a href="#回顾：虚电路网络和分组交换网络" class="headerlink" title="回顾：虚电路网络和分组交换网络"></a>回顾：虚电路网络和分组交换网络</h3>
+<h3 id="测试样例"><a href="#测试样例" class="headerlink" title="测试样例"></a>测试样例</h3><pre class="line-numbers language-none"><code class="language-none">输入：coins = [1, 2, 5], amount = 11
+输出：3 
+解释：11 = 5 + 5 + 1</code></pre>
+
+<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>我们先从暴力方法入手，我们只需要<code>DFS</code>遍历所有可能的组合数量就可以从中找到一个最优解，但是这样暴力枚举的复杂度相当大，我们需要想一个更加优秀的算法。这种问题我们还是用递归更加恰当，试想我们想知道金额x最少需要多少，那么我只需要知道金额<code>x-coin_i(i&gt;=0 &amp;&amp; i&lt;size)</code>最少需要多少枚硬币，然后找到它们最小那个加一就行了，这样利用了动态规划的思想，站在前人的成果之上来解题，就方便了很多，所以我们只需要从1开始计算到amount分别最少需要多少钱就可以了</p>
+<p>状态转移方程：<code>dp[i]=min(dp[i-coin_j]+1) (j&gt;=0 &amp;&amp; j&lt;coins.size)</code></p>
+<h3 id="复杂度分析"><a href="#复杂度分析" class="headerlink" title="复杂度分析"></a>复杂度分析</h3><p>时间复杂度<code>O(amount * size)</code></p>
+<p>空间复杂度<code>O(amount)</code></p>
+<h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">class Solution {
+public:
+    int coinChange(vector&lt;int&gt;&amp; coins, int amount) {
+        vector&lt;int&gt; dp(amount+1,INT_MAX-1);
+        dp[0]=0;
+        for(int i=1;i&lt;=amount;i++){
+            for(auto coin:coins){
+                if(i-coin&gt;=0){
+                    dp[i]=min(dp[i],dp[i-coin]+1);
+                }
+            }
+        }
+        
+        return dp[amount]&lt;INT_MAX-1?dp[amount]:-1;
+    }
+};</code></pre>
+
+<h2 id="2-零钱兑换2"><a href="#2-零钱兑换2" class="headerlink" title="2.零钱兑换2"></a>2.零钱兑换2</h2><h3 id="题目-1"><a href="#题目-1" class="headerlink" title="题目"></a>题目</h3><p>给定不同面额的硬币和一个总金额。写出函数来计算可以凑成总金额的硬币组合数。假设每一种面额的硬币有无限个。 </p>
+<h3 id="测试样例-1"><a href="#测试样例-1" class="headerlink" title="测试样例"></a>测试样例</h3><pre class="line-numbers language-none"><code class="language-none">输入: amount = 5, coins = [1, 2, 5]
+输出: 4
+解释: 有四种方式可以凑成总金额:
+5=5
+5=2+2+1
+5=2+1+1+1
+5=1+1+1+1+1</code></pre>
+
+<h3 id="思路-1"><a href="#思路-1" class="headerlink" title="思路"></a>思路</h3><p>这道题跟</p>
+<p>类似，但是他们要求解的东西不一样，那道题要求凑成总金额需要最少的硬币数，这道题要求有多少种可以凑成总金额的组合</p>
+<p>对于某一个金额x，我们可以查看<code>x-coin_i</code>的组合数，加到一起即可，等等…我是不是忘了什么，这样很可能出现重复的组合，比如说<code>amount=5</code>，<code>coins=[1,2,5]</code>，那么1+2可以组合成3，那么3+2可以组合成5；2+2可以组合成4，那么4+1可以组合成5，所以<code>1+2+2=5</code>这个组合至少用了两次！！！所以这种做法需要被<code>pass</code>掉！！！</p>
+<p>那么正确的做法应该是什么呢？我们可以在外层对硬币金额进行遍历，内层更新每一个金额。这样每层循环解释起来就是，我用前k种硬币，凑成每一种金额有多少组合。那么我进行每一次遍历的时候，我之前积累起来的是用前k种硬币有多少种，那么加上第k+1种硬币能够有多少种。</p>
+<h3 id="复杂度分析-1"><a href="#复杂度分析-1" class="headerlink" title="复杂度分析"></a>复杂度分析</h3><p>时间复杂度<code>O(amount * size)</code></p>
+<p>空间复杂度<code>O(amount)</code></p>
+<h3 id="代码-1"><a href="#代码-1" class="headerlink" title="代码"></a>代码</h3><pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">class Solution {
+public:
+    int change(int amount, vector&lt;int&gt;&amp; coins) {
+        vector&lt;int&gt; dp(amount+1,0);
+        dp[0]=1;
+        for(auto coin:coins){
+            for(int i=coin;i&lt;=amount;i++){
+                dp[i]+=dp[i-coin];
+            }
+        }
+        return dp[amount];
+    }
+};</code></pre>
+
+
                 
             </div>
             <hr/>
@@ -506,7 +509,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://changanyyy.github.io/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E7%BD%91%E7%BB%9C%E5%B1%82/">http://changanyyy.github.io/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E7%BD%91%E7%BB%9C%E5%B1%82/</a>
+                    <a href="http://changanyyy.github.io/2021/06/10/DP-%E9%9B%B6%E9%92%B1%E5%85%91%E6%8D%A2%E9%97%AE%E9%A2%98/">http://changanyyy.github.io/2021/06/10/DP-%E9%9B%B6%E9%92%B1%E5%85%91%E6%8D%A2%E9%97%AE%E9%A2%98/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -711,9 +714,10 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
                 <a href="/2021/06/10/DP-%E9%9B%B6%E9%92%B1%E5%85%91%E6%8D%A2%E9%97%AE%E9%A2%98/">
                     <div class="card-image">
@@ -731,9 +735,9 @@
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2021-06-10
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-10
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -746,6 +750,7 @@
                         </span>
                     </div>
                 </div>
+
                 
             </div>
         </div>
@@ -756,13 +761,13 @@
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E9%93%BE%E8%B7%AF%E5%B1%82/">
+                <a href="/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E7%BD%91%E7%BB%9C%E5%B1%82/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/6.jpg" class="responsive-img" alt="计算机网络笔记链路层">
+                        <img src="/medias/featureimages/12.jpg" class="responsive-img" alt="计算机网络笔记网络层">
                         
-                        <span class="card-title">计算机网络笔记链路层</span>
+                        <span class="card-title">计算机网络笔记网络层</span>
                     </div>
                 </a>
                 <div class="card-content article-content">

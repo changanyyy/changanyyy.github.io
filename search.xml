@@ -4,6 +4,25 @@
   
     
     <entry>
+      <title>DP-零钱兑换问题</title>
+      <link href="/2021/06/10/DP-%E9%9B%B6%E9%92%B1%E5%85%91%E6%8D%A2%E9%97%AE%E9%A2%98/"/>
+      <url>/2021/06/10/DP-%E9%9B%B6%E9%92%B1%E5%85%91%E6%8D%A2%E9%97%AE%E9%A2%98/</url>
+      
+        <content type="html"><![CDATA[<h1 id="零钱兑换系列问题"><a href="#零钱兑换系列问题" class="headerlink" title="零钱兑换系列问题"></a>零钱兑换系列问题</h1><h2 id="1-零钱兑换1"><a href="#1-零钱兑换1" class="headerlink" title="1.零钱兑换1"></a>1.零钱兑换1</h2><h3 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h3><p>这道题目是力扣上面的题目，最近正好在学DP就做了个题解</p><p>给定不同面额的硬币 <code>coins</code> 和一个总金额 <code>amount</code>。编写一个函数来计算可以凑成总金额所需的最少的硬币个数。如果没有任何一种硬币组合能组成总金额，返回 -1。</p><p>你可以认为每种硬币的数量是无限的。</p><p>提示</p><ul><li><code>1 &lt;= coins.length &lt;= 12</code></li><li><code>1 &lt;= coins[i] &lt;= 231 - 1</code></li><li><code>0 &lt;= amount &lt;= 104</code></li></ul><h3 id="测试样例"><a href="#测试样例" class="headerlink" title="测试样例"></a>测试样例</h3><pre class="line-numbers language-none"><code class="language-none">输入：coins = [1, 2, 5], amount = 11输出：3 解释：11 = 5 + 5 + 1</code></pre><h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>我们先从暴力方法入手，我们只需要<code>DFS</code>遍历所有可能的组合数量就可以从中找到一个最优解，但是这样暴力枚举的复杂度相当大，我们需要想一个更加优秀的算法。这种问题我们还是用递归更加恰当，试想我们想知道金额x最少需要多少，那么我只需要知道金额<code>x-coin_i(i&gt;=0 &amp;&amp; i&lt;size)</code>最少需要多少枚硬币，然后找到它们最小那个加一就行了，这样利用了动态规划的思想，站在前人的成果之上来解题，就方便了很多，所以我们只需要从1开始计算到amount分别最少需要多少钱就可以了</p><p>状态转移方程：<code>dp[i]=min(dp[i-coin_j]+1) (j&gt;=0 &amp;&amp; j&lt;coins.size)</code></p><h3 id="复杂度分析"><a href="#复杂度分析" class="headerlink" title="复杂度分析"></a>复杂度分析</h3><p>时间复杂度<code>O(amount * size)</code></p><p>空间复杂度<code>O(amount)</code></p><h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">class Solution {public:    int coinChange(vector&lt;int&gt;&amp; coins, int amount) {        vector&lt;int&gt; dp(amount+1,INT_MAX-1);        dp[0]=0;        for(int i=1;i&lt;=amount;i++){            for(auto coin:coins){                if(i-coin&gt;=0){                    dp[i]=min(dp[i],dp[i-coin]+1);                }            }        }                return dp[amount]&lt;INT_MAX-1?dp[amount]:-1;    }};</code></pre><h2 id="2-零钱兑换2"><a href="#2-零钱兑换2" class="headerlink" title="2.零钱兑换2"></a>2.零钱兑换2</h2><h3 id="题目-1"><a href="#题目-1" class="headerlink" title="题目"></a>题目</h3><p>给定不同面额的硬币和一个总金额。写出函数来计算可以凑成总金额的硬币组合数。假设每一种面额的硬币有无限个。 </p><h3 id="测试样例-1"><a href="#测试样例-1" class="headerlink" title="测试样例"></a>测试样例</h3><pre class="line-numbers language-none"><code class="language-none">输入: amount = 5, coins = [1, 2, 5]输出: 4解释: 有四种方式可以凑成总金额:5=55=2+2+15=2+1+1+15=1+1+1+1+1</code></pre><h3 id="思路-1"><a href="#思路-1" class="headerlink" title="思路"></a>思路</h3><p>这道题跟</p><p>类似，但是他们要求解的东西不一样，那道题要求凑成总金额需要最少的硬币数，这道题要求有多少种可以凑成总金额的组合</p><p>对于某一个金额x，我们可以查看<code>x-coin_i</code>的组合数，加到一起即可，等等…我是不是忘了什么，这样很可能出现重复的组合，比如说<code>amount=5</code>，<code>coins=[1,2,5]</code>，那么1+2可以组合成3，那么3+2可以组合成5；2+2可以组合成4，那么4+1可以组合成5，所以<code>1+2+2=5</code>这个组合至少用了两次！！！所以这种做法需要被<code>pass</code>掉！！！</p><p>那么正确的做法应该是什么呢？我们可以在外层对硬币金额进行遍历，内层更新每一个金额。这样每层循环解释起来就是，我用前k种硬币，凑成每一种金额有多少组合。那么我进行每一次遍历的时候，我之前积累起来的是用前k种硬币有多少种，那么加上第k+1种硬币能够有多少种。</p><h3 id="复杂度分析-1"><a href="#复杂度分析-1" class="headerlink" title="复杂度分析"></a>复杂度分析</h3><p>时间复杂度<code>O(amount * size)</code></p><p>空间复杂度<code>O(amount)</code></p><h3 id="代码-1"><a href="#代码-1" class="headerlink" title="代码"></a>代码</h3><pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">class Solution {public:    int change(int amount, vector&lt;int&gt;&amp; coins) {        vector&lt;int&gt; dp(amount+1,0);        dp[0]=1;        for(auto coin:coins){            for(int i=coin;i&lt;=amount;i++){                dp[i]+=dp[i-coin];            }        }        return dp[amount];    }};</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> 算法 </category>
+          
+      </categories>
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>计算机网络笔记网络层</title>
       <link href="/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E7%BD%91%E7%BB%9C%E5%B1%82/"/>
       <url>/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E7%BD%91%E7%BB%9C%E5%B1%82/</url>
@@ -23,25 +42,6 @@
     
     
     <entry>
-      <title>动态规划</title>
-      <link href="/2021/06/07/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0/"/>
-      <url>/2021/06/07/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0/</url>
-      
-        <content type="html"><![CDATA[<h1 id="有向无环图中的最长路径"><a href="#有向无环图中的最长路径" class="headerlink" title="有向无环图中的最长路径"></a>有向无环图中的最长路径</h1><h2 id="输入"><a href="#输入" class="headerlink" title="输入"></a>输入</h2><p>第一行为一个数字<code>n</code>，表示总点数。之后点的标号为从<code>0</code>到<code>n-1</code>。</p><p>之后的每一行，格式为<code>3</code>个数字，以空格隔开，分别为相连的两个点的编号，它们的边的权值。</p><p>注：输入为有向图。如果出现了<code>“0 1 50”</code>表示点<code>0</code>到点<code>1</code>之间有一条边，权值为<code>50</code>。</p><h2 id="输出"><a href="#输出" class="headerlink" title="输出"></a>输出</h2><p>点0到其他所有点的最长路径，以空格隔开。注：点0到其他所有点都是可达的。</p><h2 id="复杂度"><a href="#复杂度" class="headerlink" title="复杂度"></a>复杂度</h2><p>复杂度要求在<strong>O(m+n)</strong></p><p>样例输入输出</p><pre class="line-numbers language-none"><code class="language-none">输入：60 1 10 3 21 2 62 4 12 5 23 4 33 1 44 5 1输出：6 12 2 13 14 </code></pre><h2 id="思路解析"><a href="#思路解析" class="headerlink" title="思路解析"></a>思路解析</h2><p>首先，看到复杂度是线性时间复杂度，我们想到不太可能用类似<code>Dijkstra</code>，<code>Prime</code>之类的算法，大概是用一个<code>DFS</code>或者<code>BFS</code>框架来完成。</p><p>对于有向无环图，我们会敏锐地发觉它的一些特性：从0经过某些顶点之前，路径上必然会经过另一些顶点！！！如果我们在处理顶点A之前，对它之前的所有顶点的路径进行处理的话，我们就可以依托之前的路径来对顶点A进行处理。这句话怎么听起来这么耳熟？没错，这似乎就是动态规划的具体做法！</p><p>众所周知，动态规划的思路就是<strong>利用前面已经求出的子问题来解决其他的子问题</strong>。我们通过前面经过的顶点来求后面的顶点，与这个思想相符。那么我们怎么判断谁在前谁在后呢？联系算法需要的线性复杂度，我们联想到<code>Topo</code>排序，对顶点进行拓扑序小的在前面，拓扑序大的在后面。那么基本的思路逐渐清晰了。</p><p>先利用拓扑排序对顶点进行排序，这样我在遍历某一个顶点A的时候，从0到A的路径上的所有顶点必然已经被遍历过！那么我们如何找到他前面的顶点呢？做法有两种，第一种是建立一个逆邻接表，这样就可以找到哪一个路径通向点A；第二种做法是在遍历A前面节点X的时候，直接对X的邻居进行处理，这样在遍历到A的时候，A已经被处理完了，A的任务就只变成了对A的邻居进行处理。这两种做法本质上是一样的，但是鉴于省下更多的时间和空间，我采用了第二种方法！</p><p>复杂度分析：<code>topo</code>排序是线性复杂度，后面的<code>DP</code>也是线性复杂度</p><h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><p>下面我们就可以进行Coding了！代码如下：</p><pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">#define _CRT_SECURE_NO_WARNINGS#include&lt;iostream&gt;#include&lt;vector&gt;#include&lt;stack&gt;using namespace std; //邻接表节点，存储邻居节点和路径长度struct node {    int v, weight;    node(int _v, int _w) { v = _v; weight = _w; }};//邻接表，二维矩阵vector&lt;vector&lt;node&gt;&gt; table;//topo的本质是DFS，需要visit数组vector&lt;bool&gt; visit;//存储topo序，顶端的topo序更小stack&lt;int&gt; topo;//存储答案vector&lt;int&gt; res; void dfs(int v) {    visit[v] = true;    for (int i = 0; i &lt; table[v].size(); i++) {        if(!visit[table[v][i].v])dfs(table[v][i].v);    }    topo.push(v);//在处理过v后面所有的节点之后，v的节点topo序要小于它后面的所有节点} int main() {    int n;    scanf("%d", &amp;n);//初始化         res = vector&lt;int&gt;(n, 0);    visit = vector&lt;bool&gt;(n, false);    table = vector&lt;vector&lt;node&gt;&gt;(n);    int v1, v2, w;    while (scanf("%d %d %d",&amp;v1,&amp;v2,&amp;w)!=-1) {        table[v1].push_back(node(v2, w));    }     dfs(0);//topo排序     while (!topo.empty()) {        int cur = topo.top();        topo.pop();        for (int i = 0; i &lt; table[cur].size(); i++) {//处理cur的邻居            res[table[cur][i].v] = max(res[table[cur][i].v], res[cur] + table[cur][i].weight);        }    }    for (int i = 1; i &lt; n; i++) {        printf("%d ", res[i]);    }     return 0;}</code></pre>]]></content>
-      
-      
-      <categories>
-          
-          <category> 算法 </category>
-          
-      </categories>
-      
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>计算机网络笔记链路层</title>
       <link href="/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E9%93%BE%E8%B7%AF%E5%B1%82/"/>
       <url>/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E9%93%BE%E8%B7%AF%E5%B1%82/</url>
@@ -52,6 +52,25 @@
       <categories>
           
           <category> 计算机网络 </category>
+          
+      </categories>
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>DP-有向无环图的最长路径</title>
+      <link href="/2021/06/07/DP-%E6%9C%89%E5%90%91%E6%97%A0%E7%8E%AF%E5%9B%BE%E7%9A%84%E6%9C%80%E9%95%BF%E8%B7%AF%E5%BE%84/"/>
+      <url>/2021/06/07/DP-%E6%9C%89%E5%90%91%E6%97%A0%E7%8E%AF%E5%9B%BE%E7%9A%84%E6%9C%80%E9%95%BF%E8%B7%AF%E5%BE%84/</url>
+      
+        <content type="html"><![CDATA[<h1 id="有向无环图中的最长路径"><a href="#有向无环图中的最长路径" class="headerlink" title="有向无环图中的最长路径"></a>有向无环图中的最长路径</h1><h2 id="输入"><a href="#输入" class="headerlink" title="输入"></a>输入</h2><p>第一行为一个数字<code>n</code>，表示总点数。之后点的标号为从<code>0</code>到<code>n-1</code>。</p><p>之后的每一行，格式为<code>3</code>个数字，以空格隔开，分别为相连的两个点的编号，它们的边的权值。</p><p>注：输入为有向图。如果出现了<code>“0 1 50”</code>表示点<code>0</code>到点<code>1</code>之间有一条边，权值为<code>50</code>。</p><h2 id="输出"><a href="#输出" class="headerlink" title="输出"></a>输出</h2><p>点0到其他所有点的最长路径，以空格隔开。注：点0到其他所有点都是可达的。</p><h2 id="复杂度"><a href="#复杂度" class="headerlink" title="复杂度"></a>复杂度</h2><p>复杂度要求在<strong>O(m+n)</strong></p><p>样例输入输出</p><pre class="line-numbers language-none"><code class="language-none">输入：60 1 10 3 21 2 62 4 12 5 23 4 33 1 44 5 1输出：6 12 2 13 14 </code></pre><h2 id="思路解析"><a href="#思路解析" class="headerlink" title="思路解析"></a>思路解析</h2><p>首先，看到复杂度是线性时间复杂度，我们想到不太可能用类似<code>Dijkstra</code>，<code>Prime</code>之类的算法，大概是用一个<code>DFS</code>或者<code>BFS</code>框架来完成。</p><p>对于有向无环图，我们会敏锐地发觉它的一些特性：从0经过某些顶点之前，路径上必然会经过另一些顶点！！！如果我们在处理顶点A之前，对它之前的所有顶点的路径进行处理的话，我们就可以依托之前的路径来对顶点A进行处理。这句话怎么听起来这么耳熟？没错，这似乎就是动态规划的具体做法！</p><p>众所周知，动态规划的思路就是<strong>利用前面已经求出的子问题来解决其他的子问题</strong>。我们通过前面经过的顶点来求后面的顶点，与这个思想相符。那么我们怎么判断谁在前谁在后呢？联系算法需要的线性复杂度，我们联想到<code>Topo</code>排序，对顶点进行拓扑序小的在前面，拓扑序大的在后面。那么基本的思路逐渐清晰了。</p><p>先利用拓扑排序对顶点进行排序，这样我在遍历某一个顶点A的时候，从0到A的路径上的所有顶点必然已经被遍历过！那么我们如何找到他前面的顶点呢？做法有两种，第一种是建立一个逆邻接表，这样就可以找到哪一个路径通向点A；第二种做法是在遍历A前面节点X的时候，直接对X的邻居进行处理，这样在遍历到A的时候，A已经被处理完了，A的任务就只变成了对A的邻居进行处理。这两种做法本质上是一样的，但是鉴于省下更多的时间和空间，我采用了第二种方法！</p><p>复杂度分析：<code>topo</code>排序是线性复杂度，后面的<code>DP</code>也是线性复杂度</p><h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><p>下面我们就可以进行Coding了！代码如下：</p><pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">#define _CRT_SECURE_NO_WARNINGS#include&lt;iostream&gt;#include&lt;vector&gt;#include&lt;stack&gt;using namespace std; //邻接表节点，存储邻居节点和路径长度struct node {    int v, weight;    node(int _v, int _w) { v = _v; weight = _w; }};//邻接表，二维矩阵vector&lt;vector&lt;node&gt;&gt; table;//topo的本质是DFS，需要visit数组vector&lt;bool&gt; visit;//存储topo序，顶端的topo序更小stack&lt;int&gt; topo;//存储答案vector&lt;int&gt; res; void dfs(int v) {    visit[v] = true;    for (int i = 0; i &lt; table[v].size(); i++) {        if(!visit[table[v][i].v])dfs(table[v][i].v);    }    topo.push(v);//在处理过v后面所有的节点之后，v的节点topo序要小于它后面的所有节点} int main() {    int n;    scanf("%d", &amp;n);//初始化         res = vector&lt;int&gt;(n, 0);    visit = vector&lt;bool&gt;(n, false);    table = vector&lt;vector&lt;node&gt;&gt;(n);    int v1, v2, w;    while (scanf("%d %d %d",&amp;v1,&amp;v2,&amp;w)!=-1) {        table[v1].push_back(node(v2, w));    }     dfs(0);//topo排序     while (!topo.empty()) {        int cur = topo.top();        topo.pop();        for (int i = 0; i &lt; table[cur].size(); i++) {//处理cur的邻居            res[table[cur][i].v] = max(res[table[cur][i].v], res[cur] + table[cur][i].weight);        }    }    for (int i = 1; i &lt; n; i++) {        printf("%d ", res[i]);    }     return 0;}</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> 算法 </category>
           
       </categories>
       
