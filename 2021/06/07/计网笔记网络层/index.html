@@ -410,7 +410,67 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                
+                <h2 id="一-网络层的功能"><a href="#一-网络层的功能" class="headerlink" title="一.网络层的功能"></a>一.网络层的功能</h2><ol>
+<li>从发送主机到接收主机传送报文段</li>
+<li>在发送端把运输层报文段封装进网络层数据报</li>
+<li>在接收方，把报文段递交给运输层</li>
+<li>在每一个主机和路由器都有运输层协议</li>
+<li>路由器检查IP数据报的header域，然后通过它传递</li>
+</ol>
+<p>两个关键的功能：</p>
+<p>交换和路由：运用路由算法决定从源到目的发包的路由路线，找到从源到目的最短路线（路由决定转发表）</p>
+<p>转发：从输入端口转发到特定的输出端口，进行错误处理排队和调度</p>
+<p>连接建立：在数据报开始发送之前，终端主机和路由器之间建立虚拟连接（和运输层对比，网络层的连接建立是包括主机和路由器，而运输层是在两个主机进程之间！）</p>
+<h2 id="二-网络服务模型"><a href="#二-网络服务模型" class="headerlink" title="二.网络服务模型"></a>二.网络服务模型</h2><p>信道的什么服务模型来从发送方到接收方传输数据报？</p>
+<h3 id="例子：ATM的网络服务模型"><a href="#例子：ATM的网络服务模型" class="headerlink" title="例子：ATM的网络服务模型"></a>例子：ATM的网络服务模型</h3><p>恒定比特率（CBR）和可变比特率（VBR），有效比特率和未定义比特率</p>
+<p><img src="/picture/atm.png"></p>
+<h3 id="例子：IP的网络服务模型"><a href="#例子：IP的网络服务模型" class="headerlink" title="例子：IP的网络服务模型"></a>例子：IP的网络服务模型</h3><p>尽力而为</p>
+<p><img src="/picture/ip.png"></p>
+<h2 id="三-IP路由器"><a href="#三-IP路由器" class="headerlink" title="三.IP路由器"></a>三.IP路由器</h2><p>互联网基础设施的核心！</p>
+<p>路由器的容量=NXR（其中N是外部路由端口的数量，R是每个端口的速率）</p>
+<p><img src="/picture/isp.png"></p>
+<h3 id="不同类型的路由器"><a href="#不同类型的路由器" class="headerlink" title="不同类型的路由器"></a>不同类型的路由器</h3><h4 id="1-核心路由器"><a href="#1-核心路由器" class="headerlink" title="1.核心路由器"></a>1.核心路由器</h4><p>R = 10/40/100/200/400 Gbps  NR = O(100) Tbps (总共)</p>
+<h4 id="2-边缘路由器"><a href="#2-边缘路由器" class="headerlink" title="2.边缘路由器"></a>2.边缘路由器</h4><p>R = 1/10/40/100 Gbps NR = O(100) Gbps</p>
+<h4 id="2-小型商用"><a href="#2-小型商用" class="headerlink" title="2.小型商用"></a>2.小型商用</h4><p>R = 1 Gbps  NR &lt; 10 Gbps</p>
+<h3 id="路由器的内部：架构概览"><a href="#路由器的内部：架构概览" class="headerlink" title="路由器的内部：架构概览"></a>路由器的内部：架构概览</h3><h4 id="1-总览"><a href="#1-总览" class="headerlink" title="1.总览"></a>1.总览</h4><p><img src="/picture/router%E6%9E%B6%E6%9E%84%E6%A6%82%E8%A7%88.png"></p>
+<h4 id="2-输入端口"><a href="#2-输入端口" class="headerlink" title="2.输入端口"></a>2.输入端口</h4><p><img src="/picture/11.png"></p>
+<p>输入端口的任务：</p>
+<ul>
+<li>收到包（物理层的任务）</li>
+<li>更新IP头：TTL，checksum，可选字段等</li>
+<li>查找目的IP对应的合适的输出端口</li>
+<li>排队：如果包到达太快就要缓存排队</li>
+</ul>
+<h5 id="查找合适的输出端口"><a href="#查找合适的输出端口" class="headerlink" title="查找合适的输出端口"></a>查找合适的输出端口</h5><p>如果一个表项对应一个地址就要有40亿个表项，为了可扩展性，地址是聚合的，目标地址按一定范围映射。<strong>按照最长前缀匹配规则</strong></p>
+<p><img src="/picture/%E6%9C%80%E9%95%BF%E5%89%8D%E7%BC%80.png"></p>
+<h5 id="处理速度"><a href="#处理速度" class="headerlink" title="处理速度"></a>处理速度</h5><p>输入端口的任务要更新包头还有转发表查询，大多数被硬件处理！</p>
+<h4 id="3-输出端口"><a href="#3-输出端口" class="headerlink" title="3.输出端口"></a>3.输出端口</h4><p><img src="/picture/outputport.png"></p>
+<p>输出端口任务：</p>
+<ul>
+<li>包分类：把包映射到流里面</li>
+<li>缓冲处理：决定什么时候和哪些包要扔掉</li>
+<li>调度：决定哪些包什么时候传输（从排队的包里面选择进行传输，当buffer满了就要选择包丢弃）</li>
+</ul>
+<p>缓冲处理先进先出：最简单，没有分类，buffer满了的话就丢掉后来的包</p>
+<p><img src="/picture/fifo.png"></p>
+<p>包分类：根据header域来把IP包分类，比如源和目的的IP地址，源和目的的TCP端口号，服务类型，协议类型……</p>
+<h5 id="调度"><a href="#调度" class="headerlink" title="调度"></a>调度</h5><p>每一个流（“flow”）都有一个队列，调度器决定什么时候才能够哪个队列发包。调度器的目标是：快！</p>
+<h6 id="轮转调度"><a href="#轮转调度" class="headerlink" title="轮转调度"></a>轮转调度</h6><p>轮转：每个队列里的包被轮流调度</p>
+<p>公平排队（FQ）：对于不同大小的队列进行轮转调度</p>
+<p>加权公平队列（WFQ）：按照权重比例来调度</p>
+<h4 id="4-交换结构"><a href="#4-交换结构" class="headerlink" title="4.交换结构"></a>4.交换结构</h4><p>交换结构用来连接输入端口和输出端口，从输入buffer传送到合适的输出buffer。</p>
+<p>交换速率：包可以从输入端口到输出端口传送的速率</p>
+<p>有三种结构来交换：</p>
+<ul>
+<li>通过共享内存交换</li>
+<li>通过总线交换</li>
+<li>通过物联的网络交换：比如横梁</li>
+</ul>
+<p><img src="/picture/3%E7%A7%8D.png" alt="三种交换结构"></p>
+<h5 id="4-1-通过共享内存交换"><a href="#4-1-通过共享内存交换" class="headerlink" title="4-1 通过共享内存交换"></a>4-1 通过共享内存交换</h5><p>第一代路由器采用这种，它是一种直接在CPU控制下交换的传统的电脑，分组被拷贝到系统的内存里面。速度被内存的带宽限制</p>
+<h5 id="4-2-通过总线交换"><a href="#4-2-通过总线交换" class="headerlink" title="4-2 通过总线交换"></a>4-2 通过总线交换</h5><p>数据报通过共享总线从输入端口内存传送到输出端口内存，速率被总线的带宽限制</p>
+<h5 id="4-3-通过网状结构交换"><a href="#4-3-通过网状结构交换" class="headerlink" title="4-3 通过网状结构交换"></a>4-3 通过网状结构交换</h5><p>克服了总线带宽的限制</p>
+<h2 id="四-虚电路和数据报网络"><a href="#四-虚电路和数据报网络" class="headerlink" title="四.虚电路和数据报网络"></a>四.虚电路和数据报网络</h2><h3 id="回顾：虚电路网络和分组交换网络"><a href="#回顾：虚电路网络和分组交换网络" class="headerlink" title="回顾：虚电路网络和分组交换网络"></a>回顾：虚电路网络和分组交换网络</h3>
                 
             </div>
             <hr/>
