@@ -408,14 +408,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    5.5k
+                    6.5k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    19 分
+                    22 分
                 </div>
                 
 
@@ -782,6 +782,99 @@
 <p><img src="/picture/%E4%BE%8B%E5%AD%90.png"></p>
 <h4 id="3-隧道"><a href="#3-隧道" class="headerlink" title="3.隧道"></a>3.隧道</h4><p>在注册之后，一个IP隧道建立起来了，在归属代理和移动节点的COA之间建立。归属节点广播把移动节点IP地址绑定到归属代理MAC地址的ARP请求。因此，归属代理收到了发送给移动节点的包，会通过IP隧道转发给外部代理</p>
 <p><img src="/picture/111.png"></p>
+<h2 id="九-路由算法"><a href="#九-路由算法" class="headerlink" title="九.路由算法"></a>九.路由算法</h2><p>路由分为中心化的路由和分布式路由</p>
+<p>中心化：固定的并且需要配置</p>
+<p>分布式：通过洪泛，随机的，自适应的</p>
+<p><img src="/picture/cvd.png"></p>
+<h3 id="插播：洪泛（分布式）"><a href="#插播：洪泛（分布式）" class="headerlink" title="插播：洪泛（分布式）"></a>插播：洪泛（分布式）</h3><p>洪泛不需要全局网络信息，分组被交换机发送给所有邻居，分组在除了入链路的每个链路都会转发，最后很多拷贝会到达目的。</p>
+<p>洪泛的性质：所有可能的路由都会被尝试，至少一个包会通过最小cost路由，所有的交换机都被访问过（分布式，可能用于路由）</p>
+<h3 id="随机路由（分布式）"><a href="#随机路由（分布式）" class="headerlink" title="随机路由（分布式）"></a>随机路由（分布式）</h3><p>节点选择一个出链路来转发到来的包，选择是随机或者轮流的，基于概率。不需要什么网络信息，适合强连通网络，路由不是最佳的。</p>
+<p>以下说明如何分配概率：</p>
+<p><img src="/picture/p.png"></p>
+<h3 id="自适应路由"><a href="#自适应路由" class="headerlink" title="自适应路由"></a>自适应路由</h3><p>被用作几乎所有分组交换网络，当网络状况改变时候路由决策也会改变。需要网络的信息，需要在网络质量和开销之间权衡。有助于拥塞控制</p>
+<h3 id="两种最小花费算法"><a href="#两种最小花费算法" class="headerlink" title="两种最小花费算法"></a>两种最小花费算法</h3><p><code>Dijkstra</code>算法和<code>Bellman-Ford</code>算法</p>
+<h4 id="Dijkstra算法"><a href="#Dijkstra算法" class="headerlink" title="Dijkstra算法"></a>Dijkstra算法</h4><p>找到从给定源到其他所有节点的最短路径</p>
+<ul>
+<li>N是网络中的节点集合</li>
+<li>s是源节点</li>
+<li>T是到目前为止已经被算法合并的节点</li>
+<li><code>w(i,j)</code>是从i到j的链路消耗<ul>
+<li><code>w(i,i)+0</code></li>
+<li><code>w(i,j)=无穷</code>当两节点没有直接连接</li>
+<li><code>w(i,j)&gt;0</code>当两节点直接连接</li>
+</ul>
+</li>
+</ul>
+<h5 id="算法过程"><a href="#算法过程" class="headerlink" title="算法过程"></a>算法过程</h5><p><code>L(n)</code>是从源s到当前已知的节点n的最小路径花费</p>
+<ol>
+<li>初始化<ul>
+<li><code>T={s}</code>是只包含源点s被合并其中的节点的集合</li>
+<li><code>L(n)=w(s,n) for n≠s</code></li>
+<li>初始化到邻居节点的路径花费</li>
+</ul>
+</li>
+<li>得到下一个节点<ul>
+<li>找到不在T中的到源点s的最短路径的x，<code>min L(x)</code></li>
+<li>把x合并在T中</li>
+</ul>
+</li>
+<li>更新路径<ul>
+<li><code>L(n)=min{L(n),L(x)+w(x,n)} for all n∉T</code></li>
+<li>如果后者更小的话，那么从s到n的路径就变成了从s到x再从x到n的路径</li>
+</ul>
+</li>
+</ol>
+<p>算法在所有节点被添加到T中时结束</p>
+<p>步骤2和3的一次迭代会添加一个新节点到T中</p>
+<p><img src="/picture/dijkstra.png"></p>
+<p>但是可能会出现震荡，解决办法就是非同步运行路由算法，链路代价更新随机化（让每台路由器发送链路通告的时间随机化）</p>
+<h4 id="Bellman-Ford算法"><a href="#Bellman-Ford算法" class="headerlink" title="Bellman-Ford算法"></a>Bellman-Ford算法</h4><p>找到一条从给定节点包含最多一条链路的最短路径，</p>
+<p>找到一条从给定节点包含最多两条链路的最多路径（基于前面的步骤）</p>
+<p>找到一条…不断进行迭代</p>
+<ul>
+<li><p>s是源点</p>
+</li>
+<li><p><code>w(i,j)</code>是从i到j的链路消耗</p>
+<ul>
+<li><code>w(i,i)+0</code></li>
+<li><code>w(i,j)=无穷</code>当两节点没有直接连接</li>
+<li><code>w(i,j)&gt;0</code>当两节点直接连接</li>
+</ul>
+</li>
+<li><p>h是在当前阶段路径上链路的最大数量</p>
+</li>
+<li><p><code>L_h(n)</code>是在当前不超过h条链路的限制下从s到n的最短链路消耗</p>
+</li>
+</ul>
+<h5 id="算法过程-1"><a href="#算法过程-1" class="headerlink" title="算法过程"></a>算法过程</h5><ol>
+<li>初始化<ul>
+<li><code>L_0(n) = ∞, for all n ≠ s</code> </li>
+<li><code>L_1(n) = w(s, n) </code></li>
+<li><code>L_h(s) = 0, for all h</code></li>
+</ul>
+</li>
+<li>更新<ul>
+<li>对于每个连续的<code>h&gt;0</code></li>
+<li>对于每个<code>n≠s</code>，计算<code>L_(h+1)(n) = min_j [Lh(j)+w(j,n)]</code></li>
+<li>用已经找到最小的预处理节点j连接n</li>
+<li>消除在早期迭代过程中形成的n的任何连接</li>
+</ul>
+</li>
+<li>重复一直到没有改变</li>
+</ol>
+<p><img src="/picture/Bellman.png"></p>
+<h5 id="链路花费改变"><a href="#链路花费改变" class="headerlink" title="链路花费改变"></a>链路花费改变</h5><p>当链路代价改变时候：</p>
+<ul>
+<li>节点检测到本地链路代价改变了</li>
+<li>更新路由信息，重新计算距离向量</li>
+<li>如果<code>DV</code>，改变了，就通知周围邻居<ul>
+<li><img src="/picture/dv.png"></li>
+<li>t0:y检测到链路代价改变，更新dv，通知邻居</li>
+<li>t1:z收到来自y的更新，更新自己的表，计算到x的最小距离，发送给邻居</li>
+<li>t2:y收到z的更新，更新自己的表，没有改变，所以不用给z发送消息</li>
+</ul>
+</li>
+</ul>
 
                 
             </div>
