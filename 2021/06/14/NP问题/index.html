@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="DP-零钱兑换问题, yxz的博客">
+    <meta name="keywords" content="NP问题, yxz的博客">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>DP-零钱兑换问题 | yxz的博客</title>
+    <title>NP问题 | yxz的博客</title>
     <link rel="icon" type="image/jpeg" href="/logo.jpg">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -249,12 +249,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/15.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/12.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">DP-零钱兑换问题</h1>
+                    <h1 class="description center-align post-title">NP问题</h1>
                 </div>
             </div>
         </div>
@@ -368,9 +368,13 @@
             <div class="row tag-cate">
                 <div class="col s7">
                     
-                          <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
-                          </div>
+                    <div class="article-tag">
+                        
+                            <a href="/tags/NP%E5%A4%8D%E6%9D%82%E6%80%A7/">
+                                <span class="chip bg-color">NP复杂性</span>
+                            </a>
+                        
+                    </div>
                     
                 </div>
                 <div class="col s5 right-align">
@@ -395,14 +399,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    930
+                    1.7k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    3 分
+                    5 分
                 </div>
                 
 
@@ -420,69 +424,38 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="零钱兑换系列问题"><a href="#零钱兑换系列问题" class="headerlink" title="零钱兑换系列问题"></a>零钱兑换系列问题</h1><h2 id="1-零钱兑换1"><a href="#1-零钱兑换1" class="headerlink" title="1.零钱兑换1"></a>1.零钱兑换1</h2><h3 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h3><p>这道题目是力扣上面的题目，最近正好在学DP就做了个题解</p>
-<p>给定不同面额的硬币 <code>coins</code> 和一个总金额 <code>amount</code>。编写一个函数来计算可以凑成总金额所需的最少的硬币个数。如果没有任何一种硬币组合能组成总金额，返回 -1。</p>
-<p>你可以认为每种硬币的数量是无限的。</p>
-<p>提示</p>
+                <h2 id="一-NP问题"><a href="#一-NP问题" class="headerlink" title="一.NP问题"></a>一.NP问题</h2><h3 id="1-优化问题和判定问题"><a href="#1-优化问题和判定问题" class="headerlink" title="1.优化问题和判定问题"></a>1.优化问题和判定问题</h3><p>优化问题是关注某种特殊的结构，并且希望优化该结构的某种指标。判定问题是给出某个特定的指标，来判断某个特殊结构是否可以满足这个指标。一般来说，优化问题可以转化成对应判定问题。下面的最大团问题就是一种优化问题。</p>
+<h4 id="CLIQUE优化问题"><a href="#CLIQUE优化问题" class="headerlink" title="CLIQUE优化问题"></a>CLIQUE优化问题</h4><p>最大团问题：给定一个无向图G，如果G的子图H是一个完全图，那么称H是G的一个团（clique）。定义一个团的大小是它所含节点的个数，那么最大问题就是，给定一个无向图，请找到无向图中最大团的大小。</p>
+<p>那么根据上面的抽象概念，我们所说关注的特殊结构就是团，而指标就是团的大小。一个优化问题可以定义对应的判定问题，判定问题关注同样的结构和同样的指标。但是和优化问题不同的是，判定问题往往给出指标的一个具体的值，问你“能不能”，“可不可以”。</p>
+<p>那么下面我们就可以引出最大团问题对应的判定问题</p>
+<h4 id="CLIQUE判定问题"><a href="#CLIQUE判定问题" class="headerlink" title="CLIQUE判定问题"></a>CLIQUE判定问题</h4><p>问题：给定一个无向图G，请问G中是否存在大小为k的团？</p>
+<p>优化问题比判定问题难。当我们得到优化问题的解，就很容易知道判定问题的解；但是当我们得到判定问题的解，就很难得到优化问题的解。举个例子，我们知道图G的最大团大小为a，那么我问是否存在大小为k的团的时候，只需要比较a和k的大小就可以得到答案；但是当我知道存在大小为k的团，但无法判断是否还有更大的团，所以无法知道最大团的大小！</p>
+<p>由此，我们看出优化问题比判定问题要难！！！</p>
+<h3 id="2-P问题"><a href="#2-P问题" class="headerlink" title="2.P问题"></a>2.P问题</h3><p>P问题就是多项式时间内可解的问题。具体定义如下：</p>
+<p>一个问题是P问题，如果存在关于n的一个多项式<code>poly(n)</code>，并且存在解决该问题的一个算法，满足算法的代价是<code>f(n)=O(poly(n))</code></p>
+<p>P问题可以内聚为一个问题类，是因为多项式运算的封闭性。多项式时间是一个非常大的范围，比如说<code>n^1000000</code>也是一个多项式，但在现实生活中非常不实用。那么有一个问题出现了，我们为什么要引入P问题来研究问题的难度？问题的难易是相对的，多项式时间算法不一定实用，但是如果当算法的代价不是多项式时间的，那么我们可以断定这个问题在较大规模输入的时候必然是不实用的。我们关注的一些难问题，P问题是一个很有意义的分类。</p>
+<p>优化问题和判定问题在难度上往往差距不大，严格的说，<strong>很多优化问题在多项式时间内可解，等价于它的判定问题在多项式时间内可解！</strong></p>
+<p>那么，对于最大团问题，我们有：<strong>最大团问题的优化问题是多项式时间可解的，当且仅当它的判定问题是多项式时间可解的</strong>。</p>
+<p>3.NP问题</p>
+<p>定义过P问题，我们进一步定义NP问题。NP的名称来自<code>Non-deterministic P</code>，含义是非确定性算法在多项式时间内可解，也可以理解为在多项式时间内可验证。具体如下：</p>
+<p>我们定义一个问题为NP问题，如果该问题的解在多项式时间内可验证。这里可验证的含义是首先我们先随便猜一个解，然后可以在多项式时间内可以检查这个解是不是该问题的正确的解。</p>
+<p>定理：**<code>CLIQUE∈NP</code>**</p>
+<p>证明：我们可以通过O(n)来猜想图中的任意k个顶点，然后来检查他们之间是否两两都有边，那么验证过程复杂度是O(k^2)=O(n^2)，所以我们可以在多项式时间内完成问题的验证！</p>
+<h2 id="二-问题的归约"><a href="#二-问题的归约" class="headerlink" title="二.问题的归约"></a>二.问题的归约</h2><h3 id="归约的定义"><a href="#归约的定义" class="headerlink" title="归约的定义"></a>归约的定义</h3><p>问题P可以规约到Q的含义是解决问题P可以间接通过解决问题Q来实现。下面是P到Q的归约的定义：</p>
+<p>判定问题P到Q的归约为一个转换函数<code>T(x)</code>满足：</p>
 <ul>
-<li><code>1 &lt;= coins.length &lt;= 12</code></li>
-<li><code>1 &lt;= coins[i] &lt;= 231 - 1</code></li>
-<li><code>0 &lt;= amount &lt;= 104</code></li>
+<li>它能够将问题P的任意一个合法输入x转换成问题Q的一个合法输入<code>T(x)</code>。假设已经有了解决问题Q的算法，将<code>T(x)</code>输入到该算法，得到问题Q的一个输出。</li>
+<li>P问题对于任意输入x的输出是YES，当且仅当Q问题对输入<code>T(x)</code>的输出是YES</li>
 </ul>
-<h3 id="测试样例"><a href="#测试样例" class="headerlink" title="测试样例"></a>测试样例</h3><pre class="line-numbers language-none"><code class="language-none">输入：coins = [1, 2, 5], amount = 11
-输出：3 
-解释：11 = 5 + 5 + 1</code></pre>
-
-<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>我们先从暴力方法入手，我们只需要<code>DFS</code>遍历所有可能的组合数量就可以从中找到一个最优解，但是这样暴力枚举的复杂度相当大，我们需要想一个更加优秀的算法。这种问题我们还是用递归更加恰当，试想我们想知道金额x最少需要多少，那么我只需要知道金额<code>x-coin_i(i&gt;=0 &amp;&amp; i&lt;size)</code>最少需要多少枚硬币，然后找到它们最小那个加一就行了，这样利用了动态规划的思想，站在前人的成果之上来解题，就方便了很多，所以我们只需要从1开始计算到amount分别最少需要多少钱就可以了</p>
-<p>状态转移方程：<code>dp[i]=min(dp[i-coin_j]+1) (j&gt;=0 &amp;&amp; j&lt;coins.size)</code></p>
-<h3 id="复杂度分析"><a href="#复杂度分析" class="headerlink" title="复杂度分析"></a>复杂度分析</h3><p>时间复杂度<code>O(amount * size)</code></p>
-<p>空间复杂度<code>O(amount)</code></p>
-<h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">class Solution {
-public:
-    int coinChange(vector&lt;int&gt;&amp; coins, int amount) {
-        vector&lt;int&gt; dp(amount+1,INT_MAX-1);
-        dp[0]=0;
-        for(int i=1;i&lt;=amount;i++){
-            for(auto coin:coins){
-                if(i-coin&gt;=0){
-                    dp[i]=min(dp[i],dp[i-coin]+1);
-                }
-            }
-        }
-        
-        return dp[amount]&lt;INT_MAX-1?dp[amount]:-1;
-    }
-};</code></pre>
-
-<h2 id="2-零钱兑换2"><a href="#2-零钱兑换2" class="headerlink" title="2.零钱兑换2"></a>2.零钱兑换2</h2><h3 id="题目-1"><a href="#题目-1" class="headerlink" title="题目"></a>题目</h3><p>给定不同面额的硬币和一个总金额。写出函数来计算可以凑成总金额的硬币组合数。假设每一种面额的硬币有无限个。 </p>
-<h3 id="测试样例-1"><a href="#测试样例-1" class="headerlink" title="测试样例"></a>测试样例</h3><pre class="line-numbers language-none"><code class="language-none">输入: amount = 5, coins = [1, 2, 5]
-输出: 4
-解释: 有四种方式可以凑成总金额:
-5=5
-5=2+2+1
-5=2+1+1+1
-5=1+1+1+1+1</code></pre>
-
-<h3 id="思路-1"><a href="#思路-1" class="headerlink" title="思路"></a>思路</h3><p>这道题跟</p>
-<p>类似，但是他们要求解的东西不一样，那道题要求凑成总金额需要最少的硬币数，这道题要求有多少种可以凑成总金额的组合</p>
-<p>对于某一个金额x，我们可以查看<code>x-coin_i</code>的组合数，加到一起即可，等等…我是不是忘了什么，这样很可能出现重复的组合，比如说<code>amount=5</code>，<code>coins=[1,2,5]</code>，那么1+2可以组合成3，那么3+2可以组合成5；2+2可以组合成4，那么4+1可以组合成5，所以<code>1+2+2=5</code>这个组合至少用了两次！！！所以这种做法需要被<code>pass</code>掉！！！</p>
-<p>那么正确的做法应该是什么呢？我们可以在外层对硬币金额进行遍历，内层更新每一个金额。这样每层循环解释起来就是，我用前k种硬币，凑成每一种金额有多少组合。那么我进行每一次遍历的时候，我之前积累起来的是用前k种硬币有多少种，那么加上第k+1种硬币能够有多少种。</p>
-<h3 id="复杂度分析-1"><a href="#复杂度分析-1" class="headerlink" title="复杂度分析"></a>复杂度分析</h3><p>时间复杂度<code>O(amount * size)</code></p>
-<p>空间复杂度<code>O(amount)</code></p>
-<h3 id="代码-1"><a href="#代码-1" class="headerlink" title="代码"></a>代码</h3><pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">class Solution {
-public:
-    int change(int amount, vector&lt;int&gt;&amp; coins) {
-        vector&lt;int&gt; dp(amount+1,0);
-        dp[0]=1;
-        for(auto coin:coins){
-            for(int i=coin;i&lt;=amount;i++){
-                dp[i]+=dp[i-coin];
-            }
-        }
-        return dp[amount];
-    }
-};</code></pre>
-
+<p><img src="/picture/gy.png" alt="P到Q的归约"></p>
+<p>在定义归约时，我们看到了研究判定问题带来的便利。不同算法问题的解可能非常不一样，但是如果仅仅讨论判定问题的话，问题的解都是YES或者NO，这样为两个判定问题之间的归约带来了很多便利！！！</p>
+<h3 id="归约代价和问题难度的比较"><a href="#归约代价和问题难度的比较" class="headerlink" title="归约代价和问题难度的比较"></a>归约代价和问题难度的比较</h3><p>我们引入问题的归约是为了衡量问题间相对的难易程度。我们需要对归约作出一定限制，下面定义多项式时间归约<code>≤p</code>：</p>
+<p>如果T是问题P到Q的归约，且T的代价为其输入规模的多项式，则称问题P可以多项式时间归约到问题Q，记为<code>P ≤p Q</code></p>
+<p>对于一个难问题而言，输入转换代价如果是多项式的，那么这个代价对于解决问题的代价而言是一个小量，所以研究难问题之间的难以关系时，我们集中关注多项式时间归约。如果<code>P ≤p Q</code>，说明P的难度不超过Q的难度。对于多项式时间归约，我们有：</p>
+<p><strong>多项式时间归约关系是一个传递关系，即对于问题P，Q，R，如果<code>P ≤p Q</code>，<code>Q ≤p R</code>，那么<code>P ≤p R</code>。</strong></p>
+<h2 id="三-NP完全问题"><a href="#三-NP完全问题" class="headerlink" title="三.NP完全问题"></a>三.NP完全问题</h2><p><strong>NP难问题定义：一个问题P是NP难问题，如果对于属于NP的任意问题Q，<code>Q ≤p P</code></strong></p>
+<p><strong>NP完全问题：一个问题P是NP完全问题，如果<code>P∈NP</code>，并且P是NP难问题</strong></p>
+<p>参考书：《算法设计与分析》第二版–黄宇</p>
 
                 
             </div>
@@ -509,7 +482,7 @@ public:
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://changanyyy.github.io/2021/06/10/DP-%E9%9B%B6%E9%92%B1%E5%85%91%E6%8D%A2%E9%97%AE%E9%A2%98/">http://changanyyy.github.io/2021/06/10/DP-%E9%9B%B6%E9%92%B1%E5%85%91%E6%8D%A2%E9%97%AE%E9%A2%98/</a>
+                    <a href="http://changanyyy.github.io/2021/06/14/NP%E9%97%AE%E9%A2%98/">http://changanyyy.github.io/2021/06/14/NP%E9%97%AE%E9%A2%98/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -546,7 +519,11 @@ public:
                 <div class="post-meta__tag-list" style="display: inline-block;">
                     
                         <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
+                            
+                                <a href="/tags/NP%E5%A4%8D%E6%9D%82%E6%80%A7/">
+                                    <span class="chip bg-color">NP复杂性</span>
+                                </a>
+                            
                         </div>
                     
                 </div>
@@ -714,9 +691,10 @@ public:
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
                 <a href="/2021/06/14/NP%E9%97%AE%E9%A2%98/">
                     <div class="card-image">
@@ -734,9 +712,9 @@ public:
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2021-06-14
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-14
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -749,6 +727,7 @@ public:
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
@@ -767,13 +746,13 @@ public:
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E7%BD%91%E7%BB%9C%E5%B1%82/">
+                <a href="/2021/06/10/DP-%E9%9B%B6%E9%92%B1%E5%85%91%E6%8D%A2%E9%97%AE%E9%A2%98/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/12.jpg" class="responsive-img" alt="计算机网络笔记网络层">
+                        <img src="/medias/featureimages/15.jpg" class="responsive-img" alt="DP-零钱兑换问题">
                         
-                        <span class="card-title">计算机网络笔记网络层</span>
+                        <span class="card-title">DP-零钱兑换问题</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -784,27 +763,19 @@ public:
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-07
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-10
                             </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="post-category">
-                                    计算机网络
+                            <a href="/categories/%E7%AE%97%E6%B3%95/" class="post-category">
+                                    算法
                                 </a>
                             
                             
                         </span>
                     </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/hide/">
-                        <span class="chip bg-color">hide</span>
-                    </a>
-                    
                 </div>
                 
             </div>
