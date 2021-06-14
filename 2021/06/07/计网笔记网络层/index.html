@@ -246,19 +246,6 @@
 </header>
 
     
-<script src="/libs/cryptojs/crypto-js.min.js"></script>
-<script>
-    (function() {
-        let pwd = '';
-        if (pwd && pwd.length > 0) {
-            if (pwd !== CryptoJS.SHA256(prompt('请输入访问本文章的密码')).toString(CryptoJS.enc.Hex)) {
-                alert('密码错误，将返回主页！');
-                location.href = '/';
-            }
-        }
-    })();
-</script>
-
 
 
 
@@ -381,9 +368,13 @@
             <div class="row tag-cate">
                 <div class="col s7">
                     
-                          <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
-                          </div>
+                    <div class="article-tag">
+                        
+                            <a href="/tags/hide/">
+                                <span class="chip bg-color">hide</span>
+                            </a>
+                        
+                    </div>
                     
                 </div>
                 <div class="col s5 right-align">
@@ -408,14 +399,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    6.5k
+                    9.1k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    22 分
+                    32 分
                 </div>
                 
 
@@ -875,6 +866,175 @@
 </ul>
 </li>
 </ul>
+<p>这样会出现无穷计数问题，当链路代价改变时候需要非常多次迭代才可以稳定下来！！！所以我们需要一种机制，叫做<strong>毒性逆转</strong></p>
+<p>毒性逆转：当一个节点a通过b到达c，那么我向b声称我到c的距离是无穷！！！</p>
+<h4 id="Dijkstra-VS-Bellman-Ford"><a href="#Dijkstra-VS-Bellman-Ford" class="headerlink" title="Dijkstra VS Bellman-Ford"></a>Dijkstra VS Bellman-Ford</h4><p>基于DIjkstra路由：</p>
+<ul>
+<li><strong>链路状态</strong>洪泛到其他所有节点</li>
+<li>每个节点将会有一个完整的拓扑，并且建立他自己的路由表</li>
+<li>不能处理负权值</li>
+</ul>
+<p>基于Bellman-Ford路由：</p>
+<ul>
+<li>每个节点维护一个到其他已知节点的<strong>距离向量</strong></li>
+<li>距离向量要发送给直接邻居来更新路径和cost</li>
+<li>路由表是分布式的</li>
+</ul>
+<h5 id="复杂度："><a href="#复杂度：" class="headerlink" title="复杂度："></a>复杂度：</h5><p>DK：n个节点，e个链路，有O(ne)个消息</p>
+<p>BF：取决于收敛时间</p>
+<h5 id="收敛时间："><a href="#收敛时间：" class="headerlink" title="收敛时间："></a>收敛时间：</h5><p>DK：O(n^2)并且很快，或许会有震动</p>
+<p>BF：很慢并且取决于链路代价改变，或许包含路由环</p>
+<h5 id="鲁棒性："><a href="#鲁棒性：" class="headerlink" title="鲁棒性："></a>鲁棒性：</h5><p>DK：可能广播不正确的链路代价，但是错误的范围被限制</p>
+<p>BF：错误节点可能交换不正确的路径代价，错误可能会传播到网络中</p>
+<h3 id="路由算法分类："><a href="#路由算法分类：" class="headerlink" title="路由算法分类："></a>路由算法分类：</h3><h4 id="中心化算法和去中心化（分布式）算法"><a href="#中心化算法和去中心化（分布式）算法" class="headerlink" title="中心化算法和去中心化（分布式）算法"></a>中心化算法和去中心化（分布式）算法</h4><p>中心化：所有节点都要有完整的拓扑，链路代价信息，比如<strong>链路状态算法</strong></p>
+<p>分布式：路由器知道物理上直接连接的邻居，还有到邻居的代价，通过迭代的计算过程和邻居交换信息，比如<strong>距离向量算法</strong></p>
+<h4 id="静态或动态"><a href="#静态或动态" class="headerlink" title="静态或动态"></a>静态或动态</h4><p>静态：经过时间，路由很慢的改变</p>
+<p>动态：路由很快进行改变，为了回应链路代价的改变，周期化进行更新</p>
+<h3 id="如何判断链路代价？"><a href="#如何判断链路代价？" class="headerlink" title="如何判断链路代价？"></a>如何判断链路代价？</h3><p>在ARPANET中有3个阶段：</p>
+<h4 id="1969年第一个阶段"><a href="#1969年第一个阶段" class="headerlink" title="1969年第一个阶段"></a>1969年第一个阶段</h4><p>输出队列的长度作为链路代价</p>
+<p>Bell-Ford被用于路由</p>
+<h4 id="1979年第二个阶段"><a href="#1979年第二个阶段" class="headerlink" title="1979年第二个阶段"></a>1979年第二个阶段</h4><p>测量出来的延时作为链路代价，其中混合了排队时延，传输时延，传播时延。Dijkstra算法用于路由</p>
+<h4 id="第三个阶段"><a href="#第三个阶段" class="headerlink" title="第三个阶段"></a>第三个阶段</h4><p>为了处理Dijkstra的震荡问题，让一些连接保持在加载的链路上来平衡流量。把链路利用率来表示链路状态，用之前的值和新的利用率结合起来更新。也有的用跳归一化指标来计算链路代价。</p>
+<p>链路利用率：</p>
+<ul>
+<li>p=2（Ts-T）/(Ts-2T)</li>
+<li>T是当前测量的时延</li>
+<li>Ts是分组的长度除以传输速率（传输时延）</li>
+</ul>
+<p>更新利用率</p>
+<ul>
+<li><code>Un=αp+(1-α)Un-1</code></li>
+<li>Un是第n次的链路利用率</li>
+<li>α是常数，现在设置为0.5</li>
+</ul>
+<h2 id="十-因特网路由"><a href="#十-因特网路由" class="headerlink" title="十.因特网路由"></a>十.因特网路由</h2><p>层级化路由：把路由器整合到一个个域里面，叫自治系统（autonomous system，AS）。同一个AS里面的运行同样的路由协议（AS内部路由协议）；不同AS可以运行不同的AS内部路由协议。网关路由器负责目的地址在AS外部的路由，跟外面的路由器一起运行AS间路由协议，和内部路由器运行AS内部路由协议。</p>
+<h3 id="自治系统（Autonomous-Systems，AS）"><a href="#自治系统（Autonomous-Systems，AS）" class="headerlink" title="自治系统（Autonomous  Systems，AS）"></a>自治系统（Autonomous  Systems，AS）</h3><p>它是被单个ISP或者更大组织掌管的路由器和网络的集合。一个被分配独一无二的AS号（ASN）的网络，使用普通的路由协议。</p>
+<p>IGP是Interior Gateway Protocol，用于AS内路由。EGP是Exterior Gateway Protocol，用于AS间路由</p>
+<h4 id="IGP"><a href="#IGP" class="headerlink" title="IGP"></a>IGP</h4><ul>
+<li>RIP: Routing Information Protocol, use distance  vector</li>
+<li>OSPF: Open Shortest Path First, use link state</li>
+<li>IGRP: Interior Gateway Routing Protocol (Cisco proprietary)</li>
+</ul>
+<h4 id="EGP"><a href="#EGP" class="headerlink" title="EGP"></a>EGP</h4><ul>
+<li>BGP: Border Gateway Protoco</li>
+</ul>
+<h3 id="距离向量算法"><a href="#距离向量算法" class="headerlink" title="距离向量算法"></a>距离向量算法</h3><p>每个节点和邻居节点交换信息。节点维护自己到邻居链路代价，下一跳到目的的距离向量。DV根据跟邻居交换信息来更新路由表</p>
+<h3 id="链路状态算法"><a href="#链路状态算法" class="headerlink" title="链路状态算法"></a>链路状态算法</h3><p>要把消息告知拓扑中的所有其他路由器（不只是邻居）</p>
+<p>每一个路由器都可以构建出整个拓扑，可以计算出到达每个目的网络的最短路径。路由器实际上使用<code>Dijkstra</code>算法</p>
+<h3 id="RIP"><a href="#RIP" class="headerlink" title="RIP"></a>RIP</h3><p>使用距离向量算法。距离靠多少跳来度量，距离向量每三十秒跟邻居交换一次。如果180秒没收到信息，说明邻居没了。用UDP包。</p>
+<h3 id="OSPF"><a href="#OSPF" class="headerlink" title="OSPF"></a>OSPF</h3><p>开放最短路径优先，利用链路状态路由算法。每十秒更新一次，直接用IP承载，不用UDP。</p>
+<p>网络，主机和BGP路由器都是目的，每个路由器计算它到其他目的最短路径的SPF tree</p>
+<p><img src="/picture/SPF.png"></p>
+<h4 id="OSPF高级的功能"><a href="#OSPF高级的功能" class="headerlink" title="OSPF高级的功能"></a>OSPF高级的功能</h4><ul>
+<li>安全性：所有的OSPF消息需要认证来组织恶意入侵</li>
+<li>可以允许多个相同路径</li>
+<li>对于每个链路，对于不同TOS有多种不同代价度量方式</li>
+<li>综合单播和多播支持</li>
+<li>在更大的域里面用层级OSPF</li>
+</ul>
+<h4 id="层级式OSPF"><a href="#层级式OSPF" class="headerlink" title="层级式OSPF"></a>层级式OSPF</h4><p>为了提升可扩充性，AS或许被划分为不同区域</p>
+<ul>
+<li>区域被32位Aera ID认定</li>
+<li>区域里的路由器只知道区域内部的拓扑</li>
+<li>限制链路状态信息洪泛到其他区域</li>
+<li>区域边界路由器从其他区域总结信息</li>
+</ul>
+<p>每个区域必须连接到骨干区域(0.0.0.0)</p>
+<ul>
+<li>在区域间的分布式路由信息</li>
+</ul>
+<p>好处：划分区域的好处是将洪泛交换链路状态信息的范围局限于每一个区域 而不是整个的自治系统。在一个区域内部的路由器只知道本区域的完整网络拓扑，而不知道其 他区域的网络拓扑的情况。主干区域用于连通其他下层区域</p>
+<p><img src="/picture/OSPFarea.png"></p>
+<h4 id="RIP-vs-OSPF"><a href="#RIP-vs-OSPF" class="headerlink" title="RIP vs OSPF"></a>RIP vs OSPF</h4><p>RIP</p>
+<ul>
+<li>配置简单，适用于小型网络（小于15跳）</li>
+<li>可分布式实现</li>
+<li>收敛速度较慢</li>
+<li>网络是一个平面，不适用于大规模网络</li>
+</ul>
+<p>OSPF</p>
+<ul>
+<li>收敛速度快，无跳数限制</li>
+<li>支持不同服务类型选路</li>
+<li>支持身份认证</li>
+<li>支持层次式网络，适用于大规模复杂网络</li>
+<li>集中式算法</li>
+<li>每个节点需要维护全局拓扑</li>
+<li>配置复杂</li>
+</ul>
+<h3 id="BGP协议"><a href="#BGP协议" class="headerlink" title="BGP协议"></a>BGP协议</h3><h4 id="由于跨AS业务关系形成的拓扑和策略"><a href="#由于跨AS业务关系形成的拓扑和策略" class="headerlink" title="由于跨AS业务关系形成的拓扑和策略"></a>由于跨AS业务关系形成的拓扑和策略</h4><p>AS间的三种基本关系</p>
+<ul>
+<li>A是B的客户</li>
+<li>A是B的供应商</li>
+<li>A是B的伙伴</li>
+</ul>
+<p>客户给供应商交钱。伙伴之间不需要交钱，大概网络程度类似</p>
+<p><img src="/picture/AS%E4%B8%9A%E5%8A%A1%E5%85%B3%E7%B3%BB.png"></p>
+<p>为什么要伙伴关系</p>
+<p><img src="/picture/peer.png"></p>
+<p>AS为他们的客户提供传输服务，但是不提供它的peers之间的传输服务</p>
+<p><img src="/picture/allow.png"></p>
+<p>总结来说，AS拓扑反映了AS之间的业务关系，AS之间的业务关系反映了什么样的路由选择是可接受的</p>
+<h4 id="基本想法"><a href="#基本想法" class="headerlink" title="基本想法"></a>基本想法</h4><p><img src="/picture/basic.png"></p>
+<p>BGP是被DV算法所启发</p>
+<p>每个目的地址进行通知，没有全局共享拓扑信息，在路径上进行迭代和分布式收敛。不过有四种关键的不同之处</p>
+<h4 id="和BGP的不同之处"><a href="#和BGP的不同之处" class="headerlink" title="和BGP的不同之处"></a>和BGP的不同之处</h4><h5 id="1-不选择最短路径"><a href="#1-不选择最短路径" class="headerlink" title="1.不选择最短路径"></a>1.不选择最短路径</h5><p>BGP基于策略选择最好的路由，而不是最短的距离（比如最小的花费），如下图可能A可能选择ABC而不是AC</p>
+<p><img src="/picture/abc.png"></p>
+<h5 id="2-路径向量路由"><a href="#2-路径向量路由" class="headerlink" title="2.路径向量路由"></a>2.路径向量路由</h5><p>主要思想：message要记录整个路径</p>
+<ul>
+<li>DV：发送到目的的距离度量</li>
+<li>BGP：发送到目的的整个路径</li>
+</ul>
+<p>好处：避免循环（遇到路径上有我自己的直接丢弃）；灵活并且有表现力</p>
+<h5 id="3-选择性的路由通告"><a href="#3-选择性的路由通告" class="headerlink" title="3.选择性的路由通告"></a>3.选择性的路由通告</h5><p>出于策略上的原因，AS可以选择不发布到目的地的路由。因此，即使物理上相连，也不一定可达</p>
+<h5 id="4-BGP或许会合并路由"><a href="#4-BGP或许会合并路由" class="headerlink" title="4.BGP或许会合并路由"></a>4.BGP或许会合并路由</h5><p>为了稳定性，BGP或许会把不同前缀地址的路由进行合并</p>
+<h4 id="BGP的细节"><a href="#BGP的细节" class="headerlink" title="BGP的细节"></a>BGP的细节</h4><p>谁来运行BGP呢？自治系统中的边界路由器</p>
+<p><img src="/picture/border.png"></p>
+<p>Speak BGP意味着什么？</p>
+<ul>
+<li>实现BGP协议标准</li>
+<li>说明要和其他BGP speaker交换什么消息</li>
+<li>如何处理这些消息</li>
+</ul>
+<p>边界路由器之间使用eBGP会话，边界路由器和同一个AS内的其他路由器使用iBGP会话</p>
+<p>eBGP：在不同AS的边界路由器之间的BGP会话</p>
+<p>IBGP：在边界路由器和同一个AS下的其他路由器之间的BGP会话</p>
+<p>IGP：内部网关协议提供内部可达性，比如OSPF，RIP</p>
+<h5 id="BGP里面的基础消息"><a href="#BGP里面的基础消息" class="headerlink" title="BGP里面的基础消息"></a>BGP里面的基础消息</h5><h6 id="open"><a href="#open" class="headerlink" title="open"></a>open</h6><p>建立BGP会话（利用TCP）</p>
+<h6 id="通知"><a href="#通知" class="headerlink" title="通知"></a>通知</h6><p>报道不寻常的情况</p>
+<h6 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h6><p>通知新邻居路由器</p>
+<p>通知不活跃的老邻居路由器</p>
+<h6 id="保持开放"><a href="#保持开放" class="headerlink" title="保持开放"></a>保持开放</h6><p>告诉邻居连接依然保持</p>
+<h5 id="路由更新"><a href="#路由更新" class="headerlink" title="路由更新"></a>路由更新</h5><p>格式<code>&lt;IP prefix : route attributes&gt;</code>（<code>attributes</code>描述了路由的性质）</p>
+<p>两种更新</p>
+<p>通告：有新的路由或者已存在路由发生改变</p>
+<p>撤回：移除不再存在的路由</p>
+<h5 id="路由属性"><a href="#路由属性" class="headerlink" title="路由属性"></a>路由属性</h5><p>路由用属性来描述，一些属性是本地的（在AS内部，不在通告中）；一些属性通过eBGP通告被传播出去</p>
+<h6 id="ASPATH"><a href="#ASPATH" class="headerlink" title="ASPATH"></a>ASPATH</h6><p>在路由通告里面被装载，列出了经过的所有AS的向量（反向列出）</p>
+<p><img src="/picture/AS.png"></p>
+<h6 id="Local-Pref"><a href="#Local-Pref" class="headerlink" title="Local Pref"></a>Local Pref</h6><p>本地偏好是用来在不同AS路径中做出选择，只在iBGP消息中，值越大越偏好</p>
+<p><img src="/picture/pref.png"></p>
+<h6 id="MED"><a href="#MED" class="headerlink" title="MED"></a>MED</h6><p>当AS通过2个或多个链路互连时，使用多出口识别器;它指定前缀离宣布它的链接有多近。越低越好</p>
+<p><img src="/picture/MED.png"></p>
+<p>下面是BGP更新的过程</p>
+<p><img src="/picture/BGP.png"></p>
+<h4 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h4><ul>
+<li><p>主要用于表示路由的可达性，不一定走最短路径路由</p>
+</li>
+<li><p>通过携带AS路径信息，可以解决路由循环问题</p>
+</li>
+<li><p>使用TCP协议，端口号179，可实现协议的可靠性</p>
+</li>
+<li><p>BGP 协议交换路由信息的结点数量级是自治系统数的量级。</p>
+</li>
+<li><p>由于自治系统中 BGP Speaker（或边界路由器）的数 目是很少的，使得自治系统之间的路由选择不致过分复杂。</p>
+</li>
+<li><p>支持 CIDR，可以进行路由聚合。</p>
+</li>
+<li><p>在BGP 刚刚运行时，BGP的邻站交换整个的BGP路由表</p>
+<p>。但以后只需要在发生变化时增量更新有变化的部分，减少开销。</p>
+</li>
+</ul>
 
                 
             </div>
@@ -938,7 +1098,11 @@
                 <div class="post-meta__tag-list" style="display: inline-block;">
                     
                         <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
+                            
+                                <a href="/tags/hide/">
+                                    <span class="chip bg-color">hide</span>
+                                </a>
+                            
                         </div>
                     
                 </div>
