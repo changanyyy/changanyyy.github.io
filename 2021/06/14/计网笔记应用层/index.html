@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="DP-有向无环图的最长路径, yxz的博客">
+    <meta name="keywords" content="计网笔记应用层, yxz的博客">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>DP-有向无环图的最长路径 | yxz的博客</title>
+    <title>计网笔记应用层 | yxz的博客</title>
     <link rel="icon" type="image/jpeg" href="/logo.jpg">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -249,12 +249,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/6.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/22.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">DP-有向无环图的最长路径</h1>
+                    <h1 class="description center-align post-title">计网笔记应用层</h1>
                 </div>
             </div>
         </div>
@@ -378,8 +378,8 @@
                     <div class="post-cate">
                         <i class="fas fa-bookmark fa-fw icon-category"></i>
                         
-                            <a href="/categories/%E7%AE%97%E6%B3%95/" class="post-category">
-                                算法
+                            <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="post-category">
+                                计算机网络
                             </a>
                         
                     </div>
@@ -395,14 +395,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1k
+                    742
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    4 分
+                    2 分
                 </div>
                 
 
@@ -420,86 +420,59 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="有向无环图中的最长路径"><a href="#有向无环图中的最长路径" class="headerlink" title="有向无环图中的最长路径"></a>有向无环图中的最长路径</h1><h2 id="输入"><a href="#输入" class="headerlink" title="输入"></a>输入</h2><p>第一行为一个数字<code>n</code>，表示总点数。之后点的标号为从<code>0</code>到<code>n-1</code>。</p>
-<p>之后的每一行，格式为<code>3</code>个数字，以空格隔开，分别为相连的两个点的编号，它们的边的权值。</p>
-<p>注：输入为有向图。如果出现了<code>“0 1 50”</code>表示点<code>0</code>到点<code>1</code>之间有一条边，权值为<code>50</code>。</p>
-<h2 id="输出"><a href="#输出" class="headerlink" title="输出"></a>输出</h2><p>点0到其他所有点的最长路径，以空格隔开。注：点0到其他所有点都是可达的。</p>
-<h2 id="复杂度"><a href="#复杂度" class="headerlink" title="复杂度"></a>复杂度</h2><p>复杂度要求在<strong>O(m+n)</strong></p>
-<p>样例输入输出</p>
-<pre class="line-numbers language-none"><code class="language-none">输入：
-6
-0 1 1
-0 3 2
-1 2 6
-2 4 1
-2 5 2
-3 4 3
-3 1 4
-4 5 1
-输出：
-6 12 2 13 14 </code></pre>
-
-<h2 id="思路解析"><a href="#思路解析" class="headerlink" title="思路解析"></a>思路解析</h2><p>首先，看到复杂度是线性时间复杂度，我们想到不太可能用类似<code>Dijkstra</code>，<code>Prime</code>之类的算法，大概是用一个<code>DFS</code>或者<code>BFS</code>框架来完成。</p>
-<p>对于有向无环图，我们会敏锐地发觉它的一些特性：从0经过某些顶点之前，路径上必然会经过另一些顶点！！！如果我们在处理顶点A之前，对它之前的所有顶点的路径进行处理的话，我们就可以依托之前的路径来对顶点A进行处理。这句话怎么听起来这么耳熟？没错，这似乎就是动态规划的具体做法！</p>
-<p>众所周知，动态规划的思路就是<strong>利用前面已经求出的子问题来解决其他的子问题</strong>。我们通过前面经过的顶点来求后面的顶点，与这个思想相符。那么我们怎么判断谁在前谁在后呢？联系算法需要的线性复杂度，我们联想到<code>Topo</code>排序，对顶点进行拓扑序小的在前面，拓扑序大的在后面。那么基本的思路逐渐清晰了。</p>
-<p>先利用拓扑排序对顶点进行排序，这样我在遍历某一个顶点A的时候，从0到A的路径上的所有顶点必然已经被遍历过！那么我们如何找到他前面的顶点呢？做法有两种，第一种是建立一个逆邻接表，这样就可以找到哪一个路径通向点A；第二种做法是在遍历A前面节点X的时候，直接对X的邻居进行处理，这样在遍历到A的时候，A已经被处理完了，A的任务就只变成了对A的邻居进行处理。这两种做法本质上是一样的，但是鉴于省下更多的时间和空间，我采用了第二种方法！</p>
-<p>复杂度分析：<code>topo</code>排序是线性复杂度，后面的<code>DP</code>也是线性复杂度</p>
-<h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><p>下面我们就可以进行Coding了！代码如下：</p>
-<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">#define _CRT_SECURE_NO_WARNINGS
-#include&lt;iostream&gt;
-#include&lt;vector&gt;
-#include&lt;stack&gt;
-using namespace std;
- //邻接表节点，存储邻居节点和路径长度
-struct node {
-    int v, weight;
-    node(int _v, int _w) { v = _v; weight = _w; }
-};
-//邻接表，二维矩阵
-vector&lt;vector&lt;node&gt;&gt; table;
-//topo的本质是DFS，需要visit数组
-vector&lt;bool&gt; visit;
-//存储topo序，顶端的topo序更小
-stack&lt;int&gt; topo;
-//存储答案
-vector&lt;int&gt; res;
- 
-void dfs(int v) {
-    visit[v] = true;
-    for (int i = 0; i &lt; table[v].size(); i++) {
-        if(!visit[table[v][i].v])dfs(table[v][i].v);
-    }
-    topo.push(v);//在处理过v后面所有的节点之后，v的节点topo序要小于它后面的所有节点
-}
- 
-int main() {
-    int n;
-    scanf("%d", &amp;n);
-	//初始化     
-    res = vector&lt;int&gt;(n, 0);
-    visit = vector&lt;bool&gt;(n, false);
-    table = vector&lt;vector&lt;node&gt;&gt;(n);
-    int v1, v2, w;
-    while (scanf("%d %d %d",&amp;v1,&amp;v2,&amp;w)!=-1) {
-        table[v1].push_back(node(v2, w));
-    }
- 
-    dfs(0);//topo排序
- 
-    while (!topo.empty()) {
-        int cur = topo.top();
-        topo.pop();
-        for (int i = 0; i &lt; table[cur].size(); i++) {//处理cur的邻居
-            res[table[cur][i].v] = max(res[table[cur][i].v], res[cur] + table[cur][i].weight);
-        }
-    }
-    for (int i = 1; i &lt; n; i++) {
-        printf("%d ", res[i]);
-    }
- 
-    return 0;
-}</code></pre>
-
+                <h2 id="一-多媒体网络应用"><a href="#一-多媒体网络应用" class="headerlink" title="一.多媒体网络应用"></a>一.多媒体网络应用</h2><h3 id="音频"><a href="#音频" class="headerlink" title="音频"></a>音频</h3><p>以恒定速率采样的模拟音频信号</p>
+<ul>
+<li>telephone：8000样本每秒</li>
+<li>CD音乐：44100样本每秒</li>
+</ul>
+<p>每个样本被量化，例如四舍五入(比如2^8=256种可能的量化值)</p>
+<h3 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h3><p>以恒定速率播放的图片序列，比如24张图片每秒</p>
+<p>数字图片：像素的数组，每张图片通过比特来表示</p>
+<p>编码：利用图片之间的冗余（相同的地方）来编码可以节省空间</p>
+<ul>
+<li>空间上的冗余：比如同一排一样的颜色，只需要发送一个颜色和重复的次数即可</li>
+<li>时间上的冗余：相邻两帧只需要发送不一样的地方即可</li>
+</ul>
+<h3 id="三种应用类型"><a href="#三种应用类型" class="headerlink" title="三种应用类型"></a>三种应用类型</h3><h4 id="1-流媒体"><a href="#1-流媒体" class="headerlink" title="1.流媒体"></a>1.流媒体</h4><p>因为整个视频文件太大，所以变成”流“来存储音频和视频，在完全下载下来之前就可以播放。在服务器上面的存储：可以比音频或者视频传输地更快（意味着在客户机缓存）。</p>
+<p>流媒体存储的视频：</p>
+<p><img src="/picture/streaming.png"></p>
+<p>存在一些挑战：</p>
+<ul>
+<li>持续的播放约束，一旦客户播放开始，重放就要匹配得上原来的时间。但是网络延迟是可变的，所以我们需要客户机端的缓冲区来匹配播放需要</li>
+<li>客户机需要交互：暂停，快进，回退…</li>
+<li>视频包可能会丢失</li>
+</ul>
+<p>改进之后：（多了buffer）</p>
+<p><img src="/picture/s.png"></p>
+<h5 id="利用的协议"><a href="#利用的协议" class="headerlink" title="利用的协议"></a>利用的协议</h5><p>UDP</p>
+<p>服务器以一个对于客户合适的速率发送</p>
+<p>要有一个比较短的播放延迟来对抗网络抖动</p>
+<p>UDP可能穿不过防火墙</p>
+<p>HTTP</p>
+<p>通过<code>HTTP GET</code>来获取多媒体文件。在TCP下以一个最小的可能速率发送</p>
+<p><img src="/picture/HTTPTCP.png"></p>
+<p>填充速率波动取决于TCP拥塞控制，重传机制。需要更大的播放延时。HTTP/TCP可以轻松穿过防火墙</p>
+<p>DASH</p>
+<p>Dynamic，Adaptive Streaming over HTTP</p>
+<p>发送方：</p>
+<ul>
+<li>把视频文件分为多个块</li>
+<li>每个块都存下来，以不同的速率编码</li>
+<li>清单文件：提供不同块的URL</li>
+</ul>
+<p>接收方：</p>
+<ul>
+<li>周期性测量服务器到客户的带宽</li>
+<li>询问清单，一次性请求一个块。选择给定当前带宽下可以忍受的最小的编码速率，可以在不同的时间点根据不同带宽选择不同的速率。</li>
+</ul>
+<h4 id="2-基于IP的会话视频或音频"><a href="#2-基于IP的会话视频或音频" class="headerlink" title="2.基于IP的会话视频或音频"></a>2.基于IP的会话视频或音频</h4><p>人和人交互式的场景限制了对延迟的容忍度</p>
+<p>VoIP</p>
+<p>VoIP端到端延迟要求：更高的延迟会明显影响交互性。小于150ms：好，大于400ms：坏。包括应用的等级（分组，播放），网络时延</p>
+<p>会话初始化：接电话的人如何通知它的IP地址，端口号，编码算法呢？</p>
+<p>增值业务：电话转移，筛选，记录</p>
+<p>紧急服务：911</p>
+<h4 id="3-流媒体直播视频或音频"><a href="#3-流媒体直播视频或音频" class="headerlink" title="3.流媒体直播视频或音频"></a>3.流媒体直播视频或音频</h4><p>比如，体育赛事</p>
+<p>三.因特网QoS</p>
 
                 
             </div>
@@ -526,7 +499,7 @@ int main() {
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://changanyyy.github.io/2021/06/07/DP-%E6%9C%89%E5%90%91%E6%97%A0%E7%8E%AF%E5%9B%BE%E7%9A%84%E6%9C%80%E9%95%BF%E8%B7%AF%E5%BE%84/">http://changanyyy.github.io/2021/06/07/DP-%E6%9C%89%E5%90%91%E6%97%A0%E7%8E%AF%E5%9B%BE%E7%9A%84%E6%9C%80%E9%95%BF%E8%B7%AF%E5%BE%84/</a>
+                    <a href="http://changanyyy.github.io/2021/06/14/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E5%BA%94%E7%94%A8%E5%B1%82/">http://changanyyy.github.io/2021/06/14/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E5%BA%94%E7%94%A8%E5%B1%82/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -735,13 +708,13 @@ int main() {
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E7%BD%91%E7%BB%9C%E5%B1%82/">
+                <a href="/2021/06/16/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E4%BC%A0%E8%BE%93%E5%B1%82/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/5.jpg" class="responsive-img" alt="计网笔记网络层">
+                        <img src="/medias/featureimages/5.jpg" class="responsive-img" alt="计网笔记传输层">
                         
-                        <span class="card-title">计网笔记网络层</span>
+                        <span class="card-title">计网笔记传输层</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -752,7 +725,7 @@ int main() {
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2021-06-07
+                            <i class="far fa-clock fa-fw icon-date"></i>2021-06-16
                         </span>
                         <span class="publish-author">
                             
@@ -776,13 +749,13 @@ int main() {
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E9%93%BE%E8%B7%AF%E5%B1%82/">
+                <a href="/2021/06/14/NP%E9%97%AE%E9%A2%98/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/11.jpg" class="responsive-img" alt="计网笔记链路层">
+                        <img src="/medias/featureimages/12.jpg" class="responsive-img" alt="NP问题">
                         
-                        <span class="card-title">计网笔记链路层</span>
+                        <span class="card-title">NP问题</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -793,19 +766,27 @@ int main() {
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-07
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-14
                             </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="post-category">
-                                    计算机网络
+                            <a href="/categories/%E7%AE%97%E6%B3%95/" class="post-category">
+                                    算法
                                 </a>
                             
                             
                         </span>
                     </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/NP%E5%A4%8D%E6%9D%82%E6%80%A7/">
+                        <span class="chip bg-color">NP复杂性</span>
+                    </a>
+                    
                 </div>
                 
             </div>

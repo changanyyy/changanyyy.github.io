@@ -4,6 +4,44 @@
   
     
     <entry>
+      <title>计网笔记传输层</title>
+      <link href="/2021/06/16/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E4%BC%A0%E8%BE%93%E5%B1%82/"/>
+      <url>/2021/06/16/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E4%BC%A0%E8%BE%93%E5%B1%82/</url>
+      
+        <content type="html"><![CDATA[<h2 id="一-传输层简介transport-layer"><a href="#一-传输层简介transport-layer" class="headerlink" title="一.传输层简介transport layer"></a>一.传输层简介transport layer</h2><h3 id="1-传输层作用"><a href="#1-传输层作用" class="headerlink" title="1.传输层作用"></a>1.传输层作用</h3><ul><li>进程间通信<ul><li>应用进程间的多路复用和解复用</li><li>用端口实现</li></ul></li><li>为应用程序提供端到端的服务<ul><li>可靠的，按序的数据交付</li><li>很好的交付节奏</li></ul></li><li>TCP和UDP是常用的运输层协议<ul><li>还有其他的，就不说了</li></ul></li><li>UDP是极简化的传输层协议<ul><li>只提供复用和分解能力</li></ul></li><li>TCP提供可靠的，按序的，字节流的抽象<ul><li>有拥塞控制，但是没有性能担保</li></ul></li></ul><h3 id="2-应用程序和套接字"><a href="#2-应用程序和套接字" class="headerlink" title="2.应用程序和套接字"></a>2.应用程序和套接字</h3><p>套接字（socket）：给应用进程和操作系统之间交换网络消息的一个软件抽象</p><p>传输层寻址：**&lt;HostIP , Port&gt;**，叫做一个套接字</p><p>两个重要的套接字类型：</p><ul><li>UDP套接字：TYPE是SOCK_DGRAM</li><li>TCP套接字：TYPE是SOCK_STREAM</li></ul><h3 id="3-端口"><a href="#3-端口" class="headerlink" title="3.端口"></a>3.端口</h3><ul><li>帮助区别APP的16比特的数字<ul><li>分组在传输层头带着src和dst端口号</li><li>有常用端口（0-1023）和临时端口</li></ul></li><li>OS存储套接字和端口的映射<ul><li>端口在分组里面，套接字在OS里</li><li>对于UDP端口，OS存储（local port，local IP）来映射套接字</li><li>对于TCP端口，OS存储（local port，local IP，remote port， remote IP）来映射套接字</li></ul></li></ul><h3 id="4-多路复用和多路分解"><a href="#4-多路复用和多路分解" class="headerlink" title="4.多路复用和多路分解"></a>4.多路复用和多路分解</h3><p>在发送方：处理来自多个套接字的数据，添加传输层头。</p><p>在接收方：用header信息来把收到的传输层报文段交付给正确的套接字。</p><h4 id="4-1-如何多路分解"><a href="#4-1-如何多路分解" class="headerlink" title="4-1 如何多路分解"></a>4-1 如何多路分解</h4><p>主机收到IP数据报，里面有源和目的IP，数据报携带传输层报文段，保温段里面有源和目的端口</p><p>主机用IP地址和端口号来把报文段导向正确的套接字</p><p><img src="/picture/format.png"></p><h5 id="4-1-1-无连接的多路分解"><a href="#4-1-1-无连接的多路分解" class="headerlink" title="4-1-1 无连接的多路分解"></a>4-1-1 无连接的多路分解</h5><p>对于UDP协议，当我们收到了目的端口相同，但是源端口或源IP不同的报文段，仍然要引导向同一个目的套接字</p><p>4-1-2基于连接的多路分解</p><p><strong>对于TCP协议，我们确定一个套接字通过一个4元组</strong></p><ul><li>源IP地址</li><li>源端口号</li><li>目的IP地址</li><li>目的端口号</li></ul><p>多路分解：接收方用四元组来导向正确的套接字</p><p>服务器主机或许支持许多同时的TCP套接字：每个套接字通过4元组来确定</p><p>下面是一个例子：</p><p><img src="/picture/socket.png"></p><h2 id="二-传输层设计"><a href="#二-传输层设计" class="headerlink" title="二.传输层设计"></a>二.传输层设计</h2><p>为什么要用传输层？</p><ol><li>IP分组寻址到一个主机，但是端到端的交流是介于进程之间的，需要一种方式（多路复用和分解）来定位到应用进程</li><li>IP提供很弱的服务模型（尽力而为）<ul><li>分组可能错误，延迟，丢包…</li><li>对拥塞情况没有控制</li><li>这些事情还不能让应用程序来处理</li></ul></li></ol><p>尽力而为协议可能做很多很不好的事情，所以我们需要可靠传输</p><p>我们处理这些不好事情需要一些机制：</p><ul><li>检验和：来检测错误</li><li>ACK：接受者告诉发送者收到了包</li><li>NACK：接受者告诉发送者没有收到包</li><li>序号：一种识别分组的方式</li><li>重传</li><li>超时</li><li>发送纠正后的包</li><li>网络编码</li></ul><h3 id="停等协议"><a href="#停等协议" class="headerlink" title="停等协议"></a>停等协议</h3><p><img src="/picture/sw.png"></p><p>这个协议比较可靠，但是比较低效，浪费带宽。</p><p><img src="/picture/ine.png"></p><p><img src="/picture/ine1.png"></p><h3 id="流水线协议"><a href="#流水线协议" class="headerlink" title="流水线协议"></a>流水线协议</h3><p>流水线：发送方允许多个飞行中的等待“被ACK“的分组。序号的必须增加，在接收方和发送方缓存。</p><p><img src="/picture/uti.png"></p><h4 id="三种设计决策"><a href="#三种设计决策" class="headerlink" title="三种设计决策"></a>三种设计决策</h4><p>哪一个包可以发送根据<strong>滑动窗口</strong></p><p>接收方如何发送ACK？有两种，积累的，选择性的</p><p>发送方需要重传哪些包？Go-Back N（GBN）回退n帧，Selective Repeat(SR)选择重传</p><h5 id="滑动窗口"><a href="#滑动窗口" class="headerlink" title="滑动窗口"></a>滑动窗口</h5><p>窗口就是一些相邻的序号的集合，集合的大小是窗口大小，假定窗口大小是n</p><p>一次发送n个包：</p><ul><li>发送者可以发送窗口里的包</li><li>接受者可以接受窗口里的包</li><li>当收到ACK，可接受的包的窗口滑动</li></ul><p><img src="/picture/slide.png"></p><h5 id="积累确认"><a href="#积累确认" class="headerlink" title="积累确认"></a>积累确认</h5><p>累计确认永远确认的是还没有收到的序列号最小的那个</p><p><img src="/picture/ca.png"></p><p><img src="/picture/ca1.png"></p><h5 id="选择性确认"><a href="#选择性确认" class="headerlink" title="选择性确认"></a>选择性确认</h5><p>选择确认确认的是收到的包本身的序列！！！</p><p>收到一个正确的包就进行确认，这样需要记录下来哪些已经收到了</p><h4 id="滑动窗口协议"><a href="#滑动窗口协议" class="headerlink" title="滑动窗口协议"></a>滑动窗口协议</h4><p>重传包：两种标准的方法：回退n帧GBN和选择重传SR</p><h5 id="回退N帧"><a href="#回退N帧" class="headerlink" title="回退N帧"></a>回退N帧</h5><p>发送方发送最多n个没有被ACK的包</p><p>接收方只按序接收，时序的分组会被丢弃</p><p>接收方用积累确认：ACK的序号等于下一个被期待的正确顺序的序号</p><p>发送方为第一个未完成的ack设置定时器（A+1），如果超时就重传A+1，A+2……</p><h5 id="GBN的滑动窗口"><a href="#GBN的滑动窗口" class="headerlink" title="GBN的滑动窗口"></a>GBN的滑动窗口</h5><p><img src="/picture/gbn.png"></p><p>下面是没有出错的GBN滑动窗口</p><p><img src="/picture/gbn1.png"></p><p>下面是出错的GBN滑动窗口，可以看出4在传输图中丢失了，那么5和6倍接收方丢弃，而4超时没收到ACK之后发送方重传456！！！</p><p><img src="/picture/gbn2.png"></p><h5 id="选择重传"><a href="#选择重传" class="headerlink" title="选择重传"></a>选择重传</h5><p>发送方发送最多n个没有被ACK的包</p><p>假定分组k丢掉了，<code>K+1</code>没有丢掉</p><ul><li>那么接收方：发送k+1的ACK</li><li>发送方：k超时，只重传k</li></ul><p>高效重传但是记账很复杂，<strong>对于每个包都要一个定时器</strong>！！！</p><p><img src="/picture/sr.png"></p><h5 id="GBN-vs-SR"><a href="#GBN-vs-SR" class="headerlink" title="GBN vs SR"></a>GBN vs SR</h5><p>什么时候GBN更好？错误率低，否则重传多余的包会浪费带宽</p><p>什么时候SR更好？错误率高，否则会搞得很复杂</p><p>对于滑动窗口，只要窗口大小足够大，就可以充分利用链接。</p><p>发送方不得不缓存所有没有被ACK的包，因为可能需要重传</p><p>接收方或许能够接收失序的包，但是不能超过缓存大小！</p><p>实现的复杂度取决于协议的细节！！！</p><h2 id="三-UDP"><a href="#三-UDP" class="headerlink" title="三.UDP"></a>三.UDP</h2><p>UDP是User Datagram Protocol（用户数据报协议）</p><p>TCP是Transmission Control Protocol（传输控制协议）</p><ul><li>进程之间的轻量级交流，避免了额外开销</li><li>目的IP地址和端口来支撑多路分解</li><li>尽力而为服务，UDP报文段或许会丢失，失序交付给app</li><li>无连接的，没有握手，每个UDP报文段都独立被处理</li></ul><p>UDP用：</p><ul><li>流多媒体APP</li><li>DNS</li><li>SNMP</li></ul><p>为什么要有UDP？</p><ol><li>不需要连接建立（没有额外时间开销）</li><li>简单：收发方都没有连接状态</li><li>header比较小</li><li>没有拥塞控制：UDP速度可以爆炸增长</li></ol><h3 id="UDP报文段的格式"><a href="#UDP报文段的格式" class="headerlink" title="UDP报文段的格式"></a>UDP报文段的格式</h3><p><img src="/picture/udp.png"></p><h4 id="checksum"><a href="#checksum" class="headerlink" title="checksum"></a>checksum</h4><p>检测传输地报文段的错误</p><p>进行16bit和的反码运算，值得注意的是，在进行16bit加法运算的时候如果有溢出就要进行回卷（把溢出位加到后面！！！），对最后的和进行反码运算</p><p>检验和字段是0意味着没有用检验和</p><h2 id="四-TCP"><a href="#四-TCP" class="headerlink" title="四.TCP"></a>四.TCP</h2><p>TCP交付可靠的，按序的字节流</p><h3 id="TCP头"><a href="#TCP头" class="headerlink" title="TCP头"></a>TCP头</h3><p><img src="/picture/TCP.png"></p><p>用源端口和目的端口来进行多路复用和分解</p><p>checksum用来计算数据和伪头</p><p>序列号是字节偏移量（因为TCP是一个字节流）</p><h3 id="TCP做什么"><a href="#TCP做什么" class="headerlink" title="TCP做什么"></a>TCP做什么</h3><ol><li>检验和</li><li>序号是字节偏移量</li><li>接收方发送积累确认（像GBN）</li><li>接收方缓存时序分组（像SR）</li></ol><h3 id="TCP引入什么"><a href="#TCP引入什么" class="headerlink" title="TCP引入什么"></a>TCP引入什么</h3><p>引入了快速重传机制：冗余的ACK触发早期重传</p><p>发送方维护一个单独的重传计时器，当超时就重传</p><p>那么我们如何确定超时时间是多少呢？</p><p>要跟RTT成一定比例，我们怎么知道RTT呢</p><p>RTT样本的指数加权平均值</p><p><img src="/picture/exp.png"></p><p>我们如何区分真的ACK和重传分组的ACK呢？</p><p><img src="/picture/ACK.png"></p><h4 id="Karn-Partridge算法"><a href="#Karn-Partridge算法" class="headerlink" title="Karn/Partridge算法"></a>Karn/Partridge算法</h4><p>不用来自重传的ACK，一旦重传就忽略后面的ACK报文段</p><p>用α=0.125来计算<code>EstimatedRTT</code></p><p>超时的值设置成<code>EstimatedRTT</code>的2倍</p><p>使用指数回退：当超时就让<code>RTO=2* RTO</code>。每次新的估计值（收到不是重传的ACK）出现，就回退到<code>2*EstimatedRTT</code></p><h4 id="Jacobson-Karels算法"><a href="#Jacobson-Karels算法" class="headerlink" title="Jacobson/Karels算法"></a>Jacobson/Karels算法</h4><p><img src="/picture/JK.png"></p><h3 id="连接建立"><a href="#连接建立" class="headerlink" title="连接建立"></a>连接建立</h3><h4 id="双向握手"><a href="#双向握手" class="headerlink" title="双向握手"></a>双向握手</h4><p>A发送SYN，B回复SYN</p><p>如何识别就连接中的报文段</p><p>如何识别冗余过期的SYN</p><h5 id="初始化序列号"><a href="#初始化序列号" class="headerlink" title="初始化序列号"></a>初始化序列号</h5><p>用一个和之前连接不同的初始化序列号开始每段新连接</p><p>连接请求的形式为SYN i+1，其中i是将在此连接上发送的第一个数据段的序列号。</p><h4 id="三次握手"><a href="#三次握手" class="headerlink" title="三次握手"></a>三次握手</h4><p><img src="/picture/3.png"></p><p><img src="/picture/shake.png"></p><h3 id="关闭连接"><a href="#关闭连接" class="headerlink" title="关闭连接"></a>关闭连接</h3><h4 id="四次挥手"><a href="#四次挥手" class="headerlink" title="四次挥手"></a>四次挥手</h4><p>正常的终止，一次一边</p><p><img src="/picture/fin1.png"></p><p>正常的终止，两边同时</p><p><img src="/picture/fin2.png"></p><p>意外终止</p><p><img src="/picture/fin3.png"></p><p>下面是客户机的生命周期</p><p><img src="/picture/client.png"></p><p>下面是服务器的生命周期</p><p><img src="/picture/server.png"></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 计算机网络 </category>
+          
+      </categories>
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>计网笔记应用层</title>
+      <link href="/2021/06/14/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E5%BA%94%E7%94%A8%E5%B1%82/"/>
+      <url>/2021/06/14/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E5%BA%94%E7%94%A8%E5%B1%82/</url>
+      
+        <content type="html"><![CDATA[<h2 id="一-多媒体网络应用"><a href="#一-多媒体网络应用" class="headerlink" title="一.多媒体网络应用"></a>一.多媒体网络应用</h2><h3 id="音频"><a href="#音频" class="headerlink" title="音频"></a>音频</h3><p>以恒定速率采样的模拟音频信号</p><ul><li>telephone：8000样本每秒</li><li>CD音乐：44100样本每秒</li></ul><p>每个样本被量化，例如四舍五入(比如2^8=256种可能的量化值)</p><h3 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h3><p>以恒定速率播放的图片序列，比如24张图片每秒</p><p>数字图片：像素的数组，每张图片通过比特来表示</p><p>编码：利用图片之间的冗余（相同的地方）来编码可以节省空间</p><ul><li>空间上的冗余：比如同一排一样的颜色，只需要发送一个颜色和重复的次数即可</li><li>时间上的冗余：相邻两帧只需要发送不一样的地方即可</li></ul><h3 id="三种应用类型"><a href="#三种应用类型" class="headerlink" title="三种应用类型"></a>三种应用类型</h3><h4 id="1-流媒体"><a href="#1-流媒体" class="headerlink" title="1.流媒体"></a>1.流媒体</h4><p>因为整个视频文件太大，所以变成”流“来存储音频和视频，在完全下载下来之前就可以播放。在服务器上面的存储：可以比音频或者视频传输地更快（意味着在客户机缓存）。</p><p>流媒体存储的视频：</p><p><img src="/picture/streaming.png"></p><p>存在一些挑战：</p><ul><li>持续的播放约束，一旦客户播放开始，重放就要匹配得上原来的时间。但是网络延迟是可变的，所以我们需要客户机端的缓冲区来匹配播放需要</li><li>客户机需要交互：暂停，快进，回退…</li><li>视频包可能会丢失</li></ul><p>改进之后：（多了buffer）</p><p><img src="/picture/s.png"></p><h5 id="利用的协议"><a href="#利用的协议" class="headerlink" title="利用的协议"></a>利用的协议</h5><p>UDP</p><p>服务器以一个对于客户合适的速率发送</p><p>要有一个比较短的播放延迟来对抗网络抖动</p><p>UDP可能穿不过防火墙</p><p>HTTP</p><p>通过<code>HTTP GET</code>来获取多媒体文件。在TCP下以一个最小的可能速率发送</p><p><img src="/picture/HTTPTCP.png"></p><p>填充速率波动取决于TCP拥塞控制，重传机制。需要更大的播放延时。HTTP/TCP可以轻松穿过防火墙</p><p>DASH</p><p>Dynamic，Adaptive Streaming over HTTP</p><p>发送方：</p><ul><li>把视频文件分为多个块</li><li>每个块都存下来，以不同的速率编码</li><li>清单文件：提供不同块的URL</li></ul><p>接收方：</p><ul><li>周期性测量服务器到客户的带宽</li><li>询问清单，一次性请求一个块。选择给定当前带宽下可以忍受的最小的编码速率，可以在不同的时间点根据不同带宽选择不同的速率。</li></ul><h4 id="2-基于IP的会话视频或音频"><a href="#2-基于IP的会话视频或音频" class="headerlink" title="2.基于IP的会话视频或音频"></a>2.基于IP的会话视频或音频</h4><p>人和人交互式的场景限制了对延迟的容忍度</p><p>VoIP</p><p>VoIP端到端延迟要求：更高的延迟会明显影响交互性。小于150ms：好，大于400ms：坏。包括应用的等级（分组，播放），网络时延</p><p>会话初始化：接电话的人如何通知它的IP地址，端口号，编码算法呢？</p><p>增值业务：电话转移，筛选，记录</p><p>紧急服务：911</p><h4 id="3-流媒体直播视频或音频"><a href="#3-流媒体直播视频或音频" class="headerlink" title="3.流媒体直播视频或音频"></a>3.流媒体直播视频或音频</h4><p>比如，体育赛事</p><p>三.因特网QoS</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 计算机网络 </category>
+          
+      </categories>
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>NP问题</title>
       <link href="/2021/06/14/NP%E9%97%AE%E9%A2%98/"/>
       <url>/2021/06/14/NP%E9%97%AE%E9%A2%98/</url>
@@ -48,7 +86,7 @@
     
     
     <entry>
-      <title>计算机网络笔记网络层</title>
+      <title>计网笔记网络层</title>
       <link href="/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E7%BD%91%E7%BB%9C%E5%B1%82/"/>
       <url>/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E7%BD%91%E7%BB%9C%E5%B1%82/</url>
       
@@ -86,7 +124,7 @@
     
     
     <entry>
-      <title>计算机网络笔记链路层</title>
+      <title>计网笔记链路层</title>
       <link href="/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E9%93%BE%E8%B7%AF%E5%B1%82/"/>
       <url>/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E9%93%BE%E8%B7%AF%E5%B1%82/</url>
       
