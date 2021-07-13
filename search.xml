@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>MIT6.828操作系统笔记Lab1</title>
+      <link href="/2021/07/12/MIT6-828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%AC%94%E8%AE%B0/"/>
+      <url>/2021/07/12/MIT6-828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%AC%94%E8%AE%B0/</url>
+      
+        <content type="html"><![CDATA[<h2 id="一-起因"><a href="#一-起因" class="headerlink" title="一.起因"></a>一.起因</h2><p>本学期上完了操作系统课程，感觉OS真的是一门很高级的学问，涉及了计算机最底层的东西，私以为要盖好上层建筑，就必须把基本功打好，这是内功。在学长的推荐下，我决定做一下6.828的实验！在经过一学期的英文文档阅读之后，看见英文的东西已经不打怵了，说不上进步多大，但肯定是有进步的！</p><h2 id="二-Lab1"><a href="#二-Lab1" class="headerlink" title="二.Lab1"></a>二.Lab1</h2><h3 id="1-BIOS"><a href="#1-BIOS" class="headerlink" title="1.BIOS"></a>1.BIOS</h3><p>在我们给计算机加电之后，CPU第一个执行的指令就是BIOS的指令，从GDB里面我们可以看出，就是下面这一行，这时<code>CS=0xf000</code>并且<code>IP=0xfff0</code>，所以现在这个指令在地址<code>0xffff0</code>处。我们可以看出来，在实地址模式下，几乎已经达到了寻址空间的尽头，后面为数不多的空间不够存放几条指令了。实际上，真正的<code>BIOS</code>的真正代码在更低地址处。所以我们需要通过下面的指令跳转到相应位置。</p><pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">[f000:fff0] 0xffff0:ljmp   $0xf000,$0xe05b</code></pre><p><code>ljmp</code>的意思是长跳转，，也就是说跳转到<code>0xfe05b</code>地址处，可以看出，确实是在第一条指令的前面！</p><p>后面<code>BIOS</code>完成自己后续任务，包括设置中断描述符表和初始化各种设备，比如<code>VGA</code>。在做完这些工作之后，<code>BIOS</code>寻找可引导的设备，当它发现可引导的磁盘时，<code>BIOS</code>从磁盘读出<code>bootloader</code>然后把控制权交给它！</p><p>我总结了一下：<code>BIOS</code>起到一个最原始的引导的作用，主要功能是检查硬件，加载bootloader，然后把控制权交给<code>bootloader</code>。而对于设置中断描述符表之类的事情，其实并不是<code>BIOS</code>必须要做的事情，算是拓展功能。而且因为跟硬件的初始化相关，所以BIOS是硬件厂商来制定比较好，也就是说，如果足够精简的BIOS甚至可以把所有的任务都交给bootloader。BIOS相对于用户来说是透明的，而bootloader才是真正操作系统的一部分。而BIOS的具体内容是什么，其实并不在操作系统的范围内。（其实<code>bootloader</code>也不算）。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 操作系统 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 操作系统 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>计网笔记传输层</title>
       <link href="/2021/06/16/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E4%BC%A0%E8%BE%93%E5%B1%82/"/>
       <url>/2021/06/16/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E4%BC%A0%E8%BE%93%E5%B1%82/</url>
