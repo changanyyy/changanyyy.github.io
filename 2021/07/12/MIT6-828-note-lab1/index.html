@@ -399,14 +399,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    6.4k
+                    6.8k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    26 分
+                    28 分
                 </div>
                 
 
@@ -945,6 +945,35 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 	return 0;
 }
 </code></pre>
+
+<h5 id="练习十二"><a href="#练习十二" class="headerlink" title="练习十二"></a>练习十二</h5><p>先看一下<code>kern/kernel.ld</code>，可以知道<code>__STAB_BEGIN__</code>和<code>__STAB_END__</code>，<code>__STABSTR_BEGIN__</code>和<code>__STABSTR_END__</code>这四个变量是内存中他们的地址（指针）！</p>
+<p>然后<code>objdump -h</code>查看<code>kernel</code>的节头表，发现有如下内容，所以<code>__STAB_BEGIN__</code>的值应该是<code>0xf01022bc</code>，<code>__STAB_END__</code>的值应该是<code>0xf0106090</code>（另外两个以此类推）</p>
+<p><img src="/picture/6.828-1-1.png" alt="kernel的节头表"></p>
+<p>再<code>kernel</code>被加载好之后，我来查看一下符号表是否也被加载到预期的位置，根据下面这张图来看，确实！</p>
+<p><img src="/picture/6.828-1-2.png" alt="检查stabstr段所在内存"></p>
+<p>下面看一下符号段是什么样的，从下面看出，符号段每个表项包含下面的成员，下面是对各个成员的解释：</p>
+<pre class="line-numbers language-none"><code class="language-none">Symnum n_type n_othr n_desc n_value  n_strx String</code></pre>
+
+<ul>
+<li><code>Symnum</code>是符号索引，换句话说，整个符号表看作一个数组，<code>Symnum</code>是当前符号在数组中的下标</li>
+<li><code>n_type</code>是符号类型，<code>FUN</code>指函数名，<code>SLINE</code>指在<code>text</code>段中的行号</li>
+<li><code>n_othr</code>目前没被使用，其值固定为0</li>
+<li><code>n_desc</code>表示在文件中的行号</li>
+<li><code>n_value</code>表示地址。特别要注意的是，这里只有<code>FUN</code>类型的符号的地址是绝对地址，<code>SLINE</code>符号的地址是偏移量，其实际地址为函数入口地址加上偏移量。</li>
+</ul>
+<p>注意，下面这句两个指针相减得到的是数组的下标！</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c">rfile = (stab_end - stabs) - 1;</code></pre>
+
+<p>所以二分搜索利用下标对地址进行搜索！</p>
+<p>我们先搜索到相应的源文件，然后对函数进行搜索，所以如下代码用来搜索行号</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c">stab_binsearch(stabs, &amp;lline, &amp;rline, N_SLINE, addr-info-&gt;eip_fn_addr);
+	if(lline &gt; rline){
+		return -1;
+	}
+	else{
+		info-&gt;eip_line = stabs[lline].n_desc;
+		
+	}</code></pre>
 
 
 
