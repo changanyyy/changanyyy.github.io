@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>MIT6-828-note-lab2</title>
+      <link href="/2021/07/19/MIT6-828-note-lab2/"/>
+      <url>/2021/07/19/MIT6-828-note-lab2/</url>
+      
+        <content type="html"><![CDATA[<h2 id="一-开篇"><a href="#一-开篇" class="headerlink" title="一.开篇"></a>一.开篇</h2><p><code>Lab2</code>的代码量要明显多于<code>Lab1</code>，可以说是难度层层递进，这个实验主要是开启分页机制，打开虚拟地址机制。这个正是我在操作系统课上没有锻炼到的地方！话不多说，我的思考过程在下面。</p><h2 id="二-Lab2"><a href="#二-Lab2" class="headerlink" title="二.Lab2"></a>二.Lab2</h2><h3 id="1-回顾"><a href="#1-回顾" class="headerlink" title="1.回顾"></a>1.回顾</h3><h4 id="1-1怎么开的保护模式？"><a href="#1-1怎么开的保护模式？" class="headerlink" title="1-1怎么开的保护模式？"></a>1-1怎么开的保护模式？</h4><p>我们在合并了<code>Lab1</code>之后，先来回顾一下操作系统启动的过程。</p><p>我们从<code>Kernel</code>开始，首先进入<code>entry.S</code>，然后把一个简易的页表加载上<code>cr3</code>去，这个页表的作用是把内存的<code>[KERNBASE, KERNBASE+4MB)</code>和<code>[0, 4MB)</code>都映射到物理地址<code>[0, 4MB)</code>上去！为什么要把虚拟地址<code>[0, 4MB)</code>也映射上去呢？原因是在我开启分页之后，就从实地址模式变成了保护模式，<code>CPU</code>解析地址的方式就变化了。而我们下面还有两行汇编指令的地址位于低地址，而此时的<code>EIP</code>仍然位于低地址部分！这样开启分页之后，才可以获取到正确的指令！然后通过<code>jmp</code>指令跳转到虚拟地址<code>0xf0000000</code>地址的位置！</p><pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">mov$relocated, %eaxjmp*%eax</code></pre><h4 id="1-2设置简易的栈"><a href="#1-2设置简易的栈" class="headerlink" title="1-2设置简易的栈"></a>1-2设置简易的栈</h4><p>下面<code>relocated</code>的作用是初始化一下栈区，从下面的代码可以看出，栈区的大小是<code>KSTKSIZE</code>，栈区的栈顶位于高地址，即<code>bootstacktop</code></p><pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">.p2alignPGSHIFT# force page alignment.globlbootstackbootstack:.spaceKSTKSIZE.globlbootstacktop   bootstacktop:</code></pre><p>随即把栈顶指针赋值给<code>esp</code>，调用<code>i386_init</code>函数进行进一步初始化！</p><h4 id="1-3初始化函数"><a href="#1-3初始化函数" class="headerlink" title="1-3初始化函数"></a>1-3初始化函数</h4><p>进入初始化函数，我们看见第一件事情就是初始化<code>.bss</code>段，初始化为0，因为在<code>ELF</code>文件里面，这个段只标出了大小，并不分配空间。</p><p>然后进行一些显示，输入，输出等初始化活动，最后进入<code>mem_init</code>，这个就是本次实验的核心函数！</p><h3 id="2-开始coding"><a href="#2-开始coding" class="headerlink" title="2.开始coding"></a>2.开始coding</h3><h4 id="2-1进入内存初始化！"><a href="#2-1进入内存初始化！" class="headerlink" title="2-1进入内存初始化！"></a>2-1进入内存初始化！</h4><p>进入内存初始化函数之后，我们先检测以下硬件提供的内存，这个工作由<code>i386_detect_memory</code>函数来完成。</p><h4 id="2-2为必要的DS分配内存"><a href="#2-2为必要的DS分配内存" class="headerlink" title="2-2为必要的DS分配内存"></a>2-2为必要的DS分配内存</h4><p>继续往下看，看见是给<code>kern_pgdir</code>变量赋值，我们可以看见它的定义是一个全局变量，表示的是页目录的首地址！我们可以知道，页目录所对应逻辑地址中的10比特，那么一共有页目录<code>2^10=1024</code>个！而一个页目录项的大小是4字节，所以一个页目录占用的大小刚好是一个页面的大小！所以我们用<code>boot_alloc</code>函数来对页目录进行分配空间（后面会提到这个函数具体干啥的）。分配完之后，还要清零。</p><p>下面一步是分配一个<code>pages</code>数组，每一项对应一个物理页框，我们可以得知一共有<code>npages</code>个物理页框，所以代码如下：</p><pre class="line-numbers language-c" data-language="c"><code class="language-c">//////////////////////////////////////////////////////////////////////// Allocate an array of npages 'struct PageInfo's and store it in 'pages'.// The kernel uses this array to keep track of physical pages: for// each physical page, there is a corresponding struct PageInfo in this// array.  'npages' is the number of physical pages in memory.  Use memset// to initialize all fields of each struct PageInfo to 0.// Your code goes here:pages=(struct PageInfo *)boot_alloc(sizeof(struct PageInfo) * npages);memset(pages, 0, sizeof(struct PageInfo) * npages);</code></pre><p>现在既然关于页面和页目录的数据结构分配完了，我们就对这些内存进行初始化！</p><h4 id="2-3初始化分页"><a href="#2-3初始化分页" class="headerlink" title="2-3初始化分页"></a>2-3初始化分页</h4><p>对于<code>page_init</code>函数，我们要做的是把已经分配出去的页框和空闲页框分类，空闲页框用一个链表串起来！</p><p>在注释里已经提示我们哪里是可以分配，哪里是不可以分配的</p><ol><li> Mark physical page 0 as in use. This way we preserve the real-mode IDT and BIOS structures in case we ever need them.  (Currently we don’t, but…)</li><li>The rest of base memory, <code>[PGSIZE, npages_basemem * PGSIZE)</code> is free.</li><li>Then comes the IO hole <code>[IOPHYSMEM, EXTPHYSMEM)</code>, which must never be allocated.</li><li>Then extended memory <code>[EXTPHYSMEM, ...)</code>.Some of it is in use, some is free. Where is the kernel in physical memory?  Which pages are already in use for page tables and other data structures?</li></ol><p>我们如何理解呢？首先，0号物理页已经被<code>BIOS</code>和引导程序之类的代码占领了（以后我们还要用的），所以0号页面必然不可能是空闲的。从1号物理页面到<code>base_memory</code>的末尾，都是空闲的（也就是图片对应的<code>Low Memory</code>），可以从检测函数的输出看出一共有<code>640KB</code>，然后剩下的就是<code>ext_memory</code>，就很多了。</p><p><code>IOPHYSMEM=0x000A0000，EXTPHYSMEM=0x00100000</code>，这两者中间的是关于<code>BIOS</code>和一些显示有关的区域，不可以被分配！从<code>0x100000</code>开始的部分，就是我们自由分配的部分，有的是空闲有的却不是，但是根据我们刚开始用<code>boot_alloc</code>函数分配的规则来看，我们是按照顺序分配的，所以在<code>boot_alloc(0)</code>之前（<code>boot_alloc(0)</code>返回值是第一个以页为对齐标准的空闲的物理内存的地址！）所以在<code>EXTPHYSMEM</code>和<code>boot_alloc(0)</code>之间的内存区域也不是空闲的，而且是系统必要的数据，比如页面结构<code>PageInfo</code>，页目录，内核代码！</p><p><img src="/picture/%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98.png" alt="物理内存"></p><p>根据上面的提示，我们对物理内存进行了庖丁解牛。于是，我写出了如下优美的代码（x）：</p><p>需要注意的是空闲页面链表使用的是头插法！</p><pre class="line-numbers language-c" data-language="c"><code class="language-c">page_free_list = NULL;size_t i;for (i = 0; i &lt; npages; i++) {if(i==0 ||(page2pa(&amp;pages[i]) &gt;= IOPHYSMEM &amp;&amp; page2pa(&amp;pages[i]) &lt; EXTPHYSMEM) ||(page2pa(&amp;pages[i]) &gt;= EXTPHYSMEM &amp;&amp;page2kva(&amp;pages[i]) &lt; boot_alloc(0))){pages[i].pp_ref = 0;pages[i].pp_link = NULL;continue;}pages[i].pp_ref = 0;pages[i].pp_link = page_free_list;page_free_list = &amp;pages[i];//cprintf("pagefree %d",i);}</code></pre>]]></content>
+      
+      
+      <categories>
+          
+          <category> 操作系统 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 操作系统 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>MIT6.828操作系统笔记Lab1</title>
       <link href="/2021/07/12/MIT6-828-note-lab1/"/>
       <url>/2021/07/12/MIT6-828-note-lab1/</url>
