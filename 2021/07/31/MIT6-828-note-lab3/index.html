@@ -305,14 +305,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    2k
+                    2.4k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    12 分
+                    14 分
                 </div>
                 
 
@@ -453,12 +453,7 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
     envs <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">struct</span> Env <span class="token operator">*</span><span class="token punctuation">)</span><span class="token function">boot_alloc</span><span class="token punctuation">(</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> Env<span class="token punctuation">)</span> <span class="token operator">*</span> NENV<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <p>And as usual, next step is of course map the array at linear address <code>UENVS</code>. </p>
-<pre class=" language-c"><code class="language-c">    <span class="token comment" spellcheck="true">/////////////////////////////////////////////////////////////////////</span>
-    <span class="token comment" spellcheck="true">// Map the 'envs' array read-only by the user at linear address UENVS</span>
-    <span class="token comment" spellcheck="true">// (ie. perm = PTE_U | PTE_P).</span>
-    <span class="token comment" spellcheck="true">// Permissions:</span>
-    <span class="token comment" spellcheck="true">//    - the new image at UENVS  -- kernel R, user R</span>
-    <span class="token comment" spellcheck="true">//    - envs itself -- kernel RW, user NONE</span>
+<pre class=" language-c"><code class="language-c">
     <span class="token comment" spellcheck="true">// LAB 3: Your code here.</span>
     <span class="token function">boot_map_region</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span>uintptr_t<span class="token punctuation">)</span>UENVS<span class="token punctuation">,</span> PTSIZE<span class="token punctuation">,</span> <span class="token punctuation">(</span>physaddr_t<span class="token punctuation">)</span><span class="token function">PADDR</span><span class="token punctuation">(</span>envs<span class="token punctuation">)</span><span class="token punctuation">,</span> PTE_U <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
@@ -531,7 +526,7 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
     <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<p>The next function is <code>region_alloc</code>.  When the parameter <code>len</code> is 0 or </p>
+<p>The next function is <code>region_alloc</code>.  When the parameter <code>len</code> is 0 or a negative number, it’s the illegal state. Physical pages are supposed to simultaneously be mapped for <code>kern_pgdir</code> and <code>env_pgdir</code>. Another solution is <code>lcr3(e-&gt;pgdir[PDX(UVPT)])</code>, which reaches the same goal as my method.</p>
 <pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Allocate len bytes of physical memory for environment env,</span>
 <span class="token comment" spellcheck="true">// and map it at virtual address va in the environment's address space.</span>
 <span class="token comment" spellcheck="true">// Does not zero or otherwise initialize the mapped pages in any way.</span>
@@ -542,13 +537,6 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
 <span class="token function">region_alloc</span><span class="token punctuation">(</span><span class="token keyword">struct</span> Env <span class="token operator">*</span>e<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>va<span class="token punctuation">,</span> size_t len<span class="token punctuation">)</span>
 <span class="token punctuation">{</span>
     <span class="token comment" spellcheck="true">// LAB 3: Your code here.</span>
-    <span class="token comment" spellcheck="true">// (But only if you need it for load_icode.)</span>
-    <span class="token comment" spellcheck="true">//</span>
-    <span class="token comment" spellcheck="true">// Hint: It is easier to use region_alloc if the caller can pass</span>
-    <span class="token comment" spellcheck="true">//   'va' and 'len' values that are not page-aligned.</span>
-    <span class="token comment" spellcheck="true">//   You should round va down, and round (va + len) up.</span>
-    <span class="token comment" spellcheck="true">//   (Watch out for corner-cases!)</span>
-
     <span class="token keyword">if</span><span class="token punctuation">(</span>len <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token keyword">return</span><span class="token punctuation">;</span>
     <span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span>len <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"region_alloc: len is a negtive num\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
@@ -564,10 +552,90 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
         <span class="token function">page_insert</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">,</span> pg<span class="token punctuation">,</span> va<span class="token punctuation">,</span> PTE_W <span class="token operator">|</span> PTE_U <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
         va <span class="token operator">+</span><span class="token operator">=</span> PGSIZE<span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
-    <span class="token comment" spellcheck="true">//cprintf("1111111\n");</span>
-
 <span class="token punctuation">}</span>
 </code></pre>
+<p>Having finished the previous functions, we come up with the function <code>load_icode</code>. It will load the code and data of user environment into the correct position. First, we define a variable named <code>elfhdr</code> whose type is <code>struct Elf</code> and another two variables named <code>ph</code> and <code>eph</code> pointing to the start and the end of the program header.</p>
+<p>The following code assigned ELF header to <code>elfhdr</code>, and testify that it is correct:</p>
+<pre class=" language-c"><code class="language-c">    <span class="token keyword">struct</span> Elf <span class="token operator">*</span>elfhdr<span class="token punctuation">;</span>
+    elfhdr <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">struct</span> Elf <span class="token operator">*</span><span class="token punctuation">)</span> binary<span class="token punctuation">;</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span>elfhdr <span class="token operator">-></span> e_magic <span class="token operator">!=</span> ELF_MAGIC<span class="token punctuation">)</span><span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"load_icode: elf header error\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>For further environment switching, we have to assign <code>e_entry</code> to <code>e-&gt;env_tf.tf_eip</code> so that once we switch to this environment, the register <code>eip</code> will point to the first instruction.</p>
+<p>Then, we load sections through loops:</p>
+<blockquote>
+<p>Attention!!!</p>
+<p>We should map corresponding regions before moving memory! And don’t forget to clear the memory between <code>filesz</code> and <code>memsz</code>.</p>
+</blockquote>
+<pre class=" language-c"><code class="language-c">    <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token punctuation">;</span> ph <span class="token operator">&lt;</span> eph<span class="token punctuation">;</span> ph<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+        <span class="token comment" spellcheck="true">//cprintf("%d",ph->p_type);</span>
+        <span class="token keyword">if</span><span class="token punctuation">(</span>ph<span class="token operator">-></span>p_type <span class="token operator">==</span> ELF_PROG_LOAD<span class="token punctuation">)</span><span class="token punctuation">{</span>
+            <span class="token function">region_alloc</span><span class="token punctuation">(</span>e<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span> ph<span class="token operator">-></span>p_va<span class="token punctuation">,</span> ph<span class="token operator">-></span>p_memsz<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">memcpy</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span> ph<span class="token operator">-></span>p_va<span class="token punctuation">,</span> binary <span class="token operator">+</span> ph<span class="token operator">-></span>p_offset<span class="token punctuation">,</span> ph<span class="token operator">-></span>p_memsz<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">memset</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span> ph<span class="token operator">-></span>p_va <span class="token operator">+</span> ph<span class="token operator">-></span>p_filesz<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> ph<span class="token operator">-></span>p_memsz <span class="token operator">-</span> ph<span class="token operator">-></span>p_filesz<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            
+        <span class="token punctuation">}</span>
+</code></pre>
+<p>In the end, we map one page for the program’s initial stack at virtual address <code>USTACKTOP-PGSIZE</code>:</p>
+<pre class=" language-c"><code class="language-c">    <span class="token function">region_alloc</span><span class="token punctuation">(</span>e<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span> USTACKTOP <span class="token operator">-</span> PGSIZE<span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The remaining two functions will integrate above all functions. But they are not difficult.</p>
+<p>The first one is <code>env_create</code>:</p>
+<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">//</span>
+<span class="token comment" spellcheck="true">// Allocates a new env with env_alloc, loads the named elf</span>
+<span class="token comment" spellcheck="true">// binary into it with load_icode, and sets its env_type.</span>
+<span class="token comment" spellcheck="true">// This function is ONLY called during kernel initialization,</span>
+<span class="token comment" spellcheck="true">// before running the first user-mode environment.</span>
+<span class="token comment" spellcheck="true">// The new env's parent ID is set to 0.</span>
+<span class="token comment" spellcheck="true">//</span>
+<span class="token keyword">void</span>
+<span class="token function">env_create</span><span class="token punctuation">(</span>uint8_t <span class="token operator">*</span>binary<span class="token punctuation">,</span> <span class="token keyword">enum</span> EnvType type<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    <span class="token comment" spellcheck="true">// LAB 3: Your code here.</span>
+    <span class="token keyword">struct</span> Env <span class="token operator">*</span>env_store <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+    
+    <span class="token comment" spellcheck="true">//******a bug had confused me for a long time, it's because curenv is null!</span>
+    <span class="token comment" spellcheck="true">//int r = env_alloc( env_store, curenv->env_id);</span>
+    
+    <span class="token keyword">int</span> r <span class="token operator">=</span> <span class="token function">env_alloc</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>env_store<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span><span class="token punctuation">(</span>r<span class="token punctuation">)</span><span class="token punctuation">{</span>
+        <span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"env_create: env alloc failed\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    env_store<span class="token operator">-></span>env_type <span class="token operator">=</span> type<span class="token punctuation">;</span>
+    
+    <span class="token function">load_icode</span><span class="token punctuation">(</span>env_store<span class="token punctuation">,</span> binary<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The second is <code>env_run</code>. There are two steps:</p>
+<p>Step1:</p>
+<ol>
+<li>Set the current environment (if any) back to <code>ENV_RUNNABLE</code> if it is <code>ENV_RUNNING</code>.</li>
+<li>Set <code>curenv</code> to the new environment.</li>
+<li>Set its status to <code>ENV_RUNNING</code>.</li>
+<li>Update its <code>env_runs</code> counter.</li>
+<li>Use <code>lcr3()</code> to switch to its address space.</li>
+</ol>
+<p>Step2:</p>
+<ol>
+<li>Use <code>env_pop_tf()</code> to restore the environment’s registers and drop into user mode in the environment.</li>
+</ol>
+<pre class=" language-c"><code class="language-c"><span class="token keyword">void</span>
+<span class="token function">env_run</span><span class="token punctuation">(</span><span class="token keyword">struct</span> Env <span class="token operator">*</span>e<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    <span class="token comment" spellcheck="true">// LAB 3: Your code here.</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span>curenv <span class="token operator">&amp;&amp;</span> curenv<span class="token operator">-></span>env_status <span class="token operator">==</span> ENV_RUNNING<span class="token punctuation">)</span>curenv<span class="token operator">-></span>env_status <span class="token operator">=</span> ENV_RUNNABLE<span class="token punctuation">;</span>
+    curenv <span class="token operator">=</span> e<span class="token punctuation">;</span>
+    curenv<span class="token operator">-></span>env_status <span class="token operator">=</span> ENV_RUNNING<span class="token punctuation">;</span>
+    curenv<span class="token operator">-></span>env_runs<span class="token operator">++</span><span class="token punctuation">;</span>
+    <span class="token function">lcr3</span><span class="token punctuation">(</span>curenv<span class="token operator">-></span>env_pgdir<span class="token punctuation">[</span><span class="token function">PDX</span><span class="token punctuation">(</span>UVPT<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">env_pop_tf</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token punctuation">(</span>curenv<span class="token operator">-></span>env_tf<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+    <span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"env_run not yet implemented"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="3-Test-it"><a href="#3-Test-it" class="headerlink" title="3 Test it"></a>3 Test it</h2><p>After struggle with bugs for a while, I succeed so far. Below is the screenshot when I debug with <code>GDB</code>. It crashed at the instruction <code>int $0x30</code>, which we will complete corresponding codes.</p>
+<p><img src="/picture/sigtrap.png"></p>
 
                 
             </div>
