@@ -305,14 +305,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    2.4k
+                    3.7k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    14 分
+                    22 分
                 </div>
                 
 
@@ -636,6 +636,192 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
 </code></pre>
 <h2 id="3-Test-it"><a href="#3-Test-it" class="headerlink" title="3 Test it"></a>3 Test it</h2><p>After struggle with bugs for a while, I succeed so far. Below is the screenshot when I debug with <code>GDB</code>. It crashed at the instruction <code>int $0x30</code>, which we will complete corresponding codes.</p>
 <p><img src="/picture/sigtrap.png"></p>
+<h2 id="4-Set-IDT"><a href="#4-Set-IDT" class="headerlink" title="4  Set IDT"></a>4  Set IDT</h2><p>From now on, we should set interrupt descriptor table correct values. But before starting, we need review some assembly instructions such as <code>int</code> and <code>iret</code>.</p>
+<h3 id="4-1-INT-and-tss"><a href="#4-1-INT-and-tss" class="headerlink" title="4-1 INT and tss"></a>4-1 <code>INT</code> and <code>tss</code></h3><p>The <code>INT</code> instruction generates a call to the interrupt or exception handler specified with the destination operand. The destination operand specifies a vector from 0 to 255, encoded as an 8-bit unsigned intermediate value. Each vector provides an index to a gate descriptor in the IDT. The first 32 vector are reserved by intel for system use. Some of these vectors are used for internally generated exceptions.</p>
+<p>The <code>INT n</code> instruction is the general mnemonic for executing a software generated call to an interrupt handler. The <code>INTO</code> instruction is a special mnemonic for calling overflow exception, exception 4. The overflow interrupt checks the <code>OF</code> flag in the <code>EFLAGS</code> register and calls the overflow interrupt handler if the <code>OF</code> flag is set to 1.</p>
+<p>The <code>int 3</code>instruction uses a one-byte opcode(CC) and is intended for calling the debug exception handler with a breakpoint exception (#BP).</p>
+<p>From i386 Documents, we find what <code>INT</code> instruction exactly does in the mode that JOS is now in:</p>
+<pre class=" language-pseudocode"><code class="language-pseudocode">INTER-PRIVILEGE-LEVEL-INTERRUPT:
+    (* PE = 1, interrupt or trap gate, non-conforming code segment, DPL < CPL *)
+    IF (IA32_EFER.LMA = 0) (* Not IA-32e mode *)
+        THEN
+        (* Identify stack-segment selector for new privilege level in current TSS *)
+            IF current TSS is 32-bit
+                THEN
+                        TSSstackAddress ← (new code-segment DPL « 3) + 4;
+                        IF (TSSstackAddress + 5) > current TSS limit
+                            THEN #TS(error_code(current TSS selector,0,EXT)); FI;
+                            (* idt operand to error_code is 0 because selector is used *)
+                        NewSS ← 2 bytes loaded from (TSS base + TSSstackAddress + 4);
+                        NewESP ← 4 bytes loaded from (TSS base + TSSstackAddress);
+                ELSE (* current TSS is 16-bit *)
+                        TSSstackAddress ← (new code-segment DPL « 2) + 2
+                        IF (TSSstackAddress + 3) > current TSS limit
+                            THEN #TS(error_code(current TSS selector,0,EXT)); FI;
+                            (* idt operand to error_code is 0 because selector is used *)
+                        NewSS ← 2 bytes loaded from (TSS base + TSSstackAddress + 2);
+                        NewESP ← 2 bytes loaded from (TSS base + TSSstackAddress);
+            FI;
+            IF NewSS is NULL
+                THEN #TS(EXT); FI;
+            IF NewSS index is not within its descriptor-table limits
+            or NewSS RPL ≠ new code-segment DPL
+                THEN #TS(error_code(NewSS,0,EXT)); FI;
+                (* idt operand to error_code is 0 because selector is used *)
+            Read new stack-segment descriptor for NewSS in GDT or LDT;
+            IF new stack-segment DPL ≠ new code-segment DPL
+            or new stack-segment Type does not indicate writable data segment
+                THEN #TS(error_code(NewSS,0,EXT)); FI;
+                (* idt operand to error_code is 0 because selector is used *)
+            IF NewSS is not present
+                THEN #SS(error_code(NewSS,0,EXT)); FI;
+                (* idt operand to error_code is 0 because selector is used *)
+</code></pre>
+<p> First, the CPU will judge how many bits the TSS is, and we goes into this branch. Now, we come across a symbol called <code>TSSstackAddress</code> that represents the offset of <code>esp</code> in the TSS descriptor in this new privilege. And then the <code>ss</code> register is loaded from <code>(TSS base + TSSstackAddress + 4)</code>. The <code>esp</code> register is loaded from <code>(TSS base + TSSstackAddress)</code>. </p>
+<p>Now, we are get the idea What <code>TSS</code> is. The function <code>trap_init_percpu</code> in <code>kern/trap.c</code> is helpful for us. Firstly, JOS loads assigns <code>KSTACKTOP</code> and <code>ts_ss0</code> to <code>ts.ts_esp0</code> and <code>ts.ts_ss0</code>(privilege 0). And then load the <code>TSS</code> portion of <code>gdt</code> and load the TSS selector. That’s the initializing process.</p>
+<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Initialize and load the per-CPU TSS and IDT</span>
+<span class="token keyword">void</span>
+<span class="token function">trap_init_percpu</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    <span class="token comment" spellcheck="true">// Setup a TSS so that we get the right stack</span>
+    <span class="token comment" spellcheck="true">// when we trap to the kernel.</span>
+    ts<span class="token punctuation">.</span>ts_esp0 <span class="token operator">=</span> KSTACKTOP<span class="token punctuation">;</span>
+    ts<span class="token punctuation">.</span>ts_ss0 <span class="token operator">=</span> GD_KD<span class="token punctuation">;</span>
+    ts<span class="token punctuation">.</span>ts_iomb <span class="token operator">=</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> Taskstate<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment" spellcheck="true">// Initialize the TSS slot of the gdt.</span>
+    gdt<span class="token punctuation">[</span>GD_TSS0 <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">SEG16</span><span class="token punctuation">(</span>STS_T32A<span class="token punctuation">,</span> <span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token operator">&amp;</span>ts<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                    <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> Taskstate<span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    gdt<span class="token punctuation">[</span>GD_TSS0 <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">.</span>sd_s <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+    <span class="token comment" spellcheck="true">// Load the TSS selector (like other segment selectors, the</span>
+    <span class="token comment" spellcheck="true">// bottom three bits are special; we leave them 0)</span>
+    <span class="token function">ltr</span><span class="token punctuation">(</span>GD_TSS0<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment" spellcheck="true">// Load the IDT</span>
+    <span class="token function">lidt</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>idt_pd<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>And then it’s about <code>CS:EIP</code>:</p>
+<pre class=" language-pseudocode"><code class="language-pseudocode"> IF IDT gate is 32-bit
+        THEN
+            CS:EIP ← Gate(CS:EIP); (* Segment descriptor information also loaded *)
+        ELSE
+            IF IDT gate 16-bit
+                THEN
+                        CS:IP ← Gate(CS:IP);
+                        (* Segment descriptor information also loaded *)
+                ELSE (* 64-bit IDT gate *)
+                        CS:RIP ← Gate(CS:RIP);
+                        (* Segment descriptor information also loaded *)
+            FI;
+</code></pre>
+<p>Lastly, hardware pushes <code>EFLAGS</code> and <code>errorcode</code>…</p>
+<pre class=" language-pseudocode"><code class="language-pseudocode">    IF IDT gate is 32-bit
+            THEN
+                Push(far pointer to old stack);
+                (* Old SS and ESP, 3 words padded to 4 *)
+                Push(EFLAGS);
+                Push(far pointer to return instruction);
+                (* Old CS and EIP, 3 words padded to 4 *)
+                Push(ErrorCode); (* If needed, 4 bytes *)
+</code></pre>
+<p>As a summary, when the <code>INT n</code> instruction is executing, the below steps is followed.</p>
+<ol>
+<li>look up the <code>tr</code> register (<code>tr</code> is similar to <code>cs</code>, <code>ds</code>……) and find the correct entry in <code>gdt</code> according to the immediate number and the base address(looking up table by index!).</li>
+<li><code>gdt[GD_TSS0 &gt;&gt; 3]</code> has the base address of task statement segment through which we can access <code>TSS</code>.</li>
+<li>Load <code>esp0</code> and <code>ss0</code> into register <code>esp</code> and <code>ss</code>.</li>
+<li>push <code>EFLAGS</code>, <code>cs</code>, <code>eip</code>, <code>errorcode</code></li>
+<li>get new <code>cs</code>, <code>eip</code> from <code>IDT entry</code>.</li>
+</ol>
+<p>In contrast, conduct <code>iret</code> is the reverse process!</p>
+<h3 id="4-2-Coding"><a href="#4-2-Coding" class="headerlink" title="4-2 Coding"></a>4-2 Coding</h3><p>We should fill the assembly file <code>trapentry.S</code>. There are two macros named <code>TRAPHANDLER</code> and <code>TRAPHANDLER_NOEC</code>. The former is used to declare a code block connected with <code>IDT</code> entries with the <code>INT</code> instruction pushing <code>errorcode</code>, and the later will explicitly push <code>0</code> as <code>errorcode</code>!</p>
+<p>By looking up <a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_10.htm">80386 Programmer’s Reference Manual – Section 9.10 (mit.edu)</a>, we produce code below:</p>
+<pre class=" language-c"><code class="language-c"><span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>divide_entry<span class="token punctuation">,</span> T_DIVIDE<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>debug_entry<span class="token punctuation">,</span> T_DEBUG<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER</span><span class="token punctuation">(</span>nmi_entry<span class="token punctuation">,</span> T_NMI<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>brkpt_entry<span class="token punctuation">,</span> T_BRKPT<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>oflow_entry<span class="token punctuation">,</span> T_OFLOW<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>bound_entry<span class="token punctuation">,</span> T_BOUND<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>illop_entry<span class="token punctuation">,</span> T_ILLOP<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>device_entry<span class="token punctuation">,</span> T_DEVICE<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER</span><span class="token punctuation">(</span>dblflt_entry<span class="token punctuation">,</span> T_DBLFLT<span class="token punctuation">)</span>
+
+<span class="token function">TRAPHANDLER</span><span class="token punctuation">(</span>tss_entry<span class="token punctuation">,</span> T_TSS<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER</span><span class="token punctuation">(</span>segnp_entry<span class="token punctuation">,</span> T_SEGNP<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER</span><span class="token punctuation">(</span>stack_entry<span class="token punctuation">,</span> T_STACK<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER</span><span class="token punctuation">(</span>gpflt_entry<span class="token punctuation">,</span> T_GPFLT<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER</span><span class="token punctuation">(</span>pgflt_entry<span class="token punctuation">,</span> T_PGFLT<span class="token punctuation">)</span>
+
+<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>fperr_entry<span class="token punctuation">,</span> T_FPERR<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>align_entry<span class="token punctuation">,</span> T_ALIGN<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>mchk_entry<span class="token punctuation">,</span> T_MCHK<span class="token punctuation">)</span>
+<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>simderr_entry<span class="token punctuation">,</span> T_SIMDERR<span class="token punctuation">)</span>
+</code></pre>
+<p> All the code blocks will jump to procedure <code>_alltraps</code>, which should:</p>
+<ol>
+<li>push values to make the stack look like a struct Trapframe</li>
+<li>load <code>GD_KD</code> into <code>%ds</code> and <code>%es</code></li>
+<li><code>pushl %esp</code> to pass a pointer to the Trapframe as an argument to trap()</li>
+<li><code>call trap</code></li>
+</ol>
+<pre class=" language-assembly"><code class="language-assembly"> .global _alltraps
+_alltraps:
+    pushl %ds
+    pushl %es
+    pushal
+    movl $GD_KD, %eax
+    movw %ax, %ds
+    movw %ax, %es
+    pushl %esp
+    call trap
+    popal
+    popl %es
+    popl %ds
+    addl $8, %esp
+    iret
+</code></pre>
+<p>Don’t forget initialize trap.</p>
+<pre class=" language-c"><code class="language-c"><span class="token keyword">void</span>
+<span class="token function">trap_init</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    <span class="token keyword">extern</span> <span class="token keyword">struct</span> Segdesc gdt<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+    <span class="token comment" spellcheck="true">// LAB 3: Your code here.</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_DIVIDE<span class="token punctuation">]</span><span class="token punctuation">,</span>  <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> divide_entry<span class="token punctuation">,</span>     <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_DEBUG<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> debug_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_NMI<span class="token punctuation">]</span><span class="token punctuation">,</span>     <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> nmi_entry<span class="token punctuation">,</span>         <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_BRKPT<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> brkpt_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_OFLOW<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> oflow_entry<span class="token punctuation">,</span>       <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_BOUND<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> bound_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_ILLOP<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> illop_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_DEVICE<span class="token punctuation">]</span><span class="token punctuation">,</span>  <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> device_entry<span class="token punctuation">,</span>     <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_DBLFLT<span class="token punctuation">]</span><span class="token punctuation">,</span>  <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> dblflt_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_TSS<span class="token punctuation">]</span><span class="token punctuation">,</span>     <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> tss_entry<span class="token punctuation">,</span>        <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_SEGNP<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> segnp_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_STACK<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> stack_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_GPFLT<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> gpflt_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_PGFLT<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> pgflt_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_FPERR<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">1</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> fperr_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_ALIGN<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">1</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> align_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_MCHK<span class="token punctuation">]</span><span class="token punctuation">,</span>    <span class="token number">1</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> mchk_entry<span class="token punctuation">,</span>       <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_SIMDERR<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> simderr_entry<span class="token punctuation">,</span>    <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment" spellcheck="true">// Per-CPU setup </span>
+    <span class="token function">trap_init_percpu</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>That’s all in part One.</p>
+<h3 id="4-3Test-part-One"><a href="#4-3Test-part-One" class="headerlink" title="4-3Test part One"></a>4-3Test part One</h3><p>Let’s <code>make grade</code>.</p>
+<p><img src="/picture/makegrade.png"></p>
+<h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_10.htm">80386 Programmer’s Reference Manual – Section 9.10 (mit.edu)</a></li>
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_09.htm">80386 Programmer’s Reference Manual – Section 9.9 (mit.edu)</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/elv/article/details/4140532">实模式、保护模式、虚拟8086模式和IA-32e模式_elv的专栏-CSDN博客</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.felixcloutier.com/x86/intn:into:int3:int1">INT n/INTO/INT3/INT1 — Call to Interrupt Procedure (felixcloutier.com)</a></li>
+</ol>
 
                 
             </div>
