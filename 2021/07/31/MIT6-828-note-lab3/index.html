@@ -305,14 +305,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    3.7k
+                    4.1k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    22 分
+                    25 分
                 </div>
                 
 
@@ -816,11 +816,34 @@ _alltraps:
 <p>That’s all in part One.</p>
 <h3 id="4-3Test-part-One"><a href="#4-3Test-part-One" class="headerlink" title="4-3Test part One"></a>4-3Test part One</h3><p>Let’s <code>make grade</code>.</p>
 <p><img src="/picture/makegrade.png"></p>
-<h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><ol>
+<h2 id="4-Episode"><a href="#4-Episode" class="headerlink" title="4 Episode"></a>4 Episode</h2><p>Let’s play an episode to take a relaxation (x) by recall the whole process how the JOS  running in. After <code>BIOS</code> initially boots up the machine, the control power is given to boot loader. </p>
+<h3 id="4-1-bootloader"><a href="#4-1-bootloader" class="headerlink" title="4-1 bootloader"></a>4-1 bootloader</h3><h4 id="4-1-1-boot-S"><a href="#4-1-1-boot-S" class="headerlink" title="4-1-1 boot.S"></a>4-1-1 <code>boot.S</code></h4><h5 id="4-1-1-1-disable-interrupt-and-set-segment-register"><a href="#4-1-1-1-disable-interrupt-and-set-segment-register" class="headerlink" title="4-1-1-1 disable interrupt and set segment register"></a>4-1-1-1 disable interrupt and set segment register</h5><p>The first instruction is <code>cli</code> in physical address <code>0x7c00</code>. (Because the bios boot the bootloader at <code>0x7c00</code>.) <code>cli</code> is used to disable interrupts and the subsequent <code>cld</code> is used for string operations increment. And then the <code>start</code> clear some important data segment registers, such as <code>ds</code>, <code>es</code>, <code>ss</code>.</p>
+<h5 id="4-1-1-2-enable-A20"><a href="#4-1-1-2-enable-A20" class="headerlink" title="4-1-1-2 enable A20"></a>4-1-1-2 enable A20</h5><p>Next, it enables <code>A20</code>. For backwards compatibility with the earliest PCs, physical address line 20 is tied low, so that addresses higher than <code>1MB</code> wrap around to zero by default. The code undoes this.</p>
+<h5 id="4-1-1-3-switch-to-protected-mode"><a href="#4-1-1-3-switch-to-protected-mode" class="headerlink" title="4-1-1-3 switch to protected mode"></a>4-1-1-3 switch to protected mode</h5><p>The code load <code>gdtr</code> using <code>lgtr</code>. We can see that there are two segments. One is the code segment whose base address is <code>0x0</code> and limit is <code>0xffffffff</code> with permission <code>Executable</code> and <code>readable</code>. Another is the data segment whose base address is also <code>0x0</code> and limit is <code>0xffffffff</code> as well ,but with permission <code>writable</code>.</p>
+<pre class=" language-assembly"><code class="language-assembly"># Bootstrap GDT
+.p2align 2                                # force 4 byte alignment
+gdt:
+  SEG_NULL                # null seg
+  SEG(STA_X|STA_R, 0x0, 0xffffffff)    # code seg
+  SEG(STA_W, 0x0, 0xffffffff)            # data seg
+
+gdtdesc:
+  .word   0x17                            # sizeof(gdt) - 1
+  .long   gdt                             # address gdt
+</code></pre>
+<p>The following is to set <code>PE</code> bit of <code>CR0</code>. It means that the system switched from real to protected mode, using a bootstrap <code>GDT</code> and segment translation that makes virtual addresses identical to their physical addresses, so that the effective memory map does not change during the switch. And instruction’s address is the same as the one before switching. The <code>ljmp</code> loads <code>PROT_MODE_DSEG</code> to <code>cs</code> and jumps to the <code>protcseg</code> procedure.</p>
+<h5 id="4-1-1-4-Protcseg"><a href="#4-1-1-4-Protcseg" class="headerlink" title="4-1-1-4 Protcseg"></a>4-1-1-4 Protcseg</h5><p>It set <code>ds</code>, <code>es</code>, <code>fs</code>, <code>gs</code>, <code>ss</code> to <code>PROT_MODE_DSEG</code>. And then it makes <code>esp</code> point at <code>start</code>, which makes the space in front of <code>start</code> the temporary stack. And then call <code>bootmain</code> edited in <code>Clang</code>.</p>
+<h4 id="4-1-2-bootmain"><a href="#4-1-2-bootmain" class="headerlink" title="4-1-2 bootmain"></a>4-1-2 <code>bootmain</code></h4><p><code>bootmain</code> is used to load the <code>ELF</code> into the memory. And jump to the entry by a function pointer:</p>
+<pre><code>    ((void (*)(void)) (ELFHDR-&gt;e_entry))();
+</code></pre>
+<h3 id="4-2-Kernel"><a href="#4-2-Kernel" class="headerlink" title="4-2 Kernel"></a>4-2 Kernel</h3><h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><ol>
 <li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_10.htm">80386 Programmer’s Reference Manual – Section 9.10 (mit.edu)</a></li>
 <li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_09.htm">80386 Programmer’s Reference Manual – Section 9.9 (mit.edu)</a></li>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/elv/article/details/4140532">实模式、保护模式、虚拟8086模式和IA-32e模式_elv的专栏-CSDN博客</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.felixcloutier.com/x86/intn:into:int3:int1">INT n/INTO/INT3/INT1 — Call to Interrupt Procedure (felixcloutier.com)</a></li>
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_06.htm">80386 Programmer’s Reference Manual – Section 9.6 (mit.edu)</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/3425085/the-difference-between-call-gate-interrupt-gate-trap-gate">x86 - The difference between Call Gate, Interrupt Gate, Trap Gate? - Stack Overflow</a></li>
+<li></li>
 </ol>
 
                 
