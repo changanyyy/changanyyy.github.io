@@ -305,14 +305,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    4.1k
+                    5.6k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    25 分
+                    35 分
                 </div>
                 
 
@@ -836,7 +836,172 @@ gdtdesc:
 <h4 id="4-1-2-bootmain"><a href="#4-1-2-bootmain" class="headerlink" title="4-1-2 bootmain"></a>4-1-2 <code>bootmain</code></h4><p><code>bootmain</code> is used to load the <code>ELF</code> into the memory. And jump to the entry by a function pointer:</p>
 <pre><code>    ((void (*)(void)) (ELFHDR-&gt;e_entry))();
 </code></pre>
-<h3 id="4-2-Kernel"><a href="#4-2-Kernel" class="headerlink" title="4-2 Kernel"></a>4-2 Kernel</h3><h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><ol>
+<h3 id="4-2-Kernel"><a href="#4-2-Kernel" class="headerlink" title="4-2 Kernel"></a>4-2 Kernel</h3><h4 id="4-2-1-entry-S"><a href="#4-2-1-entry-S" class="headerlink" title="4-2-1 entry.S"></a>4-2-1 <code>entry.S</code></h4><h5 id="4-2-1-1-entry"><a href="#4-2-1-1-entry" class="headerlink" title="4-2-1-1 entry"></a>4-2-1-1 entry</h5><p>By now, we haven’t set up virtual memory yet, so we’re running from the physical address the boot loader loaded the kernel at: <code>1MB</code>. However, the C code is linked to run at <code>KERNBASE + 1MB</code>. Hence, we set up a trivial page directory that translates virtual address <code>[KERNBASE, KERNBASE + 4MB)</code> to physical addresses <code>[0, 4MB)</code>. This 4MB region will be sufficient until we set up our read page table in <code>mem_init</code>.</p>
+<p>First, we load the physical address of <code>entry_pgdir</code> into <code>cr3</code>. <code>entry_pgdir</code> is defined in <code>entrypgdir.c</code>. And then turn on paging by set <code>PG</code> bit in <code>cr0</code>. Note that the subsequent two instructions’ virtual address is both in <code>[KERNBASE, KERNBASE + 4MB)</code> and <code>[0, 4MB)</code>, and we can look through <code>entrypgdir.c</code> for details. These two instructions make the low <code>eip</code> ( in<code>[0, 4MB)</code>) become in high address ( in <code>[KERNBASE, KERNBASE + 4MB)</code>), But they are both map into the same physical addresses.</p>
+<h5 id="4-2-1-2-relocated"><a href="#4-2-1-2-relocated" class="headerlink" title="4-2-1-2 relocated"></a>4-2-1-2 relocated</h5><p>The procedure clear the frame pointer register <code>ebp</code> first so that the monitor’s <code>backtrace</code> can work correctly. And then it set the stack pointer <code>esp</code>. The code below is the stack region.</p>
+<pre class=" language-assembly"><code class="language-assembly">.data
+###################################################################
+# boot stack
+###################################################################
+    .p2align    PGSHIFT        # force page alignment
+    .globl        bootstack
+bootstack:
+    .space        KSTKSIZE
+    .globl        bootstacktop   
+bootstacktop:
+</code></pre>
+<p>Then, it jumps to <code>i386_init</code> in C code.</p>
+<h4 id="4-2-2-i386-init"><a href="#4-2-2-i386-init" class="headerlink" title="4-2-2 i386_init"></a>4-2-2 <code>i386_init</code></h4><p>The function is intended for do some initialization. First, clear the uninitialized global data (BSS) section of our program. This ensures that all static/global variables start out zero.</p>
+<h5 id="4-2-2-1"><a href="#4-2-2-1" class="headerlink" title="4-2-2-1"></a>4-2-2-1</h5><p>And then initialize the console by <code>cons_init</code>. All the functions are located in <code>console.c</code></p>
+<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// initialize the console devices</span>
+<span class="token keyword">void</span>
+<span class="token function">cons_init</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    <span class="token function">cga_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">kbd_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">serial_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>serial_exists<span class="token punctuation">)</span>
+        <span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"Serial port does not exist!\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h4 id="4-2-3-pmap-c"><a href="#4-2-3-pmap-c" class="headerlink" title="4-2-3 pmap.c"></a>4-2-3 <code>pmap.c</code></h4><p>After initialization of the console, <code>mem_init</code> should enter on the stage. Firstly, it use <code>i386_detect_memory</code> to get some basic information. And then allocate space for Kernel’s page directory, and map the virtual address space. Below is the memory layout:</p>
+<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">/*
+ * Virtual memory map:                                Permissions
+ *                                                    kernel/user
+ *
+ *    4 Gig -------->  +------------------------------+
+ *                     |                              | RW/--
+ *                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *                     :              .               :
+ *                     :              .               :
+ *                     :              .               :
+ *                     |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~| RW/--
+ *                     |                              | RW/--
+ *                     |   Remapped Physical Memory   | RW/--
+ *                     |                              | RW/--
+ *    KERNBASE, ---->  +------------------------------+ 0xf0000000      --+
+ *    KSTACKTOP        |     CPU0's Kernel Stack      | RW/--  KSTKSIZE   |
+ *                     | - - - - - - - - - - - - - - -|                   |
+ *                     |      Invalid Memory (*)      | --/--  KSTKGAP    |
+ *                     +------------------------------+                   |
+ *                     |     CPU1's Kernel Stack      | RW/--  KSTKSIZE   |
+ *                     | - - - - - - - - - - - - - - -|                 PTSIZE
+ *                     |      Invalid Memory (*)      | --/--  KSTKGAP    |
+ *                     +------------------------------+                   |
+ *                     :              .               :                   |
+ *                     :              .               :                   |
+ *    MMIOLIM ------>  +------------------------------+ 0xefc00000      --+
+ *                     |       Memory-mapped I/O      | RW/--  PTSIZE
+ * ULIM, MMIOBASE -->  +------------------------------+ 0xef800000
+ *                     |  Cur. Page Table (User R-)   | R-/R-  PTSIZE
+ *    UVPT      ---->  +------------------------------+ 0xef400000
+ *                     |          RO PAGES            | R-/R-  PTSIZE
+ *    UPAGES    ---->  +------------------------------+ 0xef000000
+ *                     |           RO ENVS            | R-/R-  PTSIZE
+ * UTOP,UENVS ------>  +------------------------------+ 0xeec00000
+ * UXSTACKTOP -/       |     User Exception Stack     | RW/RW  PGSIZE
+ *                     +------------------------------+ 0xeebff000
+ *                     |       Empty Memory (*)       | --/--  PGSIZE
+ *    USTACKTOP  --->  +------------------------------+ 0xeebfe000
+ *                     |      Normal User Stack       | RW/RW  PGSIZE
+ *                     +------------------------------+ 0xeebfd000
+ *                     |                              |
+ *                     |                              |
+ *                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *                     .                              .
+ *                     .                              .
+ *                     .                              .
+ *                     |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
+ *                     |     Program Data &amp; Heap      |
+ *    UTEXT -------->  +------------------------------+ 0x00800000
+ *    PFTEMP ------->  |       Empty Memory (*)       |        PTSIZE
+ *                     |                              |
+ *    UTEMP -------->  +------------------------------+ 0x00400000      --+
+ *                     |       Empty Memory (*)       |                   |
+ *                     | - - - - - - - - - - - - - - -|                   |
+ *                     |  User STAB Data (optional)   |                 PTSIZE
+ *    USTABDATA ---->  +------------------------------+ 0x00200000        |
+ *                     |       Empty Memory (*)       |                   |
+ *    0 ------------>  +------------------------------+                 --+
+ *
+ * (*) Note: The kernel ensures that "Invalid Memory" is *never* mapped.
+ *     "Empty Memory" is normally unmapped, but user programs may map pages
+ *     there if desired.  JOS user programs map pages temporarily at UTEMP.
+ */</span>
+</code></pre>
+<p>We allocate space for the page array and the environment array. After allocating space for all the basic structures, we initialize the page array. the first page and pages between <code>IOPHYSMEM(0x000A0000)</code> and <code>EXTPHYSMEM(0x00100000)</code> are occupied and shouldn’t be replaced or allocated anymore.</p>
+<p><img src="/picture/layout.png"></p>
+<p>After the initialization of physical pages, we should set up virtual memory：</p>
+<ol>
+<li>Map <code>pages</code> read-only by the user at linear address <code>UPAGES</code></li>
+<li>Map the <code>envs</code> array read-only by the user at linear address <code>UENVS</code></li>
+<li>Use the physical memory that <code>bootstack</code> refers to as the kernel stack.  The kernel stack grows down from virtual address <code>KSTACKTOP</code>. We consider the entire range from <code>[KSTACKTOP-PTSIZE, KSTACKTOP)</code> to be the kernel stack.</li>
+<li>Map all of physical memory at KERNBASE. The VA range <code>[KERNBASE, 2^32)</code> should map to the PA range <code>[0, 2^32 - KERNBASE)</code>. We might not have <code>2^32 - KERNBASE</code> bytes of physical memory, but we just set up the mapping anyway.</li>
+</ol>
+<p>Having mapped virtual memory, we switch from the minimal entry page directory to the full <code>kern_pgdir</code> page table we just created. Our instruction pointer should be somewhere between <code>KERNBASE</code> and <code>KERNBASE + 4MB</code> right now, which is mapped the same way by both page tables.</p>
+<pre class=" language-c"><code class="language-c"><span class="token function">lcr3</span><span class="token punctuation">(</span><span class="token function">PADDR</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>And then turn on all the flags of <code>cr0</code> we need.</p>
+<p>Now,we finished the initialization of virtual memory layout.</p>
+<h4 id="4-2-4-env-init"><a href="#4-2-4-env-init" class="headerlink" title="4-2-4 env_init"></a>4-2-4 <code>env_init</code></h4><p>We set up the environment free list by a chain. And Load new <code>GDT</code> and segment descriptors using <code>env_init_percpu</code>. Read the comments if you want more details.</p>
+<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Global descriptor table.</span>
+<span class="token comment" spellcheck="true">//</span>
+<span class="token comment" spellcheck="true">// Set up global descriptor table (GDT) with separate segments for</span>
+<span class="token comment" spellcheck="true">// kernel mode and user mode.  Segments serve many purposes on the x86.</span>
+<span class="token comment" spellcheck="true">// We don't use any of their memory-mapping capabilities, but we need</span>
+<span class="token comment" spellcheck="true">// them to switch privilege levels. </span>
+<span class="token comment" spellcheck="true">//</span>
+<span class="token comment" spellcheck="true">// The kernel and user segments are identical except for the DPL.</span>
+<span class="token comment" spellcheck="true">// To load the SS register, the CPL must equal the DPL.  Thus,</span>
+<span class="token comment" spellcheck="true">// we must duplicate the segments for the user and the kernel.</span>
+<span class="token comment" spellcheck="true">//</span>
+<span class="token comment" spellcheck="true">// In particular, the last argument to the SEG macro used in the</span>
+<span class="token comment" spellcheck="true">// definition of gdt specifies the Descriptor Privilege Level (DPL)</span>
+<span class="token comment" spellcheck="true">// of that descriptor: 0 for kernel and 3 for user.</span>
+<span class="token comment" spellcheck="true">//</span>
+<span class="token keyword">struct</span> Segdesc gdt<span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token operator">=</span>
+<span class="token punctuation">{</span>
+    <span class="token comment" spellcheck="true">// 0x0 - unused (always faults -- for trapping NULL far pointers)</span>
+    SEG_NULL<span class="token punctuation">,</span>
+
+    <span class="token comment" spellcheck="true">// 0x8 - kernel code segment</span>
+    <span class="token punctuation">[</span>GD_KT <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">SEG</span><span class="token punctuation">(</span>STA_X <span class="token operator">|</span> STA_R<span class="token punctuation">,</span> <span class="token number">0x0</span><span class="token punctuation">,</span> <span class="token number">0xffffffff</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+
+    <span class="token comment" spellcheck="true">// 0x10 - kernel data segment</span>
+    <span class="token punctuation">[</span>GD_KD <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">SEG</span><span class="token punctuation">(</span>STA_W<span class="token punctuation">,</span> <span class="token number">0x0</span><span class="token punctuation">,</span> <span class="token number">0xffffffff</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+
+    <span class="token comment" spellcheck="true">// 0x18 - user code segment</span>
+    <span class="token punctuation">[</span>GD_UT <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">SEG</span><span class="token punctuation">(</span>STA_X <span class="token operator">|</span> STA_R<span class="token punctuation">,</span> <span class="token number">0x0</span><span class="token punctuation">,</span> <span class="token number">0xffffffff</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+
+    <span class="token comment" spellcheck="true">// 0x20 - user data segment</span>
+    <span class="token punctuation">[</span>GD_UD <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">SEG</span><span class="token punctuation">(</span>STA_W<span class="token punctuation">,</span> <span class="token number">0x0</span><span class="token punctuation">,</span> <span class="token number">0xffffffff</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+
+    <span class="token comment" spellcheck="true">// 0x28 - tss, initialized in trap_init_percpu()</span>
+    <span class="token punctuation">[</span>GD_TSS0 <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">]</span> <span class="token operator">=</span> SEG_NULL
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">struct</span> Pseudodesc gdt_pd <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token keyword">sizeof</span><span class="token punctuation">(</span>gdt<span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">unsigned</span> <span class="token keyword">long</span><span class="token punctuation">)</span> gdt
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre>
+<h4 id="4-2-5-trap-init"><a href="#4-2-5-trap-init" class="headerlink" title="4-2-5 trap_init"></a>4-2-5 <code>trap_init</code></h4><p>we should now have the basic information we need in order to set up the IDT and handle exceptions in JOS. For now, we will set up the IDT to handle interrupt vectors <code>0-31</code> (the processor exceptions).</p>
+<p>Exceptions and interrupts are both “protected control transfers,” which cause the processor to switch from user to kernel mode (CPL=0) without giving the user-mode code any opportunity to interfere with the functioning of the kernel or other environments. In Intel’s terminology, an <em>interrupt</em> is a protected control transfer that is caused by an asynchronous event usually external to the processor, such as notification of external device I/O activity. An <em>exception</em>, in contrast, is a protected control transfer caused synchronously by the currently running code, for example due to a divide by zero or an invalid memory access.</p>
+<p>In order to ensure that these protected control transfers are actually <em>protected</em>, the processor’s interrupt/exception mechanism is designed so that the code currently running when the interrupt or exception occurs <em>does not get to choose arbitrarily where the kernel is entered or how</em>. Instead, the processor ensures that the kernel can be entered only under carefully controlled conditions. On the x86, two mechanisms work together to provide this protection:</p>
+<ol>
+<li><p><strong>The Interrupt Descriptor Table.</strong> The processor ensures that interrupts and exceptions can only cause the kernel to be entered at a few specific, well-defined entry-points <em>determined by the kernel itself</em>, and not by the code running when the interrupt or exception is taken.</p>
+<p>The x86 allows up to 256 different interrupt or exception entry points into the kernel, each with a different <em>interrupt vector</em>. A vector is a number between 0 and 255. An interrupt’s vector is determined by the source of the interrupt: different devices, error conditions, and application requests to the kernel generate interrupts with different vectors. The CPU uses the vector as an index into the processor’s <em>interrupt descriptor table</em> (IDT), which the kernel sets up in kernel-private memory, much like the GDT. From the appropriate entry in this table the processor loads:</p>
+<ul>
+<li>the value to load into the instruction pointer (<code>EIP</code>) register, pointing to the kernel code designated to handle that type of exception.</li>
+<li>the value to load into the code segment (<code>CS</code>) register, which includes in bits 0-1 the privilege level at which the exception handler is to run. (In JOS, all exceptions are handled in kernel mode, privilege level 0.)</li>
+</ul>
+</li>
+<li><p><strong>The Task State Segment.</strong> The processor needs a place to save the <em>old</em> processor state before the interrupt or exception occurred, such as the original values of <code>EIP</code> and <code>CS</code> before the processor invoked the exception handler, so that the exception handler can later restore that old state and resume the interrupted code from where it left off. But this save area for the old processor state must in turn be protected from unprivileged user-mode code; otherwise buggy or malicious user code could compromise the kernel.</p>
+<p>For this reason, when an x86 processor takes an interrupt or trap that causes a privilege level change from user to kernel mode, it also switches to a stack in the kernel’s memory. A structure called the <em>task state segment</em> (TSS) specifies the segment selector and address where this stack lives. The processor pushes (on this new stack) <code>SS</code>, <code>ESP</code>, <code>EFLAGS</code>, <code>CS</code>, <code>EIP</code>, and an optional error code. Then it loads the <code>CS</code> and <code>EIP</code> from the interrupt descriptor, and sets the <code>ESP</code> and <code>SS</code> to refer to the new stack.</p>
+<p>Although the TSS is large and can potentially serve a variety of purposes, JOS only uses it to define the kernel stack that the processor should switch to when it transfers from user to kernel mode. Since “kernel mode” in JOS is privilege level 0 on the x86, the processor uses the <code>ESP0</code> and <code>SS0</code> fields of the TSS to define the kernel stack when entering kernel mode. JOS doesn’t use any other TSS fields.</p>
+</li>
+</ol>
+<h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><ol>
 <li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_10.htm">80386 Programmer’s Reference Manual – Section 9.10 (mit.edu)</a></li>
 <li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_09.htm">80386 Programmer’s Reference Manual – Section 9.9 (mit.edu)</a></li>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/elv/article/details/4140532">实模式、保护模式、虚拟8086模式和IA-32e模式_elv的专栏-CSDN博客</a></li>
