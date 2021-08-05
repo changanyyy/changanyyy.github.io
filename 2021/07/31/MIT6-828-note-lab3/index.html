@@ -305,14 +305,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    5.6k
+                    5.8k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    35 分
+                    36 分
                 </div>
                 
 
@@ -760,9 +760,9 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
 </code></pre>
 <p> All the code blocks will jump to procedure <code>_alltraps</code>, which should:</p>
 <ol>
-<li>push values to make the stack look like a struct Trapframe</li>
+<li>push values to make the stack look like a struct <code>Trapframe</code></li>
 <li>load <code>GD_KD</code> into <code>%ds</code> and <code>%es</code></li>
-<li><code>pushl %esp</code> to pass a pointer to the Trapframe as an argument to trap()</li>
+<li><code>pushl %esp</code> to pass a pointer to the <code>Trapframe</code> as an argument to trap()</li>
 <li><code>call trap</code></li>
 </ol>
 <pre class=" language-assembly"><code class="language-assembly"> .global _alltraps
@@ -1001,6 +1001,12 @@ bootstacktop:
 <p>Although the TSS is large and can potentially serve a variety of purposes, JOS only uses it to define the kernel stack that the processor should switch to when it transfers from user to kernel mode. Since “kernel mode” in JOS is privilege level 0 on the x86, the processor uses the <code>ESP0</code> and <code>SS0</code> fields of the TSS to define the kernel stack when entering kernel mode. JOS doesn’t use any other TSS fields.</p>
 </li>
 </ol>
+<p>There is an example in the <a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/labs/lab3/#An-Example">lab guide</a>. And for more details, please refer to the <strong>reference 7</strong>. </p>
+<h4 id="4-2-6-Create-a-user-environment"><a href="#4-2-6-Create-a-user-environment" class="headerlink" title="4-2-6 Create a user environment"></a>4-2-6 <code>Create a user environment</code></h4><p>All preparatory work is done, so we can create a user environment. </p>
+<h5 id="4-2-6-1-a-macro"><a href="#4-2-6-1-a-macro" class="headerlink" title="4-2-6-1 a macro"></a>4-2-6-1 <code>a macro</code></h5><p>macro <code>ENV_CREATE(x, type)</code> is used for sticking the string together and call <code>env_create</code>. </p>
+<h5 id="4-2-6-2-env-create"><a href="#4-2-6-2-env-create" class="headerlink" title="4-2-6-2 env_create"></a>4-2-6-2 <code>env_create</code></h5><p>it allocates a <code>env</code> structure for the user environment first. And load its ELF file into the memory. (In fact, it move it from kernel text to another position.) </p>
+<h5 id="4-2-6-3-load-icode"><a href="#4-2-6-3-load-icode" class="headerlink" title="4-2-6-3 load_icode"></a>4-2-6-3 <code>load_icode</code></h5><p>Its duty is to move the loadable section to the correct location. The detail is in the code!</p>
+<h5 id="4-2-6-4-env-run"><a href="#4-2-6-4-env-run" class="headerlink" title="4-2-6-4 env_run"></a>4-2-6-4 <code>env_run</code></h5><p>It loads the page directory’s base address into <code>cr3</code>. And change the state of the environment. Then pop the registers and conduct <code>iret</code>.</p>
 <h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><ol>
 <li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_10.htm">80386 Programmer’s Reference Manual – Section 9.10 (mit.edu)</a></li>
 <li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_09.htm">80386 Programmer’s Reference Manual – Section 9.9 (mit.edu)</a></li>
@@ -1008,7 +1014,7 @@ bootstacktop:
 <li><a target="_blank" rel="noopener" href="https://www.felixcloutier.com/x86/intn:into:int3:int1">INT n/INTO/INT3/INT1 — Call to Interrupt Procedure (felixcloutier.com)</a></li>
 <li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_06.htm">80386 Programmer’s Reference Manual – Section 9.6 (mit.edu)</a></li>
 <li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/3425085/the-difference-between-call-gate-interrupt-gate-trap-gate">x86 - The difference between Call Gate, Interrupt Gate, Trap Gate? - Stack Overflow</a></li>
-<li></li>
+<li>《计算机系统基础》（第二版）（袁春风）</li>
 </ol>
 
                 
