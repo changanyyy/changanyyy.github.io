@@ -305,14 +305,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.1k
+                    1.3k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    3 分
+                    4 分
                 </div>
                 
 
@@ -354,9 +354,21 @@
 </li>
 </ol>
 <p>我们为什么要费尽心机把语义和语法分开呢？<strong>通过指明记法（语法）和含义（语义）之间的关系，一阶逻辑允许我们证明论域上的属性。这种做法基于语法，它通过对公式进行字符串操作完成证明，再利用语义解释把操作的结果投射到我们讨论的数学对象。</strong>就我的理解来说，是为了方便我们的证明！</p>
-<h2 id="3-3-一阶公式"><a href="#3-3-一阶公式" class="headerlink" title="3.3 一阶公式"></a>3.3 一阶公式</h2><p>先介绍语法。<strong>在项上面应用关系符号可以构造的到简单公式</strong>，语法是：</p>
+<h2 id="3-3-一阶公式"><a href="#3-3-一阶公式" class="headerlink" title="3.3 一阶公式"></a>3.3 一阶公式</h2><p>先介绍语法。<strong>在项上面应用关系符号可以构造得到简单公式</strong>，语法是：</p>
 <p><code>simp_form ::= rel(term, term, ..., term) | term ≡ term</code></p>
-<p>这是一个简单公式，同样是用<code>BNF</code>形式来表示的，<strong>一阶公式不仅包含上面这样的简单公式，还可以递归地应用布尔运算符与，或，非，蕴含，或者再公式前面加上一个量词（quantifier）‘“对于所有”，“存在”</strong>。</p>
+<p>这是一个简单公式，同样是用<code>BNF</code>形式来表示的，<strong>一阶公式不仅包含上面这样的简单公式，还可以递归地应用布尔运算符与，或，非，蕴含，或者再公式前面加上一个量词（quantifier）‘“对于所有”，“存在”</strong>。下面是<strong>一阶公式的定义</strong>：</p>
+<p><code>form ::= simp_form | (form ∧ form) | (form ∨ form) | (form -&gt; form) | (¬form) | ∀var(form) | ∃var(form) | true | false</code></p>
+<p>我们可以看出这个还是一个递归定义。其中布尔运算符的优先级可以帮助我们省略一些括号。在合取式中的每一项叫做合取项；在析取式中的每一项叫做析取项。</p>
+<p>下面是关于一阶公式的语义解释：</p>
+<ol>
+<li>关系符号<code>“≡”</code>是标准的等于关系，<code>v1≡v2</code>成立当且仅当<code>v1</code>和<code>v2</code>被赋予相同的值，也就是当<code>a(v1) = a(v2)</code>时成立。需要注意的是：逻辑内用<code>“≡”</code>表示相等，而逻辑外使用<code>“=”</code>表示对象之间的相等。</li>
+<li><code>forms(_G)</code>是在签名<code>_G</code>上的一阶公式的集合。解释<code>M_a: forms(_G) -&gt; {TRUE, FALSE}</code>把布尔值赋值给每一个公式。语义解释仍然依赖于赋值a。对于不包含量词的公式的解释如下：<ul>
+<li><code>M_a(pred(e1, e2, ..., en)) = f(pred)(M_a(e1), M_a(e2), ..., M_a(en))</code></li>
+<li><code>M_a(e1 ≡ e2) = (T_a(e1) = T_a(e2))</code></li>
+<li></li>
+</ul>
+</li>
+</ol>
 
                 
             </div>
