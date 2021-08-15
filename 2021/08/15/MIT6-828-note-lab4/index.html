@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="Software Reliable Method ch3, yxz的博客">
+    <meta name="keywords" content="MIT6-828-note-lab4, yxz的博客">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>Software Reliable Method ch3 | yxz的博客</title>
+    <title>MIT6-828-note-lab4 | yxz的博客</title>
     <link rel="icon" type="image/jpeg" href="/logo.jpg">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -249,12 +249,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/12.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/4.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">Software Reliable Method ch3</h1>
+                    <h1 class="description center-align post-title">MIT6-828-note-lab4</h1>
                 </div>
             </div>
         </div>
@@ -276,8 +276,8 @@
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%BD%A2%E5%BC%8F%E5%8C%96/">
-                                <span class="chip bg-color">软件形式化</span>
+                            <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
+                                <span class="chip bg-color">操作系统</span>
                             </a>
                         
                     </div>
@@ -288,8 +288,8 @@
                     <div class="post-cate">
                         <i class="fas fa-bookmark fa-fw icon-category"></i>
                         
-                            <a href="/categories/%E8%BD%AF%E4%BB%B6%E5%BD%A2%E5%BC%8F%E5%8C%96/" class="post-category">
-                                软件形式化
+                            <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="post-category">
+                                操作系统
                             </a>
                         
                     </div>
@@ -305,14 +305,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.3k
+                    632
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    4 分
+                    3 分
                 </div>
                 
 
@@ -327,47 +327,43 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="第三章-逻辑和定理证明"><a href="#第三章-逻辑和定理证明" class="headerlink" title="第三章 逻辑和定理证明"></a>第三章 逻辑和定理证明</h1><h2 id="3-1-一阶逻辑"><a href="#3-1-一阶逻辑" class="headerlink" title="3.1 一阶逻辑"></a>3.1 一阶逻辑</h2><p><strong>一阶逻辑的组成：简单变元（variable），关系，函数。</strong>变元的值域是某个指定的论域，比如实数或者整数。一阶逻辑可以用于推导该域中的所有对象，或者断言存在一个对象满足一个属性。</p>
-<p><strong>为什么叫做一阶？因为公式里面所有变元的值域都是预先指定的论域（例如整数）。</strong>二阶逻辑里面，既可以使用简单变元，也可以使用集合变元，后者取值可以是对象的集合（类似于二次方）。例子，比如<code>x</code>是一个简单边缘而<code>Y</code>是一个集合变元，那么在二阶逻辑中表达一个公式<code>x ∈ Y</code>。三阶逻辑的变元可以是集合的集合，以此类推。</p>
-<h2 id="3-2-项（term）"><a href="#3-2-项（term）" class="headerlink" title="3.2 项（term）"></a>3.2 项（term）</h2><p>一阶项是<strong>根据一阶逻辑的精确语法</strong>来表示的表达式。</p>
-<p>下面是<strong>项的语法</strong>：</p>
-<p>一个签名（signature）<code>_G = (V, F, R)</code>包括三个不相交的集合：变元符号集合V，函数符号集合F，关系符号集合R（正好对应了上面的组成）。其中函数和关系有自己的元数（参数的个数）。 项就是用函数符号和变元构造的表达式，我们常用<code>BNF</code>记法来定义项的语法：</p>
-<p><code>term ::= var | const | func(term, term, ..., term)</code></p>
-<p>这里面<code>var</code>是变元符号， <code>func</code>是函数符号，<code>const</code>是常量符号。可以看出来上述是一个递归定义。</p>
-<p>我们现在仅仅是对项给予一个语法上的定义，但是并没有什么明确的语义。例如，我们对于<code>add(v1, 2)</code>用来表示<code>v1</code>加<code>2</code>似乎非常直观，很符合我们的习惯，但是这个仅仅是我们的臆想，我们需要形式化地说明这之间的联系，也就是我们对于项的一种解释。我们为了解释一个项，有下面的步骤：</p>
-<ol>
-<li>我们需要给定一个<strong>论域D</strong>，它可以是任何一个集合，比如整数，自然数，有理数……</li>
-<li>那么我们定义一阶结构， <code>S = (ς, D, _F, _R, f)</code>，这个结构的成员有：<ul>
-<li>签名<code>_G = (V, F, R)</code>，也就是语法结构</li>
-<li>论域<code>D</code>（一个集合）</li>
-<li>函数集合<code>_F</code></li>
-<li>关系集合<code>_R</code></li>
-<li>映射<code>f</code>：<code>F∪R -&gt; _F∪_R</code>。这个映射把签名中的函数与关系映射到论域<code>D</code>的实际函数和关系</li>
-</ul>
-</li>
-<li><strong>赋值（assignment）a</strong>把变元集合<code>V</code>中的变元映射到论域<code>D</code>中的值，用<code>a: V-&gt;D</code>来表示。</li>
-<li>我们用<code>terms(_G)</code>来表示签名<code>_G</code>上的所有的项。下面我们可以定义<strong>语义解释（semantic interpretation）T_a : terms(G)-&gt;D</strong>。它把每一个项映射为论域中的值。这个定义是递归的：<ul>
-<li><code>T_a(v) = a(v)</code>，对于<code>v∈V</code></li>
-<li><code>T_a(func(e1, e2, ..., en)) = f(func)(T_a(e1), T_a(e2), ..., T_a(en))</code></li>
-<li>来解释一下，第一行定义了<strong>变元的语义解释是在赋值a下的值</strong>，第二行是<strong>项的递归定义</strong>。上面的含义是：<code>func(e1, e2, ..., en)</code>是在一阶结构<code>_S</code>上<code>func</code>关联的实际函数，那么<code>f(func)</code>就是<code>func</code>函数实际关联的函数，而<code>T_a(ei)</code>是<code>ei</code>的解释，所以我们递归地进行解释。</li>
-</ul>
-</li>
+                <h1 id="Lab4-note"><a href="#Lab4-note" class="headerlink" title="Lab4 note"></a>Lab4 note</h1><h2 id="1-introduction"><a href="#1-introduction" class="headerlink" title="1 introduction"></a>1 introduction</h2><p>In this lab, we should implement the preemptive multitasking mechanism among multiple simultaneously active user-mode environment. The lab is divided into 3 parts, which in each part we have disparate tasks to complete. In part A, we will add multiprocessor support to our system, while we will implement a Unix-like <code>fork</code> in part B. Ultimately, we will add support for inter-process communication (<code>IPC</code>), allowing different user-mode environments to communicate and synchronize with each other explicitly.</p>
+<h2 id="2-preparation"><a href="#2-preparation" class="headerlink" title="2 preparation"></a>2 preparation</h2><p>Before starting, we are supposed to acquire some propaedeutics about multitask and multiprocessor. There are some word abbreviations about this aspect: BSP, AP, MP. Below is the explanation of them.</p>
+<h3 id="2-1-operating-system-boot-up"><a href="#2-1-operating-system-boot-up" class="headerlink" title="2-1  operating system boot-up"></a>2-1  operating system boot-up</h3><p>While all processors in an MP-compliant system are functionally identical, one of the processors will be designated as the boot processor (BSP) at system initialization by system hardware or by application processors (APs). <strong>The BSP is responsible for booting the operating system.</strong> Once the MP operating system is up and running, the BSP functions as an AP. Usually a processor is designed as the BSP because it is capable of controlling all system hardware, including AP start up and shut down. The operating system must determine and remember the APIC ID of the designated BSP, so it can keep the BSP operating as the last running processor during system shut down. The BSP is not necessarily the first processor, especially in fault-tolerant MP systems in which any available processor can be designated as the BSP. There are some AP states at the time that the first instruction of the operating system is executed, while our process are in halted condition with interrupts disabled. This means that the AP’s local APICs (<code>lapic</code>) are passively monitor the APIC bus and will react only to INIT or STARTUP inter-processor interrupts (IPIs).</p>
+<h2 id="3-try-coding"><a href="#3-try-coding" class="headerlink" title="3 try coding"></a>3 try coding</h2><p>There are some new include files and source files at this stage. Let’s have a look at the crucial ones.</p>
+<h3 id="2-2-labpic"><a href="#2-2-labpic" class="headerlink" title="2-2 labpic"></a>2-2 <code>labpic</code></h3><p>In <code>kern/init.c</code>, we see a function called <code>lapic_init</code> and trace into it. It brings me to a source file named <code>lapic.c</code>. A variable called <code>lapicaddr</code> is initialized in <code>mpconfig.c</code>. There are three structures: <code>mp</code>, <code>mpconf</code>, <code>mpproc</code>. There are some functions related to multiprocessor:</p>
+<ul>
+<li><code>sum(addr, len)</code>: It’s used to check whether all the bytes memory located at the address the <code>mp</code> variable that we want to examine contains can be add up to 0.</li>
+<li><code>mpsearch1(a, len)</code>: It looks for an <code>MP</code> structure in the <code>len</code> bytes at physical address <code>addr</code>.</li>
+<li><code>mpsearch(void)</code>: It searches for the <code>MP</code> Floating Pointer Structure, which according to <code>[MP 4]</code> is in one of the following three locations:<ol>
+<li>in the first <code>KB</code> of <code>EBDA</code></li>
+<li>if there is no <code>EBDA</code>, in the first <code>KB</code> of system base memory</li>
+<li>in the BIOS ROM between <code>0xE0000</code> and <code>0xFFFFF</code></li>
 </ol>
-<p>我们为什么要费尽心机把语义和语法分开呢？<strong>通过指明记法（语法）和含义（语义）之间的关系，一阶逻辑允许我们证明论域上的属性。这种做法基于语法，它通过对公式进行字符串操作完成证明，再利用语义解释把操作的结果投射到我们讨论的数学对象。</strong>就我的理解来说，是为了方便我们的证明！</p>
-<h2 id="3-3-一阶公式"><a href="#3-3-一阶公式" class="headerlink" title="3.3 一阶公式"></a>3.3 一阶公式</h2><p>先介绍语法。<strong>在项上面应用关系符号可以构造得到简单公式</strong>，语法是：</p>
-<p><code>simp_form ::= rel(term, term, ..., term) | term ≡ term</code></p>
-<p>这是一个简单公式，同样是用<code>BNF</code>形式来表示的，<strong>一阶公式不仅包含上面这样的简单公式，还可以递归地应用布尔运算符与，或，非，蕴含，或者再公式前面加上一个量词（quantifier）‘“对于所有”，“存在”</strong>。下面是<strong>一阶公式的定义</strong>：</p>
-<p><code>form ::= simp_form | (form ∧ form) | (form ∨ form) | (form -&gt; form) | (¬form) | ∀var(form) | ∃var(form) | true | false</code></p>
-<p>我们可以看出这个还是一个递归定义。其中布尔运算符的优先级可以帮助我们省略一些括号。在合取式中的每一项叫做合取项；在析取式中的每一项叫做析取项。</p>
-<p>下面是关于一阶公式的语义解释：</p>
-<ol>
-<li>关系符号<code>“≡”</code>是标准的等于关系，<code>v1≡v2</code>成立当且仅当<code>v1</code>和<code>v2</code>被赋予相同的值，也就是当<code>a(v1) = a(v2)</code>时成立。需要注意的是：逻辑内用<code>“≡”</code>表示相等，而逻辑外使用<code>“=”</code>表示对象之间的相等。</li>
-<li><code>forms(_G)</code>是在签名<code>_G</code>上的一阶公式的集合。解释<code>M_a: forms(_G) -&gt; {TRUE, FALSE}</code>把布尔值赋值给每一个公式。语义解释仍然依赖于赋值a。对于不包含量词的公式的解释如下：<ul>
-<li><code>M_a(pred(e1, e2, ..., en)) = f(pred)(M_a(e1), M_a(e2), ..., M_a(en))</code></li>
-<li><code>M_a(e1 ≡ e2) = (T_a(e1) = T_a(e2))</code></li>
-<li></li>
-</ul>
 </li>
+<li><code>mpconfig(struct mp **pmp)</code>: It searches for an <code>MP</code> configuration table and return a pointer pointing at a <code>mpconf</code>.</li>
+</ul>
+<p>Above is some basic auxiliary functions. And the most significant procedure is <code>mp_init</code>. It looks for the <code>mpconfig</code> and assign the address of local APIC to <code>lapicaddr</code>. And then it initializes <code>cpus[]</code> with the aid of the configuration we read.</p>
+<p>so,we get the physical address of <code>LAPIC</code>. We can map the physical address in the virtual memory so that we can access it.</p>
+<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">//</span>
+<span class="token comment" spellcheck="true">// Reserve size bytes in the MMIO region and map [pa,pa+size) at this</span>
+<span class="token comment" spellcheck="true">// location.  Return the base of the reserved region.  size does *not*</span>
+<span class="token comment" spellcheck="true">// have to be multiple of PGSIZE.</span>
+<span class="token comment" spellcheck="true">//</span>
+<span class="token keyword">void</span> <span class="token operator">*</span>
+<span class="token function">mmio_map_region</span><span class="token punctuation">(</span>physaddr_t pa<span class="token punctuation">,</span> size_t size<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    <span class="token comment" spellcheck="true">// Your code here:</span>
+    size <span class="token operator">=</span> <span class="token function">ROUNDUP</span><span class="token punctuation">(</span>size<span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span>base <span class="token operator">+</span> size <span class="token operator">>=</span> MMIOLIM<span class="token punctuation">)</span>
+        <span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"mmio_map_region: out of memory\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">boot_map_region</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">,</span> base<span class="token punctuation">,</span> size<span class="token punctuation">,</span> pa<span class="token punctuation">,</span> PTE_PCD<span class="token operator">|</span>PTE_PWT<span class="token operator">|</span>PTE_W<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    base <span class="token operator">+</span><span class="token operator">=</span> size<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/ia32/MPspec.pdf">MultiProcessor Specification (mit.edu)</a></li>
+<li></li>
 </ol>
 
                 
@@ -395,7 +391,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://changanyyy.github.io/2021/08/07/Software-Reliable-Method-ch3/">http://changanyyy.github.io/2021/08/07/Software-Reliable-Method-ch3/</a>
+                    <a href="http://changanyyy.github.io/2021/08/15/MIT6-828-note-lab4/">http://changanyyy.github.io/2021/08/15/MIT6-828-note-lab4/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -433,8 +429,8 @@
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%BD%A2%E5%BC%8F%E5%8C%96/">
-                                    <span class="chip bg-color">软件形式化</span>
+                                <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
+                                    <span class="chip bg-color">操作系统</span>
                                 </a>
                             
                         </div>
@@ -604,9 +600,10 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
                 <a href="/2021/08/15/MIT6-828-note-lab4/">
                     <div class="card-image">
@@ -624,9 +621,9 @@
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2021-08-15
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-08-15
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -639,6 +636,7 @@
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
@@ -657,31 +655,31 @@
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2021/07/31/MIT6-828-note-lab3/">
+                <a href="/2021/08/07/Software-Reliable-Method-ch3/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/3.jpg" class="responsive-img" alt="MIT6-828-note-lab3">
+                        <img src="/medias/featureimages/12.jpg" class="responsive-img" alt="Software Reliable Method ch3">
                         
-                        <span class="card-title">MIT6-828-note-lab3</span>
+                        <span class="card-title">Software Reliable Method ch3</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            操作系统
+                            软件形式化
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2021-07-31
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-08-07
                             </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="post-category">
-                                    操作系统
+                            <a href="/categories/%E8%BD%AF%E4%BB%B6%E5%BD%A2%E5%BC%8F%E5%8C%96/" class="post-category">
+                                    软件形式化
                                 </a>
                             
                             
@@ -691,8 +689,8 @@
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">操作系统</span>
+                    <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%BD%A2%E5%BC%8F%E5%8C%96/">
+                        <span class="chip bg-color">软件形式化</span>
                     </a>
                     
                 </div>
