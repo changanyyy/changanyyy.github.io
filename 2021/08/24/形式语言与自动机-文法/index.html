@@ -365,11 +365,11 @@
 </blockquote>
 <h3 id="文法和形式语言"><a href="#文法和形式语言" class="headerlink" title="文法和形式语言"></a>文法和形式语言</h3><h4 id="推导，归约"><a href="#推导，归约" class="headerlink" title="推导，归约"></a>推导，归约</h4><p>定义2. </p>
 <ul>
-<li>给出文法 <code>G = ( V, T, P, S )</code>，我们定义两个字符串之间的一个关系“ $\underset {G}{\Rightarrow}$”：若 $α= α_1α_2α_3$, $γ=α_1βα_3$, 并且 $α_2→β$是P中的一个产生式，则有 α$\underset {G}{\Rightarrow}$γ，此时称<strong>由α直接推导(derives)出γ</strong>。根据第一章关于集合上关系的闭包的 定义，我们也可把$\underset {G}{\Rightarrow}$扩充为$\overset { * }{\underset {G}{\Rightarrow}}$ ，将α$\overset {<em>}{\underset {G}{\Rightarrow}}$γ称为<em>*由α推导出γ</em></em>。</li>
+<li>给出文法 <code>G = ( V, T, P, S )</code>，我们定义两个字符串之间的一个关系“ $\underset {G}{\Rightarrow}$”：若 $α= α_1α_2α_3$, $γ=α_1βα_3$, 并且 $α_2→β$是P中的一个产生式，则有 α$\underset {G}{\Rightarrow}$γ，此时称<strong>由α直接推导(derives)出γ</strong>。根据第一章关于集合上关系的闭包的 定义，我们也可把$\underset {G}{\Rightarrow}$扩充为$\overset { * }{\underset {G}{\Rightarrow}}$ ，将α$\overset {*}{\underset {G}{\Rightarrow}}$γ称为<strong>由α推导出γ</strong>。</li>
 <li>若有S$\overset {*}{\underset {G}{\Rightarrow}}$ γ，则称γ为句型(sentential form)，当γ∈Ｔ＊ ， 则称γ为句子(sentence)。</li>
-<li>对应于推导，还有一个重要的概念，称为“归约 ”(reduce)。定义是：如果α$\overset {<em>}{\underset {G}{\Rightarrow}}$γ是由α到γ的推导，则 反过来称γ归约到α，记作γ$\overset {</em>}{\underset {G}{\leftarrow}}$α。</li>
+<li>对应于推导，还有一个重要的概念，称为“归约 ”(reduce)。定义是：如果α$\overset {*}{\underset {G}{\Rightarrow}}$γ是由α到γ的推导，则 反过来称γ归约到α，记作γ$\overset {*}{\underset {G}{\Leftarrow}}$α。</li>
 </ul>
-<h4 id="什么是语言"><a href="#什么是语言" class="headerlink" title="什么是语言"></a>什么是语言</h4><p>定义3. 给出文法 <code>G=(V, T, P, S)</code>，它所产生的语言记作<code>Ｌ(G)</code>，由下述集合定义： L(G)={$\omega$|$S\overset {<em>}{\underset {G}{\Rightarrow}}\omega$，并且$\omega$ ∈Ｔ</em> }。 换句话说，文法G产生的语言Ｌ(G)，就是由G中开始符号S推导出来的全体终结符号串所构成的集合，也就 是<strong>句子的集合</strong></p>
+<h4 id="什么是语言"><a href="#什么是语言" class="headerlink" title="什么是语言"></a>什么是语言</h4><p>定义3. 给出文法 <code>G=(V, T, P, S)</code>，它所产生的语言记作<code>L(G)</code>，由下述集合定义： L(G)={$\omega$| $S\overset {*}{\underset {G}{\Rightarrow}}\omega$，并且 $\omega ∈Ｔ^*$ }。 换句话说，文法G产生的语言<code>L(G)</code>，就是由G中开始符号S推导出来的全体终结符号串所构成的集合，也就 是<strong>句子的集合</strong></p>
 <h3 id="文法等价"><a href="#文法等价" class="headerlink" title="文法等价"></a>文法等价</h3><p>定义2.4 对于两个不同的文法<code>G1 ＝(V1 ，T1 ，P1 ， S1）</code>，<code>G2＝(V2，T2，P2，S2)</code>，如果<code>Ｌ(G1)＝Ｌ(G2)</code>，则称 文法<code>G1</code>与<code>G2</code>等价。</p>
 <h3 id="文法的乔姆斯基体系"><a href="#文法的乔姆斯基体系" class="headerlink" title="文法的乔姆斯基体系"></a>文法的乔姆斯基体系</h3><p><img src="/picture/qmsj.png" alt=""></p>
 <p>定义5. 对于文法 <code>G＝（V，T，P，S）</code>按产生式分为四类： </p>
