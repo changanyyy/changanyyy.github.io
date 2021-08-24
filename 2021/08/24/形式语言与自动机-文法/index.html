@@ -29,7 +29,11 @@
 
     <script src="/libs/jquery/jquery.min.js"></script>
 
-<meta name="generator" content="Hexo 5.4.0">
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css"></head>
 
@@ -347,7 +351,7 @@
 <ol>
 <li>V（Variables）是<strong>变元的有限集</strong>。 </li>
 <li>T（Terminal symbols）是<strong>终结符的有限集</strong>。 </li>
-<li>P（Productions）是产生式的有限集，其中每个产生 式都是α→β的形式，其中α∈(V∪T)+，且其中至少有 一个V中的符号，β∈(V∪T)*。α称为产生式的<strong>左部</strong>，β 称为产生式的<strong>右部</strong>。 </li>
+<li>P（Productions）是产生式的有限集，其中每个产生 式都是α→β的形式，其中α∈(V∪T)+，且其中至少有 一个V中的符号，β∈(V∪T)<em>。α称为产生式的<strong>左部</strong>，β 称为产生式的<em>*右部</em></em>。 </li>
 <li>S∈V，称为文法G的<strong>开始符号（Start variable）</strong>。</li>
 </ol>
 <blockquote>
@@ -367,12 +371,12 @@
 </ul>
 <h4 id="什么是语言"><a href="#什么是语言" class="headerlink" title="什么是语言"></a>什么是语言</h4><p>定义3. 给出文法 <code>G=(V, T, P, S)</code>，它所产生的语言记作<code>Ｌ(G)</code>，由下述集合定义： L(G)={$\omega$|$S\overset {<em>}{\underset {G}{\Rightarrow}}\omega$，并且$\omega$ ∈Ｔ</em> }。 换句话说，文法G产生的语言Ｌ(G)，就是由G中开始符号S推导出来的全体终结符号串所构成的集合，也就 是<strong>句子的集合</strong></p>
 <h3 id="文法等价"><a href="#文法等价" class="headerlink" title="文法等价"></a>文法等价</h3><p>定义2.4 对于两个不同的文法<code>G1 ＝(V1 ，T1 ，P1 ， S1）</code>，<code>G2＝(V2，T2，P2，S2)</code>，如果<code>Ｌ(G1)＝Ｌ(G2)</code>，则称 文法<code>G1</code>与<code>G2</code>等价。</p>
-<h3 id="文法的乔姆斯基体系"><a href="#文法的乔姆斯基体系" class="headerlink" title="文法的乔姆斯基体系"></a>文法的乔姆斯基体系</h3><p><img src="/picture/qmsj.png"></p>
+<h3 id="文法的乔姆斯基体系"><a href="#文法的乔姆斯基体系" class="headerlink" title="文法的乔姆斯基体系"></a>文法的乔姆斯基体系</h3><p><img src="/picture/qmsj.png" alt=""></p>
 <p>定义5. 对于文法 <code>G＝（V，T，P，S）</code>按产生式分为四类： </p>
 <ol>
 <li>若Ｐ中的产生式，不加另外的限制，则G称为0型文法，或<strong>短语结构文法（Phrase Structure Grammar, PSG）</strong>。 </li>
 <li>若Ｐ中每个产生式α→β都满足条件|α|≤∣β|，则G称为1型文法， 或<strong>上下文有关文法（ Context-Sensitive Grammar, CSG ）</strong>。 </li>
-<li>若Ｐ中每个产生式都具有如下形式： A→β，β∈(V∪T)*，A∈V，则称G为2型文法，或<strong>上下文无关文法（Context-Free Grammar, CFG ）</strong>。 </li>
+<li>若Ｐ中每个产生式都具有如下形式： A→β，β∈(V∪T)<em>，A∈V，则称G为2型文法，或<em>*上下文无关文法（Context-Free Grammar, CFG ）</em></em>。 </li>
 <li>若Ｐ中每个产生式都具有如下形式： A→a或A→aB，a∈T∪{ε}，A，B∈V ， 则称G为3型文法，或正则文法（Regular Grammar, RG ）。</li>
 </ol>
 <p>从1到4，限制越来越严格，实际上功能最强大的是0型文法，对应图灵机。</p>
