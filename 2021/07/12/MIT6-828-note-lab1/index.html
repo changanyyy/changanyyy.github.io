@@ -362,9 +362,8 @@
 |    Low Memory    |
 |                  |
 +------------------+  &lt;- 0x00000000
-</code></pre>
-<h3 id="1-BIOS"><a href="#1-BIOS" class="headerlink" title="1.BIOS"></a>1.BIOS</h3><h4 id="1-1-BIOS的基本功能"><a href="#1-1-BIOS的基本功能" class="headerlink" title="1-1 BIOS的基本功能"></a>1-1 BIOS的基本功能</h4><p>在我们给计算机加电之后，CPU第一个执行的指令就是BIOS的指令，从GDB里面我们可以看出，就是下面这一行，这时<code>CS=0xf000</code>并且<code>IP=0xfff0</code>，所以现在这个指令在地址<code>0xffff0</code>处。我们可以看出来，在实地址模式下，几乎已经达到了寻址空间的尽头，后面为数不多的空间不够存放几条指令了。实际上，真正的<code>BIOS</code>的真正代码在更低地址处。所以我们需要通过下面的指令跳转到相应位置。</p>
-<pre class=" language-assembly"><code class="language-assembly">[f000:fff0] 0xffff0:    ljmp   $0xf000,$0xe05b
+</code></pre><h3 id="1-BIOS"><a href="#1-BIOS" class="headerlink" title="1.BIOS"></a>1.BIOS</h3><h4 id="1-1-BIOS的基本功能"><a href="#1-1-BIOS的基本功能" class="headerlink" title="1-1 BIOS的基本功能"></a>1-1 BIOS的基本功能</h4><p>在我们给计算机加电之后，CPU第一个执行的指令就是BIOS的指令，从GDB里面我们可以看出，就是下面这一行，这时<code>CS=0xf000</code>并且<code>IP=0xfff0</code>，所以现在这个指令在地址<code>0xffff0</code>处。我们可以看出来，在实地址模式下，几乎已经达到了寻址空间的尽头，后面为数不多的空间不够存放几条指令了。实际上，真正的<code>BIOS</code>的真正代码在更低地址处。所以我们需要通过下面的指令跳转到相应位置。</p>
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">[f000:fff0] 0xffff0:    ljmp   $0xf000,$0xe05b
 </code></pre>
 <p><code>ljmp</code>的意思是长跳转，，也就是说跳转到<code>0xfe05b</code>地址处，可以看出，确实是在第一条指令的前面！</p>
 <p>后面<code>BIOS</code>完成自己后续任务，包括设置中断描述符表和初始化各种设备，比如<code>VGA</code>。在做完这些工作之后，<code>BIOS</code>寻找可引导的设备，当它发现可引导的磁盘时，<code>BIOS</code>从磁盘读出<code>bootloader</code>然后把控制权交给它！</p>
@@ -393,7 +392,7 @@
 <ul>
 <li>首先准备gdt（全局描述符表），上面是带有宏的代码，翻译出来就是底下的代码</li>
 </ul>
-<pre class=" language-assembly"><code class="language-assembly">#翻译之前
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">#翻译之前
 gdt:
   SEG_NULL                # null seg
   SEG(STA_X|STA_R, 0x0, 0xffffffff)    # code seg
@@ -413,7 +412,7 @@ gdt:
 <ul>
 <li>下面正式进入保护模式，下面这段代码正好对应了<code>gdtr</code>的48位，高32位是gdt的首地址，而低16位是gdt的长度！（长度可以看出来有多少个全局描述符表项）</li>
 </ul>
-<pre class=" language-assembly"><code class="language-assembly">gdtdesc:
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">gdtdesc:
   .word   (gdtdesc - gdt - 1)             # 16 位的 gdt 大小sizeof(gdt) - 1
   .long   gdt                             # 32 位的 gdt 所在物理地址
 </code></pre>
@@ -423,7 +422,7 @@ gdt:
 <p>下面这个代码的意思是把CR0的PE位设置为1，开启保护模式！</p>
 </li>
 </ul>
-<pre class=" language-assembly"><code class="language-assembly">  movl    %cr0, %eax
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">  movl    %cr0, %eax
   orl     $CR0_PE_ON, %eax
   movl    %eax, %cr0
 </code></pre>
@@ -434,7 +433,7 @@ gdt:
 </li>
 </ol>
 <h4 id="2-2-bootmain-c分析"><a href="#2-2-bootmain-c分析" class="headerlink" title="2-2 bootmain.c分析"></a>2-2 <code>bootmain.c</code>分析</h4><p>我们进入<code>bootmain.c</code>的时候，通过反汇编的代码我们可以看出<code>ph</code>被存入了<code>ebx</code>寄存器中，而<code>eph</code>存入了<code>esi</code>寄存器里。</p>
-<pre class=" language-assembly"><code class="language-assembly">    ph = (struct Proghdr *) ((uint8_t *) ELFHDR + ELFHDR->e_phoff);
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">    ph = (struct Proghdr *) ((uint8_t *) ELFHDR + ELFHDR->e_phoff);
     7d3a:    a1 1c 00 01 00           mov    0x1001c,%eax
     eph = ph + ELFHDR->e_phnum;
     7d3f:    0f b7 35 2c 00 01 00     movzwl 0x1002c,%esi
@@ -445,59 +444,59 @@ gdt:
     7d4f:    01 de                    add    %ebx,%esi
 </code></pre>
 <p>首先分析等待磁盘操作<code>waitdisk</code>，下面的操作就是去读<code>0x1fc</code>端口的<code>bit6</code>和<code>bit7</code>，当<code>bit6=1</code>并且<code>bit7=0</code>的时候，就代表磁盘空闲。其中<code>bit6</code>等于1表示驱动器就绪，<code>bit7</code>空闲表示控制器空闲！</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">void</span>
-<span class="token function">waitdisk</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// wait for disk reaady</span>
-    <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token function">inb</span><span class="token punctuation">(</span><span class="token number">0x1F7</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> <span class="token number">0xC0</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token number">0x40</span><span class="token punctuation">)</span>
-        <span class="token comment" spellcheck="true">/* do nothing */</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">void
+waitdisk(void)
+{
+    // wait for disk reaady
+    while ((inb(0x1F7) & 0xC0) != 0x40)
+        /* do nothing */;
+}
 </code></pre>
 <p>然后说一下<code>readseg</code>函数，先等待磁盘空闲，就可以读磁盘了。为什么要把offset写入这些端口呢？</p>
 <p>IDE定义了8个寄存器操作硬盘。PC 体系结构将第一个硬盘控制器映射到端口 1F0-1F7 处，而第二个硬盘控制器则被映射到端口 170-177 处。out函数主要是是把扇区计数、扇区LBA地址等信息输出到端口1F2-1F6，然后将0x20命令写到1F7，表示要进行读扇区的操作。</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">void</span>
-<span class="token function">readsect</span><span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span>dst<span class="token punctuation">,</span> uint32_t offset<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// wait for disk to be ready</span>
-    <span class="token function">waitdisk</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">void
+readsect(void *dst, uint32_t offset)
+{
+    // wait for disk to be ready
+    waitdisk();
 
-    <span class="token function">outb</span><span class="token punctuation">(</span><span class="token number">0x1F2</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>        <span class="token comment" spellcheck="true">// count = 1</span>
-    <span class="token function">outb</span><span class="token punctuation">(</span><span class="token number">0x1F3</span><span class="token punctuation">,</span> offset<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">outb</span><span class="token punctuation">(</span><span class="token number">0x1F4</span><span class="token punctuation">,</span> offset <span class="token operator">>></span> <span class="token number">8</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">outb</span><span class="token punctuation">(</span><span class="token number">0x1F5</span><span class="token punctuation">,</span> offset <span class="token operator">>></span> <span class="token number">16</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">outb</span><span class="token punctuation">(</span><span class="token number">0x1F6</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>offset <span class="token operator">>></span> <span class="token number">24</span><span class="token punctuation">)</span> <span class="token operator">|</span> <span class="token number">0xE0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">outb</span><span class="token punctuation">(</span><span class="token number">0x1F7</span><span class="token punctuation">,</span> <span class="token number">0x20</span><span class="token punctuation">)</span><span class="token punctuation">;</span>    <span class="token comment" spellcheck="true">// cmd 0x20 - read sectors</span>
+    outb(0x1F2, 1);        // count = 1
+    outb(0x1F3, offset);
+    outb(0x1F4, offset >> 8);
+    outb(0x1F5, offset >> 16);
+    outb(0x1F6, (offset >> 24) | 0xE0);
+    outb(0x1F7, 0x20);    // cmd 0x20 - read sectors
 
-    <span class="token comment" spellcheck="true">// wait for disk to be ready</span>
-    <span class="token function">waitdisk</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    // wait for disk to be ready
+    waitdisk();
 
-    <span class="token comment" spellcheck="true">// read a sector</span>
-    <span class="token function">insl</span><span class="token punctuation">(</span><span class="token number">0x1F0</span><span class="token punctuation">,</span> dst<span class="token punctuation">,</span> SECTSIZE<span class="token operator">/</span><span class="token number">4</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+    // read a sector
+    insl(0x1F0, dst, SECTSIZE/4);
+}
 </code></pre>
 <p>但是有一个问题，上面的代码里有一个<code>insl</code>函数，这个是什么呢？</p>
 <p>看它的实现是一个内联汇编</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">static</span> <span class="token keyword">inline</span> <span class="token keyword">void</span>
-    <span class="token function">insl</span><span class="token punctuation">(</span>uint32_t port<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>addr<span class="token punctuation">,</span> <span class="token keyword">int</span> cnt<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-        <span class="token keyword">asm</span> <span class="token keyword">volatile</span> <span class="token punctuation">(</span>
-            <span class="token string">"cld;"</span>
-            <span class="token string">"repne; insl;"</span>
-            <span class="token punctuation">:</span> <span class="token string">"=D"</span> <span class="token punctuation">(</span>addr<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"=c"</span> <span class="token punctuation">(</span>cnt<span class="token punctuation">)</span>
-            <span class="token punctuation">:</span> <span class="token string">"d"</span> <span class="token punctuation">(</span>port<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"0"</span> <span class="token punctuation">(</span>addr<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"1"</span> <span class="token punctuation">(</span>cnt<span class="token punctuation">)</span>
-            <span class="token punctuation">:</span> <span class="token string">"memory"</span><span class="token punctuation">,</span> <span class="token string">"cc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">static inline void
+    insl(uint32_t port, void *addr, int cnt) {
+        asm volatile (
+            "cld;"
+            "repne; insl;"
+            : "=D" (addr), "=c" (cnt)
+            : "d" (port), "0" (addr), "1" (cnt)
+            : "memory", "cc");
+    }
 </code></pre>
 <p>我去<code>StackOverflow</code>搜到了相应的解释：</p>
 <blockquote>
 <p>That function will read <code>cnt</code> <code>dwords</code> from the input port specified by <code>port</code> into the supplied output array <code>addr</code>.</p>
 </blockquote>
 <p>大概意思就是说，从<code>port</code>端口里面读出<code>cnt</code>个<code>dword</code>（4字节），读入到特定的内存地址上去。</p>
-<pre class=" language-c"><code class="language-c">    <span class="token comment" spellcheck="true">// read a sector</span>
-    <span class="token function">insl</span><span class="token punctuation">(</span><span class="token number">0x1F0</span><span class="token punctuation">,</span> dst<span class="token punctuation">,</span> SECTSIZE<span class="token operator">/</span><span class="token number">4</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">    // read a sector
+    insl(0x1F0, dst, SECTSIZE/4);
 </code></pre>
 <p>可以看出来，因为一个<code>dword</code>是4字节，所以后面的<code>cnt</code>就是<code>SECTSIZE/4</code></p>
 <p>跟踪<code>for</code>循环语句，我们从<code>asm</code>代码可以看出，下面这段代码是跟循环有关，首先用<code>cmp</code>指令比较<code>ph</code>和<code>eph</code>的大小，如果<code>ph</code>大于等于<code>eph</code>的话，就跳出循环，跳到入口函数。否则继续执行，给<code>readseg</code>的参数入栈，中间会进行一些<code>ph</code>自增的操作，最后跳回比较操作！</p>
-<pre class=" language-assembly"><code class="language-assembly">    for (; ph < eph; ph++)
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">    for (; ph < eph; ph++)
     7d51:    39 f3                    cmp    %esi,%ebx
     7d53:    73 16                    jae    7d6b <bootmain+0x56>
         readseg(ph->p_pa, ph->p_memsz, ph->p_offset);
@@ -522,11 +521,11 @@ gdt:
 </li>
 <li><p>问：bootloader执行的最后一个指令是什么？kernel第一个被加载的指令是什么？</p>
 <p>下面是<code>bootloader</code>的最后一条指令，对应的c语言代码就是跳转到<code>Kernel</code>的入口处！</p>
-<pre class=" language-assembly"><code class="language-assembly">((void (*)(void)) (ELFHDR->e_entry))();
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">((void (*)(void)) (ELFHDR->e_entry))();
 7d6b:    ff 15 18 00 01 00        call   *0x10018
 </code></pre>
 <p>而下面这段是<code>kernel</code>的第一条指令</p>
-<pre class=" language-assembly"><code class="language-assembly">0x10000c:    movw   $0x1234,0x472   
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">0x10000c:    movw   $0x1234,0x472
 </code></pre>
 </li>
 <li><p>问：内核的第一条指令地址在哪里？</p>
@@ -536,22 +535,22 @@ gdt:
 <p>回答：可以从<code>bootmain.c</code>的源代码看出，它的所有信息都是从ELF头里面读出来的！首先找到程序头表的位置，然后找到程序头表里有多少条目。根据程序头表条目给出的信息，把kernel的相应内容从磁盘读入内存！</p>
 </li>
 </ol>
-<pre class=" language-c"><code class="language-c">    ph <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">struct</span> Proghdr <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>uint8_t <span class="token operator">*</span><span class="token punctuation">)</span> ELFHDR <span class="token operator">+</span> ELFHDR<span class="token operator">-></span>e_phoff<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    eph <span class="token operator">=</span> ph <span class="token operator">+</span> ELFHDR<span class="token operator">-></span>e_phnum<span class="token punctuation">;</span>
-    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token punctuation">;</span> ph <span class="token operator">&lt;</span> eph<span class="token punctuation">;</span> ph<span class="token operator">++</span><span class="token punctuation">)</span>
-        <span class="token comment" spellcheck="true">// p_pa is the load address of this segment (as well</span>
-        <span class="token comment" spellcheck="true">// as the physical address)</span>
-        <span class="token function">readseg</span><span class="token punctuation">(</span>ph<span class="token operator">-></span>p_pa<span class="token punctuation">,</span> ph<span class="token operator">-></span>p_memsz<span class="token punctuation">,</span> ph<span class="token operator">-></span>p_offset<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">    ph = (struct Proghdr *) ((uint8_t *) ELFHDR + ELFHDR->e_phoff);
+    eph = ph + ELFHDR->e_phnum;
+    for (; ph < eph; ph++)
+        // p_pa is the load address of this segment (as well
+        // as the physical address)
+        readseg(ph->p_pa, ph->p_memsz, ph->p_offset);
 </code></pre>
 <h4 id="练习五"><a href="#练习五" class="headerlink" title="练习五"></a>练习五</h4><p>问：修改链接地址并且观察<code>bootloader</code>的运行情况</p>
 <p>答：我先把链接地址从<code>0x7c00</code>改成了<code>0x8c00</code>，然后用<code>gdb</code>来看看发生了什么问题。我在上述这两个地址处都设置了断点，然后按c继续运行，这时我可以看见，仍然在<code>0x7c00</code>处执行第一条指令<code>cli</code>，这让我很疑惑。但是在查阅相关资料之后，发现这是<code>BIOS</code>在捣鬼，实际上不管链接地址是加载到哪里的，<code>BIOS</code>是固定会把<code>bootloader</code>加载到<code>0x7c00</code>的位置，这样也就不难解释为什么还是从<code>0x7c00</code>开始执行代码了。但是我再一次按c继续执行，发现了报错！</p>
-<pre class=" language-assembly"><code class="language-assembly">Program received signal SIGTRAP, Trace/breakpoint trap.
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">Program received signal SIGTRAP, Trace/breakpoint trap.
 [   0:7c2d] => 0x7c2d:    ljmp   $0x8,$0x8c32
 </code></pre>
 <p>也就是说，在<code>ljmp $PROT_MODE_CSEG, $protcseg</code>这句汇编语句出现了错误，这是因为，链接器在链接的时候是根据<code>protcseg</code>相对于第一条指令的相对地址来确定链接地址的，所以确定地址为<code>0x8c32</code>，而实际上加载到的真实地址还是<code>0x7c32</code>！（其实包括前面的<code>lgdt</code>也出错了！）</p>
 <h4 id="练习六"><a href="#练习六" class="headerlink" title="练习六"></a>练习六</h4><p>问：查看<code>bootloader</code>把内核加载前后<code>kernel</code>入口处的内存地址，看看为什么有这样的不同</p>
 <p>回答：从下面这段<code>gdb</code>调试的代码可以看出，在<code>bootloader</code>加载<code>kernel</code>之前，这段内存都是0，在加载之后，内存中有了相应的内容，我对比<code>kernel.asm</code>看一看，它们刚好对应</p>
-<pre class=" language-assembly"><code class="language-assembly">The target architecture is assumed to be i8086
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">The target architecture is assumed to be i8086
 [f000:fff0]    0xffff0:    ljmp   $0xf000,$0xe05b
 0x0000fff0 in ?? ()
 + symbol-file obj/kern/kernel
@@ -571,11 +570,11 @@ Breakpoint 1, 0x00007d6b in ?? ()
 0x10000c:    0x7205c766    0x34000004    0x2000b812    0x220f0011
 0x10001c:    0xc0200fd8    0x0100010d    0xc0220f80    0x10002fb8
 0x10002c:    0xbde0fff0    0x00000000
-(gdb) 
+(gdb)
 </code></pre>
 <h3 id="3-Kernel"><a href="#3-Kernel" class="headerlink" title="3.Kernel"></a>3.Kernel</h3><p>下面开始分析<code>Kernel</code>了。</p>
 <h4 id="3-1有关分页"><a href="#3-1有关分页" class="headerlink" title="3-1有关分页"></a>3-1有关分页</h4><h5 id="练习七"><a href="#练习七" class="headerlink" title="练习七"></a>练习七</h5><p>要求首先看看关于地址映射的问题，我先在<code>mov %eax, %cr0</code>所在位置设置了断点，运行到这里。然后检查了两段地址的内存，刚开始是不一样，然后执行完这句指令，发现两块内存是一样的了！这很神奇！这是因为在开启PE位之后，开启了虚拟内存模式，把虚拟内存空间高地址的内存映射到对应的物理内存上，所以他们的内容是一样的</p>
-<pre class=" language-assembly"><code class="language-assembly">(gdb) b *0x100025
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">(gdb) b *0x100025
 Breakpoint 2 at 0x100025
 (gdb) c
 Continuing.
@@ -597,17 +596,17 @@ Breakpoint 2, 0x00100025 in ?? ()
 (gdb) x/8x 0xf0100000
 0xf0100000 <_start+4026531828>:    0x1badb002    0x00000000    0xe4524ffe    0x7205c766
 0xf0100010 <entry+4>:    0x34000004    0x2000b812    0x220f0011    0xc0200fd8
-(gdb) 
+(gdb)
 </code></pre>
 <p>如果开启PE失败的话，那么下面两句就会出现问题：</p>
-<pre class=" language-assembly"><code class="language-assembly">    mov    $relocated, %eax
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">    mov    $relocated, %eax
 f0100028:    b8 2f 00 10 f0           mov    $0xf010002f,%eax
     jmp    *%eax
 f010002d:    ff e0                    jmp    *%eax
 </code></pre>
 <p>其实我们在阅读源代码的时候会注意到注释上给了一点问题</p>
 <blockquote>
-<pre class=" language-assembly"><code class="language-assembly"># Now paging is enabled, but we're still running at a low EIP
+<pre class=" language-lang-assembly"><code class="language-lang-assembly"># Now paging is enabled, but we're still running at a low EIP
 # (why is this okay?).  Jump up above KERNBASE before entering
 # C code.
 </code></pre>
@@ -619,7 +618,7 @@ f010002d:    ff e0                    jmp    *%eax
 <li>然后把<code>cr0</code>的<code>PG</code>位打开</li>
 <li>然后跳转到高地址！（变成<code>high EIP</code>）</li>
 </ol>
-<pre class=" language-assembly"><code class="language-assembly">    movl    $(RELOC(entry_pgdir)), %eax
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">    movl    $(RELOC(entry_pgdir)), %eax
     movl    %eax, %cr3
     # Turn on paging.
     movl    %cr0, %eax
@@ -634,7 +633,7 @@ f010002d:    ff e0                    jmp    *%eax
 </code></pre>
 <p>那么，我们就知道了如果没有映射成功的话，打开<code>cr0</code>的<code>PG</code>位之后的下两条指令就会出错，因为<code>relocated</code>是高地址，如果没有映射的话，跳转到那里就会报错！</p>
 <p>我们来测试一下，注释掉设置<code>cr0</code>的操作，可见那个地址的内存全是0，系统崩溃掉了！</p>
-<pre class=" language-assembly"><code class="language-assembly">(gdb) b *0x100025
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">(gdb) b *0x100025
 Breakpoint 1 at 0x100025
 (gdb) c
 Continuing.
@@ -651,67 +650,67 @@ relocated () at kern/entry.S:74
 74        movl    $0x0,%ebp            # nuke frame pointer
 (gdb) 
 Remote connection closed
-(gdb) 
+(gdb)
 </code></pre>
 <p>还有关于<code>entry_pgdir</code>这个东西的一些讨论，我们可以从<code>entrypgdir.c</code>里面看出来，<code>Jos</code>利用的是二级页表操作，也就是说，把逻辑地址分为页目录10位，页表号10位，页内偏移量12位这三个部分，而我们只需要映射两个部分的虚拟内存！所以页目录设置为下面这样！</p>
-<pre class=" language-c"><code class="language-c"><span class="token function">__attribute__</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token function">__aligned__</span><span class="token punctuation">(</span>PGSIZE<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-pde_t entry_pgdir<span class="token punctuation">[</span>NPDENTRIES<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// Map VA's [0, 4MB) to PA's [0, 4MB)</span>
-    <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
-        <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>uintptr_t<span class="token punctuation">)</span>entry_pgtable <span class="token operator">-</span> KERNBASE<span class="token punctuation">)</span> <span class="token operator">+</span> PTE_P<span class="token punctuation">,</span>
-    <span class="token comment" spellcheck="true">// Map VA's [KERNBASE, KERNBASE+4MB) to PA's [0, 4MB)</span>
-    <span class="token punctuation">[</span>KERNBASE<span class="token operator">>></span>PDXSHIFT<span class="token punctuation">]</span>
-        <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>uintptr_t<span class="token punctuation">)</span>entry_pgtable <span class="token operator">-</span> KERNBASE<span class="token punctuation">)</span> <span class="token operator">+</span> PTE_P <span class="token operator">+</span> PTE_W
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">__attribute__((__aligned__(PGSIZE)))
+pde_t entry_pgdir[NPDENTRIES] = {
+    // Map VA's [0, 4MB) to PA's [0, 4MB)
+    [0]
+        = ((uintptr_t)entry_pgtable - KERNBASE) + PTE_P,
+    // Map VA's [KERNBASE, KERNBASE+4MB) to PA's [0, 4MB)
+    [KERNBASE>>PDXSHIFT]
+        = ((uintptr_t)entry_pgtable - KERNBASE) + PTE_P + PTE_W
+};
 </code></pre>
 <p>页表在下面这样的格式。</p>
-<pre class=" language-c"><code class="language-c"><span class="token function">__attribute__</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token function">__aligned__</span><span class="token punctuation">(</span>PGSIZE<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-pte_t entry_pgtable<span class="token punctuation">[</span>NPTENTRIES<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
-    <span class="token number">0x000000</span> <span class="token operator">|</span> PTE_P <span class="token operator">|</span> PTE_W<span class="token punctuation">,</span>
-    <span class="token number">0x001000</span> <span class="token operator">|</span> PTE_P <span class="token operator">|</span> PTE_W<span class="token punctuation">,</span>
-    <span class="token number">0x002000</span> <span class="token operator">|</span> PTE_P <span class="token operator">|</span> PTE_W<span class="token punctuation">,</span>
-     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>   
-<span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">__attribute__((__aligned__(PGSIZE)))
+pte_t entry_pgtable[NPTENTRIES] = {
+    0x000000 | PTE_P | PTE_W,
+    0x001000 | PTE_P | PTE_W,
+    0x002000 | PTE_P | PTE_W,
+     ......   
+}
 </code></pre>
 <h4 id="3-2有关格式化输出"><a href="#3-2有关格式化输出" class="headerlink" title="3-2有关格式化输出"></a>3-2有关格式化输出</h4><p>我们在进行下几步之前，先阅读一下源代码。</p>
 <p>在阅读过程中有几个宏让我感到很疑惑，就是下面这几个，经过查阅引用[5]我得知这几个宏跟格式化输出函数的可变参数有关！</p>
-<pre class=" language-c"><code class="language-c"><span class="token macro property">#<span class="token directive keyword">define</span> va_start(ap, last) __builtin_va_start(ap, last)</span>
-<span class="token macro property">#<span class="token directive keyword">define</span> va_arg(ap, type) __builtin_va_arg(ap, type)</span>
-<span class="token macro property">#<span class="token directive keyword">define</span> va_end(ap) __builtin_va_end(ap)</span>
+<pre class=" language-lang-c"><code class="language-lang-c">#define va_start(ap, last) __builtin_va_start(ap, last)
+#define va_arg(ap, type) __builtin_va_arg(ap, type)
+#define va_end(ap) __builtin_va_end(ap)
 </code></pre>
 <p>我们需要修改的一个地方就是打印8进制数字，理解了代码之后不难写出这个</p>
-<pre class=" language-c"><code class="language-c">        <span class="token comment" spellcheck="true">// (unsigned) octal</span>
-        <span class="token keyword">case</span> <span class="token string">'o'</span><span class="token punctuation">:</span>
-            num <span class="token operator">=</span> <span class="token function">getuint</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>ap<span class="token punctuation">,</span>lflag<span class="token punctuation">)</span><span class="token punctuation">;</span>
-            base <span class="token operator">=</span> <span class="token number">8</span><span class="token punctuation">;</span>
-            <span class="token keyword">goto</span> number<span class="token punctuation">;</span>
-            <span class="token keyword">break</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">        // (unsigned) octal
+        case 'o':
+            num = getuint(&ap,lflag);
+            base = 8;
+            goto number;
+            break;
 </code></pre>
 <p>下面回答几个问题：</p>
 <ol>
 <li><p>问：Explain the interface between <code>printf.c</code> and <code>console.c</code>. Specifically, what function does <code>console.c</code> export? How is this function used by <code>printf.c</code>?</p>
 <p>答：<code>printf.c</code>里面的<code>putch</code>调用了<code>console.c</code>里面的<code>cputchar</code>函数，同时<code>vcprintf</code>调用了<code>putch</code>函数，<code>cprintf</code>调用了<code>vcprintf</code>函数</p>
 <p>总结下来调用关系就是：</p>
-<pre class=" language-c"><code class="language-c">cprintf<span class="token operator">-></span>vcprintf<span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-></span>putch<span class="token operator">-></span><span class="token function">cputchar</span><span class="token punctuation">(</span>consule<span class="token punctuation">.</span>c<span class="token punctuation">)</span>
-                  <span class="token operator">|</span>
-                  <span class="token operator">+</span><span class="token operator">--</span><span class="token operator">></span><span class="token function">vprintfmt</span><span class="token punctuation">(</span>ptintfmt<span class="token punctuation">.</span>c<span class="token punctuation">)</span>
+<pre class=" language-lang-c"><code class="language-lang-c">cprintf->vcprintf----->putch->cputchar(consule.c)
+                  |
+                  +-->vprintfmt(ptintfmt.c)
 </code></pre>
 </li>
 <li><p>问：explain the following from <code>console.c</code></p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// What is the purpose of this?</span>
-<span class="token keyword">if</span> <span class="token punctuation">(</span>crt_pos <span class="token operator">>=</span> CRT_SIZE<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">int</span> i<span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// What is the purpose of this?
+if (crt_pos >= CRT_SIZE) {
+    int i;
 
-    <span class="token function">memmove</span><span class="token punctuation">(</span>crt_buf<span class="token punctuation">,</span> crt_buf <span class="token operator">+</span> CRT_COLS<span class="token punctuation">,</span> <span class="token punctuation">(</span>CRT_SIZE <span class="token operator">-</span> CRT_COLS<span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>uint16_t<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">for</span> <span class="token punctuation">(</span>i <span class="token operator">=</span> CRT_SIZE <span class="token operator">-</span> CRT_COLS<span class="token punctuation">;</span> i <span class="token operator">&lt;</span> CRT_SIZE<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span>
-        crt_buf<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">0x0700</span> <span class="token operator">|</span> <span class="token string">' '</span><span class="token punctuation">;</span>
-    crt_pos <span class="token operator">-</span><span class="token operator">=</span> CRT_COLS<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+    memmove(crt_buf, crt_buf + CRT_COLS, (CRT_SIZE - CRT_COLS) * sizeof(uint16_t));
+    for (i = CRT_SIZE - CRT_COLS; i < CRT_SIZE; i++)
+        crt_buf[i] = 0x0700 | ' ';
+    crt_pos -= CRT_COLS;
+}
 </code></pre>
 <p>答：这段代码的目的是：当屏幕已经装满了字符，再次输入的时候，让屏幕向上回滚一行，也就是说把内存里面的内容向前移动80个字符的大小，然后最后一行用黑色填满</p>
 </li>
-<li><pre class=" language-c"><code class="language-c"><span class="token keyword">int</span> x <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">,</span> y <span class="token operator">=</span> <span class="token number">3</span><span class="token punctuation">,</span> z <span class="token operator">=</span> <span class="token number">4</span><span class="token punctuation">;</span>
-<span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"x %d, y %x, z %d\n"</span><span class="token punctuation">,</span> x<span class="token punctuation">,</span> y<span class="token punctuation">,</span> z<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<li><pre class=" language-lang-c"><code class="language-lang-c">int x = 1, y = 3, z = 4;
+cprintf("x %d, y %x, z %d\n", x, y, z);
 </code></pre>
 <p>问1：上面这段代码里，<code>fmt</code>指代什么？<code>ap</code>指代什么？</p>
 <p>答：<code>fmt</code>是字符串<code>"x %d, y %x, z %d\n"</code>的首地址，根据上面的解释<code>ap</code>是后面参数的首地址</p>
@@ -740,56 +739,56 @@ pte_t entry_pgtable<span class="token punctuation">[</span>NPTENTRIES<span class
 </ul>
 </li>
 <li><p>运行下面程序，看看运行结果</p>
-<pre class=" language-c"><code class="language-c">    <span class="token keyword">unsigned</span> <span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0x00646c72</span><span class="token punctuation">;</span>
-    <span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"H%x Wo%s"</span><span class="token punctuation">,</span> <span class="token number">57616</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token comment" spellcheck="true">//结果：</span>
-<span class="token comment" spellcheck="true">//He110 World</span>
+<pre class=" language-lang-c"><code class="language-lang-c">    unsigned int i = 0x00646c72;
+    cprintf("H%x Wo%s", 57616, &i);
+//结果：
+//He110 World
 </code></pre>
 <p>原因如下：10进制57616的16进制表示是E110，而<code>i</code>所在内存将被解读成一个字符串，根据小端法，依次输出0x72，0x6c，0x64表示<code>ASCII</code>码所表示的字符，分别是r，l，d这三个字符！</p>
 <p>综上，我们得到输出结果<code>He110 World</code></p>
 </li>
 <li><p>执行下面代码会把y输出成什么呢？</p>
-<pre class=" language-c"><code class="language-c"><span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"x=%d y=%d"</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">cprintf("x=%d y=%d", 3);
 </code></pre>
 <p>实际上输出参数3后面的内存地址所指向的4字节值（按照小端法读取）</p>
 <p>经过测试，实际上输出的是整数1600，具体的过程如何呢？</p>
 <p>在下面这段代码里面，我们发现在把3入栈之前，先把<code>esp</code>加8，那么我们可以知道，y所输出的值就是<code>esp</code>加8之后的所指向的内存，继续往回看，在调用<code>test_backtrace(5)</code>的时候，并没有把5压栈，而是直接把<code>esp</code>所指向的内存的值改成了5，所以我们需要继续向上找。可以看出<code>cprintf</code>有两个参数，所以<code>esp</code>加8应该跳到这两个参数之上的那个参数，我们发现在<code>0xf01000d4</code>这里还有一个给<code>esp</code>加8的操作，所以再回溯两个<code>push</code>操作，我们注意到这一行<code>f01000c6:    50                       push   %eax</code>，没错，这个<code>eax</code>就是显示出来的y的值！根据上面的<code>sub</code>指令，我们算出来<code>eax</code>的值就是十进制的1600！！！</p>
-<pre class=" language-c"><code class="language-c">f01000b8<span class="token punctuation">:</span>    c7 c2 <span class="token number">60</span> <span class="token number">30</span> <span class="token number">11</span> f0        mov    $<span class="token number">0xf0113060</span><span class="token punctuation">,</span><span class="token operator">%</span>edx
-f01000be<span class="token punctuation">:</span>    c7 c0 a0 <span class="token number">36</span> <span class="token number">11</span> f0        mov    $<span class="token number">0xf01136a0</span><span class="token punctuation">,</span><span class="token operator">%</span>eax
-f01000c4<span class="token punctuation">:</span>    <span class="token number">29</span> d0                    sub    <span class="token operator">%</span>edx<span class="token punctuation">,</span><span class="token operator">%</span>eax
-f01000c6<span class="token punctuation">:</span>    <span class="token number">50</span>                       push   <span class="token operator">%</span>eax
-f01000c7<span class="token punctuation">:</span>    6a <span class="token number">00</span>                    push   $<span class="token number">0x0</span>
-f01000c9<span class="token punctuation">:</span>    <span class="token number">52</span>                       push   <span class="token operator">%</span>edx
-f01000ca<span class="token punctuation">:</span>    e8 <span class="token number">20</span> <span class="token number">15</span> <span class="token number">00</span> <span class="token number">00</span>           call   f01015ef <span class="token operator">&lt;</span>memset<span class="token operator">></span>
+<pre class=" language-lang-c"><code class="language-lang-c">f01000b8:    c7 c2 60 30 11 f0        mov    $0xf0113060,%edx
+f01000be:    c7 c0 a0 36 11 f0        mov    $0xf01136a0,%eax
+f01000c4:    29 d0                    sub    %edx,%eax
+f01000c6:    50                       push   %eax
+f01000c7:    6a 00                    push   $0x0
+f01000c9:    52                       push   %edx
+f01000ca:    e8 20 15 00 00           call   f01015ef <memset>
 
-    <span class="token comment" spellcheck="true">// Initialize the console.</span>
-    <span class="token comment" spellcheck="true">// Can't call cprintf until after we do this!</span>
-    <span class="token function">cons_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-f01000cf<span class="token punctuation">:</span>    e8 4e <span class="token number">05</span> <span class="token number">00</span> <span class="token number">00</span>           call   f0100622 <span class="token operator">&lt;</span>cons_init<span class="token operator">></span>
+    // Initialize the console.
+    // Can't call cprintf until after we do this!
+    cons_init();
+f01000cf:    e8 4e 05 00 00           call   f0100622 <cons_init>
 
-    <span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"6828 decimal is %o octal!\n"</span><span class="token punctuation">,</span> <span class="token number">6828</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-f01000d4<span class="token punctuation">:</span>    <span class="token number">83</span> c4 <span class="token number">08</span>                 add    $<span class="token number">0x8</span><span class="token punctuation">,</span><span class="token operator">%</span>esp
-f01000d7<span class="token punctuation">:</span>    <span class="token number">68</span> ac 1a <span class="token number">00</span> <span class="token number">00</span>           push   $<span class="token number">0x1aac</span>
-f01000dc<span class="token punctuation">:</span>    8d <span class="token number">83</span> <span class="token number">6f</span> <span class="token number">07</span> ff ff        lea    <span class="token operator">-</span><span class="token function">0xf891</span><span class="token punctuation">(</span><span class="token operator">%</span>ebx<span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token operator">%</span>eax
-f01000e2<span class="token punctuation">:</span>    <span class="token number">50</span>                       push   <span class="token operator">%</span>eax
-f01000e3<span class="token punctuation">:</span>    e8 <span class="token number">72</span> <span class="token number">09</span> <span class="token number">00</span> <span class="token number">00</span>           call   f0100a5a <span class="token operator">&lt;</span>cprintf<span class="token operator">></span>
+    cprintf("6828 decimal is %o octal!\n", 6828);
+f01000d4:    83 c4 08                 add    $0x8,%esp
+f01000d7:    68 ac 1a 00 00           push   $0x1aac
+f01000dc:    8d 83 6f 07 ff ff        lea    -0xf891(%ebx),%eax
+f01000e2:    50                       push   %eax
+f01000e3:    e8 72 09 00 00           call   f0100a5a <cprintf>
 
-    <span class="token comment" spellcheck="true">// Test the stack backtrace function (lab 1 only)</span>
-    <span class="token function">test_backtrace</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-f01000e8<span class="token punctuation">:</span>    c7 <span class="token number">04</span> <span class="token number">24</span> <span class="token number">05</span> <span class="token number">00</span> <span class="token number">00</span> <span class="token number">00</span>     movl   $<span class="token number">0x5</span><span class="token punctuation">,</span><span class="token punctuation">(</span><span class="token operator">%</span>esp<span class="token punctuation">)</span>
-f01000ef<span class="token punctuation">:</span>    e8 4c ff ff ff           call   f0100040 <span class="token operator">&lt;</span>test_backtrace<span class="token operator">></span>
-    <span class="token comment" spellcheck="true">//int x = 1, y = 3, z = 4;</span>
-    <span class="token comment" spellcheck="true">//cprintf("x %d, y %x, z %d\n", x, y, z);</span>
-    <span class="token comment" spellcheck="true">//unsigned int i = 0x00646c72;</span>
-    <span class="token comment" spellcheck="true">//cprintf("H%x Wo%s", 57616, &amp;i);</span>
-    <span class="token comment" spellcheck="true">//Sasm("pushl $200");</span>
-    <span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"x=%d y=%d\n"</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-f01000f4<span class="token punctuation">:</span>    <span class="token number">83</span> c4 <span class="token number">08</span>                 add    $<span class="token number">0x8</span><span class="token punctuation">,</span><span class="token operator">%</span>esp
-f01000f7<span class="token punctuation">:</span>    6a <span class="token number">03</span>                    push   $<span class="token number">0x3</span>
-f01000f9<span class="token punctuation">:</span>    8d <span class="token number">83</span> 8a <span class="token number">07</span> ff ff        lea    <span class="token operator">-</span><span class="token function">0xf876</span><span class="token punctuation">(</span><span class="token operator">%</span>ebx<span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token operator">%</span>eax
-f01000ff<span class="token punctuation">:</span>    <span class="token number">50</span>                       push   <span class="token operator">%</span>eax
-f0100100<span class="token punctuation">:</span>    e8 <span class="token number">55</span> <span class="token number">09</span> <span class="token number">00</span> <span class="token number">00</span>           call   f0100a5a <span class="token operator">&lt;</span>cprintf<span class="token operator">></span>
-f0100105<span class="token punctuation">:</span>    <span class="token number">83</span> c4 <span class="token number">10</span>                 add    $<span class="token number">0x10</span><span class="token punctuation">,</span><span class="token operator">%</span>esp
+    // Test the stack backtrace function (lab 1 only)
+    test_backtrace(5);
+f01000e8:    c7 04 24 05 00 00 00     movl   $0x5,(%esp)
+f01000ef:    e8 4c ff ff ff           call   f0100040 <test_backtrace>
+    //int x = 1, y = 3, z = 4;
+    //cprintf("x %d, y %x, z %d\n", x, y, z);
+    //unsigned int i = 0x00646c72;
+    //cprintf("H%x Wo%s", 57616, &i);
+    //Sasm("pushl $200");
+    cprintf("x=%d y=%d\n", 3);
+f01000f4:    83 c4 08                 add    $0x8,%esp
+f01000f7:    6a 03                    push   $0x3
+f01000f9:    8d 83 8a 07 ff ff        lea    -0xf876(%ebx),%eax
+f01000ff:    50                       push   %eax
+f0100100:    e8 55 09 00 00           call   f0100a5a <cprintf>
+f0100105:    83 c4 10                 add    $0x10,%esp
 </code></pre>
 </li>
 <li><p>问：Let’s say that GCC changed its calling convention so that it pushed arguments on the stack in declaration order, so that the last argument is pushed last. How would you have to change <code>cprintf</code> or its interface so that it would still be possible to pass it a variable number of arguments?</p>
@@ -797,7 +796,7 @@ f0100105<span class="token punctuation">:</span>    <span class="token number">8
 </li>
 </ol>
 <h4 id="3-3有关内核栈"><a href="#3-3有关内核栈" class="headerlink" title="3-3有关内核栈"></a>3-3有关内核栈</h4><h5 id="练习九"><a href="#练习九" class="headerlink" title="练习九"></a>练习九</h5><p>内核是如何初始化栈的？我们结合下面的代码来看，首先把栈顶指针的内容赋值给<code>esp</code>，然后看下面，<code>bootstack</code>给分配了<code>KSTKSIZE</code>的内存空间，也就是8个页的大小。然后栈顶的值是分配的内存空间结束的地址，是高地址！</p>
-<pre class=" language-assembly"><code class="language-assembly">    # Set the stack pointer
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">    # Set the stack pointer
     movl    $(bootstacktop),%esp
 
 .data
@@ -822,39 +821,39 @@ bootstacktop:
 <li>递归调用</li>
 </ol>
 <p>后面是写代码的题目，懒得写了，先把代码贴上，后期再解释…</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">int</span>
-<span class="token function">mon_backtrace</span><span class="token punctuation">(</span><span class="token keyword">int</span> argc<span class="token punctuation">,</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token operator">*</span>argv<span class="token punctuation">,</span> <span class="token keyword">struct</span> Trapframe <span class="token operator">*</span>tf<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// Your code here.</span>
-    uint32_t ebp<span class="token punctuation">,</span> old_ebp<span class="token punctuation">,</span> eip<span class="token punctuation">;</span>
-    uint32_t args<span class="token punctuation">[</span><span class="token number">5</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token number">0</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
-    ebp <span class="token operator">=</span> <span class="token function">read_ebp</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">//ebp = *((uint32_t*)ebp);</span>
-    <span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"Stack backtrace:\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">while</span><span class="token punctuation">(</span>ebp <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        old_ebp <span class="token operator">=</span> <span class="token operator">*</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token operator">*</span><span class="token punctuation">)</span>ebp<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        eip <span class="token operator">=</span> <span class="token operator">*</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token operator">*</span><span class="token punctuation">)</span><span class="token punctuation">(</span>ebp <span class="token operator">+</span> <span class="token number">4</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">5</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-            args<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token operator">*</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token operator">*</span><span class="token punctuation">)</span><span class="token punctuation">(</span>ebp <span class="token operator">+</span> <span class="token number">8</span> <span class="token operator">+</span> <span class="token number">4</span> <span class="token operator">*</span> i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-        <span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"  ebp %x  eip %x  args %08x %08x %08x %08x %08x\n"</span><span class="token punctuation">,</span> 
-            ebp<span class="token punctuation">,</span> eip<span class="token punctuation">,</span> args<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> args<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span> args<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">,</span> args<span class="token punctuation">[</span><span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">,</span> args<span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">struct</span> Eipdebuginfo info<span class="token punctuation">;</span>
-        <span class="token function">debuginfo_eip</span><span class="token punctuation">(</span>eip<span class="token punctuation">,</span> <span class="token operator">&amp;</span>info<span class="token punctuation">)</span><span class="token punctuation">;</span>
-                <span class="token keyword">char</span> fn_name<span class="token punctuation">[</span><span class="token number">20</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-        <span class="token function">strncpy</span><span class="token punctuation">(</span>fn_name<span class="token punctuation">,</span> info<span class="token punctuation">.</span>eip_fn_name<span class="token punctuation">,</span> info<span class="token punctuation">.</span>eip_fn_namelen<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        fn_name<span class="token punctuation">[</span>info<span class="token punctuation">.</span>eip_fn_namelen<span class="token punctuation">]</span><span class="token operator">=</span><span class="token string">'\0'</span><span class="token punctuation">;</span>
-        <span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"         %s:%d: %s+%d\n"</span><span class="token punctuation">,</span> 
-            info<span class="token punctuation">.</span>eip_file<span class="token punctuation">,</span> 
-            info<span class="token punctuation">.</span>eip_line<span class="token punctuation">,</span> 
-            fn_name<span class="token punctuation">,</span>
-            <span class="token comment" spellcheck="true">//info.eip_fn_name, </span>
-            eip <span class="token operator">-</span> info<span class="token punctuation">.</span>eip_fn_addr<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        ebp <span class="token operator">=</span> old_ebp<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">int
+mon_backtrace(int argc, char **argv, struct Trapframe *tf)
+{
+    // Your code here.
+    uint32_t ebp, old_ebp, eip;
+    uint32_t args[5] = {0};
+    ebp = read_ebp();
+    //ebp = *((uint32_t*)ebp);
+    cprintf("Stack backtrace:\n");
+    while(ebp != 0){
+        old_ebp = *((uint32_t*)ebp);
+        eip = *((uint32_t*)(ebp + 4));
+        for(int i = 0; i < 5; i++){
+            args[i] = *((uint32_t*)(ebp + 8 + 4 * i));
+        }
+        cprintf("  ebp %x  eip %x  args %08x %08x %08x %08x %08x\n", 
+            ebp, eip, args[0], args[1], args[2], args[3], args[4]);
+        struct Eipdebuginfo info;
+        debuginfo_eip(eip, &info);
+                char fn_name[20];
+        strncpy(fn_name, info.eip_fn_name, info.eip_fn_namelen);
+        fn_name[info.eip_fn_namelen]='\0';
+        cprintf("         %s:%d: %s+%d\n", 
+            info.eip_file, 
+            info.eip_line, 
+            fn_name,
+            //info.eip_fn_name, 
+            eip - info.eip_fn_addr);
+        ebp = old_ebp;
+    }
 
-    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+    return 0;
+}
 </code></pre>
 <h5 id="练习十二"><a href="#练习十二" class="headerlink" title="练习十二"></a>练习十二</h5><p>先看一下<code>kern/kernel.ld</code>，可以知道<code>__STAB_BEGIN__</code>和<code>__STAB_END__</code>，<code>__STABSTR_BEGIN__</code>和<code>__STABSTR_END__</code>这四个变量是内存中他们的地址（指针）！</p>
 <p>然后<code>objdump -h</code>查看<code>kernel</code>的节头表，发现有如下内容，所以<code>__STAB_BEGIN__</code>的值应该是<code>0xf01022bc</code>，<code>__STAB_END__</code>的值应该是<code>0xf0106090</code>（另外两个以此类推）</p>
@@ -863,8 +862,7 @@ bootstacktop:
 <p><img src="/picture/6.828-1-2.png" alt="检查stabstr段所在内存"></p>
 <p>下面看一下符号段是什么样的，从下面看出，符号段每个表项包含下面的成员，下面是对各个成员的解释：</p>
 <pre><code>Symnum n_type n_othr n_desc n_value  n_strx String
-</code></pre>
-<ul>
+</code></pre><ul>
 <li><code>Symnum</code>是符号索引，换句话说，整个符号表看作一个数组，<code>Symnum</code>是当前符号在数组中的下标</li>
 <li><code>n_type</code>是符号类型，<code>FUN</code>指函数名，<code>SLINE</code>指在<code>text</code>段中的行号</li>
 <li><code>n_othr</code>目前没被使用，其值固定为0</li>
@@ -872,18 +870,18 @@ bootstacktop:
 <li><code>n_value</code>表示地址。特别要注意的是，这里只有<code>FUN</code>类型的符号的地址是绝对地址，<code>SLINE</code>符号的地址是偏移量，其实际地址为函数入口地址加上偏移量。</li>
 </ul>
 <p>注意，下面这句两个指针相减得到的是数组的下标！</p>
-<pre class=" language-c"><code class="language-c">rfile <span class="token operator">=</span> <span class="token punctuation">(</span>stab_end <span class="token operator">-</span> stabs<span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">rfile = (stab_end - stabs) - 1;
 </code></pre>
 <p>所以二分搜索利用下标对地址进行搜索！</p>
 <p>我们先搜索到相应的源文件，然后对函数进行搜索，所以如下代码用来搜索行号</p>
-<pre class=" language-c"><code class="language-c"><span class="token function">stab_binsearch</span><span class="token punctuation">(</span>stabs<span class="token punctuation">,</span> <span class="token operator">&amp;</span>lline<span class="token punctuation">,</span> <span class="token operator">&amp;</span>rline<span class="token punctuation">,</span> N_SLINE<span class="token punctuation">,</span> addr<span class="token operator">-</span>info<span class="token operator">-></span>eip_fn_addr<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>lline <span class="token operator">></span> rline<span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">else</span><span class="token punctuation">{</span>
-        info<span class="token operator">-></span>eip_line <span class="token operator">=</span> stabs<span class="token punctuation">[</span>lline<span class="token punctuation">]</span><span class="token punctuation">.</span>n_desc<span class="token punctuation">;</span>
-        
-    <span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">stab_binsearch(stabs, &lline, &rline, N_SLINE, addr-info->eip_fn_addr);
+    if(lline > rline){
+        return -1;
+    }
+    else{
+        info->eip_line = stabs[lline].n_desc;
+
+    }
 </code></pre>
 <h2 id="三-reference"><a href="#三-reference" class="headerlink" title="三.reference"></a>三.reference</h2><p>1.<a target="_blank" rel="noopener" href="https://www.cnblogs.com/wuhualong/p/lab01_exercise02_trace_into_bios.html">《MIT 6.828 Lab 1 Exercise 2》实验报告 - whl1729 - 博客园 (cnblogs.com)</a></p>
 <p>2.<a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/xv6/book-rev11.pdf">xv6 - DRAFT as of September 4, 2018 (mit.edu)</a></p>

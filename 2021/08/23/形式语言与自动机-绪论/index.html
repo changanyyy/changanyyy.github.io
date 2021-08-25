@@ -337,40 +337,7 @@
 <li>计算复杂性（Complexity Theory）</li>
 </ul>
 <h2 id="自动机理论模型"><a href="#自动机理论模型" class="headerlink" title="自动机理论模型"></a>自动机理论模型</h2><ul>
-<li><table>
-<thead>
-<tr>
-<th>英文名</th>
-<th>中文名</th>
-<th>语言</th>
-<th>几型</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>FA(Finite Automaton)</td>
-<td>有穷自动机</td>
-<td>正则语言（RL）</td>
-<td>3型</td>
-</tr>
-<tr>
-<td>PDA(Push Down Automaton)</td>
-<td>下推自动机</td>
-<td>前后文无关语言(CFL)</td>
-<td>2型</td>
-</tr>
-<tr>
-<td>LBA(linear bounded automaton)</td>
-<td>线性有界自动机</td>
-<td>前后文有关语言（CSL）</td>
-<td>1型</td>
-</tr>
-<tr>
-<td>TM(Turing Machine)</td>
-<td>图灵机</td>
-<td>递归可枚举语言</td>
-<td>0型</td>
-</tr>
-</tbody></table>
+<li><p>| 英文名                        | 中文名         | 语言                  | 几型 |<br>| ——————————————- | ——————— | ——————————- | —— |<br>| FA(Finite Automaton)          | 有穷自动机     | 正则语言（RL）        | 3型  |<br>| PDA(Push Down Automaton)      | 下推自动机     | 前后文无关语言(CFL)   | 2型  |<br>| LBA(linear bounded automaton) | 线性有界自动机 | 前后文有关语言（CSL） | 1型  |<br>| TM(Turing Machine)            | 图灵机         | 递归可枚举语言        | 0型  |</p>
 <p>FA (finite automata):有穷自动机，正则语言，3种语言</p>
 </li>
 </ul>
@@ -384,7 +351,7 @@
 <p>定义2. 字符串：从某个字母表中选择的符号的有穷序列。例如: 100110是从字母表<code>Σ={0,1}</code>中选出的字符串。空串为<code>ε</code>。</p>
 <p>定义3. 串的长度：串中符号的位数。串<code>ω</code>的长度是<code>|ω|</code>。例如：<code>|010|=3</code>，<code>|ε|=0</code>。</p>
 <p>定义4. 字母表的幂：如果<code>Σ</code>是一个字母表，则用指数记号来表示这个字母表某个长度的所有串的集合，即Σ^k^​。</p>
-<p>定义5. 克林闭包（Kleene Closure）：$Σ^*= \cup_{i=0}^\infty Σ^i$ ，约定 $\Sigma^0={\epsilon}$, $\Sigma^*=\Sigma^0\cup\Sigma^1\cup\Sigma^2\cup…$，即字母表$\Sigma$上所有串的集合。</p>
+<p>定义5. 克林闭包（Kleene Closure）：$Σ^<em>= \cup_{i=0}^\infty Σ^i$ ，约定 $\Sigma^0={\epsilon}$, $\Sigma^</em>=\Sigma^0\cup\Sigma^1\cup\Sigma^2\cup…$，即字母表$\Sigma$上所有串的集合。</p>
 <p>定义6. 正闭包（Postive Closure）：$\Sigma^+=\cup_{i=1}^\infty\Sigma^i$，显然$\Sigma^*=\Sigma^0\cup\Sigma^+$。</p>
 <p>定义7. 语言：如果$\Sigma$是一个字母表，$L\subset\Sigma^*$，那么L是$\Sigma$上的语言。（语言就是字符串的集合。）例如<code>L={x| x is a bit string with two zeros}</code></p>
 <p>注意：<strong>语言的连接不等于笛卡尔积</strong>，语言的连接是一维的，笛卡尔积是二维的</p>

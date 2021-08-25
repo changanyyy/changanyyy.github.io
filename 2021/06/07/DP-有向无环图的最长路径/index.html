@@ -344,15 +344,14 @@
 3 1 4
 4 5 1
 输出：
-6 12 2 13 14 
-</code></pre>
-<h2 id="思路解析"><a href="#思路解析" class="headerlink" title="思路解析"></a>思路解析</h2><p>首先，看到复杂度是线性时间复杂度，我们想到不太可能用类似<code>Dijkstra</code>，<code>Prime</code>之类的算法，大概是用一个<code>DFS</code>或者<code>BFS</code>框架来完成。</p>
+6 12 2 13 14
+</code></pre><h2 id="思路解析"><a href="#思路解析" class="headerlink" title="思路解析"></a>思路解析</h2><p>首先，看到复杂度是线性时间复杂度，我们想到不太可能用类似<code>Dijkstra</code>，<code>Prime</code>之类的算法，大概是用一个<code>DFS</code>或者<code>BFS</code>框架来完成。</p>
 <p>对于有向无环图，我们会敏锐地发觉它的一些特性：从0经过某些顶点之前，路径上必然会经过另一些顶点！！！如果我们在处理顶点A之前，对它之前的所有顶点的路径进行处理的话，我们就可以依托之前的路径来对顶点A进行处理。这句话怎么听起来这么耳熟？没错，这似乎就是动态规划的具体做法！</p>
 <p>众所周知，动态规划的思路就是<strong>利用前面已经求出的子问题来解决其他的子问题</strong>。我们通过前面经过的顶点来求后面的顶点，与这个思想相符。那么我们怎么判断谁在前谁在后呢？联系算法需要的线性复杂度，我们联想到<code>Topo</code>排序，对顶点进行拓扑序小的在前面，拓扑序大的在后面。那么基本的思路逐渐清晰了。</p>
 <p>先利用拓扑排序对顶点进行排序，这样我在遍历某一个顶点A的时候，从0到A的路径上的所有顶点必然已经被遍历过！那么我们如何找到他前面的顶点呢？做法有两种，第一种是建立一个逆邻接表，这样就可以找到哪一个路径通向点A；第二种做法是在遍历A前面节点X的时候，直接对X的邻居进行处理，这样在遍历到A的时候，A已经被处理完了，A的任务就只变成了对A的邻居进行处理。这两种做法本质上是一样的，但是鉴于省下更多的时间和空间，我采用了第二种方法！</p>
 <p>复杂度分析：<code>topo</code>排序是线性复杂度，后面的<code>DP</code>也是线性复杂度</p>
 <h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><p>下面我们就可以进行Coding了！代码如下：</p>
-<pre class=" language-c++"><code class="language-c++">#define _CRT_SECURE_NO_WARNINGS
+<pre class=" language-lang-c++"><code class="language-lang-c++">#define _CRT_SECURE_NO_WARNINGS
 #include<iostream>
 #include<vector>
 #include<stack>
@@ -370,7 +369,7 @@ vector<bool> visit;
 stack<int> topo;
 //存储答案
 vector<int> res;
- 
+
 void dfs(int v) {
     visit[v] = true;
     for (int i = 0; i < table[v].size(); i++) {
@@ -378,7 +377,7 @@ void dfs(int v) {
     }
     topo.push(v);//在处理过v后面所有的节点之后，v的节点topo序要小于它后面的所有节点
 }
- 
+
 int main() {
     int n;
     scanf("%d", &n);
@@ -390,9 +389,9 @@ int main() {
     while (scanf("%d %d %d",&v1,&v2,&w)!=-1) {
         table[v1].push_back(node(v2, w));
     }
- 
+
     dfs(0);//topo排序
- 
+
     while (!topo.empty()) {
         int cur = topo.top();
         topo.pop();
@@ -403,7 +402,7 @@ int main() {
     for (int i = 1; i < n; i++) {
         printf("%d ", res[i]);
     }
- 
+
     return 0;
 }
 </code></pre>

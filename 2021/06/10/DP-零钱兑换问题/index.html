@@ -339,12 +339,11 @@
 <h3 id="测试样例"><a href="#测试样例" class="headerlink" title="测试样例"></a>测试样例</h3><pre><code>输入：coins = [1, 2, 5], amount = 11
 输出：3 
 解释：11 = 5 + 5 + 1
-</code></pre>
-<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>我们先从暴力方法入手，我们只需要<code>DFS</code>遍历所有可能的组合数量就可以从中找到一个最优解，但是这样暴力枚举的复杂度相当大，我们需要想一个更加优秀的算法。这种问题我们还是用递归更加恰当，试想我们想知道金额x最少需要多少，那么我只需要知道金额<code>x-coin_i(i&gt;=0 &amp;&amp; i&lt;size)</code>最少需要多少枚硬币，然后找到它们最小那个加一就行了，这样利用了动态规划的思想，站在前人的成果之上来解题，就方便了很多，所以我们只需要从1开始计算到amount分别最少需要多少钱就可以了</p>
+</code></pre><h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>我们先从暴力方法入手，我们只需要<code>DFS</code>遍历所有可能的组合数量就可以从中找到一个最优解，但是这样暴力枚举的复杂度相当大，我们需要想一个更加优秀的算法。这种问题我们还是用递归更加恰当，试想我们想知道金额x最少需要多少，那么我只需要知道金额<code>x-coin_i(i&gt;=0 &amp;&amp; i&lt;size)</code>最少需要多少枚硬币，然后找到它们最小那个加一就行了，这样利用了动态规划的思想，站在前人的成果之上来解题，就方便了很多，所以我们只需要从1开始计算到amount分别最少需要多少钱就可以了</p>
 <p>状态转移方程：<code>dp[i]=min(dp[i-coin_j]+1) (j&gt;=0 &amp;&amp; j&lt;coins.size)</code></p>
 <h3 id="复杂度分析"><a href="#复杂度分析" class="headerlink" title="复杂度分析"></a>复杂度分析</h3><p>时间复杂度<code>O(amount * size)</code></p>
 <p>空间复杂度<code>O(amount)</code></p>
-<h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><pre class=" language-c++"><code class="language-c++">class Solution {
+<h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><pre class=" language-lang-c++"><code class="language-lang-c++">class Solution {
 public:
     int coinChange(vector<int>& coins, int amount) {
         vector<int> dp(amount+1,INT_MAX-1);
@@ -356,7 +355,7 @@ public:
                 }
             }
         }
-        
+
         return dp[amount]<INT_MAX-1?dp[amount]:-1;
     }
 };
@@ -369,14 +368,13 @@ public:
 5=2+2+1
 5=2+1+1+1
 5=1+1+1+1+1
-</code></pre>
-<h3 id="思路-1"><a href="#思路-1" class="headerlink" title="思路"></a>思路</h3><p>这道题跟</p>
+</code></pre><h3 id="思路-1"><a href="#思路-1" class="headerlink" title="思路"></a>思路</h3><p>这道题跟</p>
 <p>类似，但是他们要求解的东西不一样，那道题要求凑成总金额需要最少的硬币数，这道题要求有多少种可以凑成总金额的组合</p>
 <p>对于某一个金额x，我们可以查看<code>x-coin_i</code>的组合数，加到一起即可，等等…我是不是忘了什么，这样很可能出现重复的组合，比如说<code>amount=5</code>，<code>coins=[1,2,5]</code>，那么1+2可以组合成3，那么3+2可以组合成5；2+2可以组合成4，那么4+1可以组合成5，所以<code>1+2+2=5</code>这个组合至少用了两次！！！所以这种做法需要被<code>pass</code>掉！！！</p>
 <p>那么正确的做法应该是什么呢？我们可以在外层对硬币金额进行遍历，内层更新每一个金额。这样每层循环解释起来就是，我用前k种硬币，凑成每一种金额有多少组合。那么我进行每一次遍历的时候，我之前积累起来的是用前k种硬币有多少种，那么加上第k+1种硬币能够有多少种。</p>
 <h3 id="复杂度分析-1"><a href="#复杂度分析-1" class="headerlink" title="复杂度分析"></a>复杂度分析</h3><p>时间复杂度<code>O(amount * size)</code></p>
 <p>空间复杂度<code>O(amount)</code></p>
-<h3 id="代码-1"><a href="#代码-1" class="headerlink" title="代码"></a>代码</h3><pre class=" language-c++"><code class="language-c++">class Solution {
+<h3 id="代码-1"><a href="#代码-1" class="headerlink" title="代码"></a>代码</h3><pre class=" language-lang-c++"><code class="language-lang-c++">class Solution {
 public:
     int change(int amount, vector<int>& coins) {
         vector<int> dp(amount+1,0);

@@ -309,14 +309,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    5.8k
+                    4.3k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    36 分
+                    27 分
                 </div>
                 
 
@@ -339,27 +339,27 @@
 <p>In <code>inc/env.h</code>, we can see some basic structures sustaining the abstraction of environments switching:</p>
 <ol>
 <li><p>we define a new variable type <code>envid_t</code>.</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">typedef</span> int32_t envid_t<span class="token punctuation">;</span>
-<span class="token comment" spellcheck="true">// An environment ID 'envid_t' has three parts:</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// +1+---------------21-----------------+--------10--------+</span>
-<span class="token comment" spellcheck="true">// |0|          Uniqueifier             |   Environment    |</span>
-<span class="token comment" spellcheck="true">// | |                                  |      Index       |</span>
-<span class="token comment" spellcheck="true">// +------------------------------------+------------------+</span>
-<span class="token comment" spellcheck="true">//                                       \--- ENVX(eid) --/</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// The environment index ENVX(eid) equals the environment's index in the</span>
-<span class="token comment" spellcheck="true">// 'envs[]' array.  The uniqueifier distinguishes environments that were</span>
-<span class="token comment" spellcheck="true">// created at different times, but share the same environment index.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// All real environments are greater than 0 (so the sign bit is zero).</span>
-<span class="token comment" spellcheck="true">// envid_ts less than 0 signify errors.  The envid_t == 0 is special, and</span>
-<span class="token comment" spellcheck="true">// stands for the current environment.</span>
+<pre class=" language-lang-c"><code class="language-lang-c">typedef int32_t envid_t;
+// An environment ID 'envid_t' has three parts:
+//
+// +1+---------------21-----------------+--------10--------+
+// |0|          Uniqueifier             |   Environment    |
+// | |                                  |      Index       |
+// +------------------------------------+------------------+
+//                                       \--- ENVX(eid) --/
+//
+// The environment index ENVX(eid) equals the environment's index in the
+// 'envs[]' array.  The uniqueifier distinguishes environments that were
+// created at different times, but share the same environment index.
+//
+// All real environments are greater than 0 (so the sign bit is zero).
+// envid_ts less than 0 signify errors.  The envid_t == 0 is special, and
+// stands for the current environment.
 </code></pre>
 </li>
 <li><p>And we define the maximal number of environments that concurrently run.</p>
-<pre class=" language-c"><code class="language-c"><span class="token macro property">#<span class="token directive keyword">define</span> LOG2NENV        10</span>
-<span class="token macro property">#<span class="token directive keyword">define</span> NENV            (1 &lt;&lt; LOG2NENV)</span>
+<pre class=" language-lang-c"><code class="language-lang-c">#define LOG2NENV        10
+#define NENV            (1 << LOG2NENV)
 </code></pre>
 <p>As seen above, <code>NENV</code> is <code>1024 (2^10)</code>.</p>
 <p>Additionally, we define a macro <code>#define ENVX(envid)        ((envid) &amp; (NENV - 1))</code>, the macro extract the <strong>INDEX</strong> portion of environment ID.</p>
@@ -372,41 +372,41 @@
 <li><code>ENV_RUNNING</code>: It is the current environment.</li>
 <li><code>ENV_NOT_RUNNABLE</code>: It is in blocked status, so it can’t be scheduled.</li>
 </ul>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Values of env_status in struct Env</span>
-<span class="token keyword">enum</span> <span class="token punctuation">{</span>
-    ENV_FREE <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span>
-    ENV_DYING<span class="token punctuation">,</span>
-    ENV_RUNNABLE<span class="token punctuation">,</span>
-    ENV_RUNNING<span class="token punctuation">,</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// Values of env_status in struct Env
+enum {
+    ENV_FREE = 0,
+    ENV_DYING,
+    ENV_RUNNABLE,
+    ENV_RUNNING,
     ENV_NOT_RUNNABLE
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+};
 </code></pre>
 </li>
 <li><p>The enumeration <code>EnvType</code> represents the <code>env_type</code> member. This is used to distinguish special environments. For most environments,it is <code>ENV_TYPE_USER</code>. But more types in later labs.</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Special environment types</span>
-<span class="token keyword">enum</span> EnvType <span class="token punctuation">{</span>
-    ENV_TYPE_USER <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// Special environment types
+enum EnvType {
+    ENV_TYPE_USER = 0,
+};
 </code></pre>
 </li>
 <li><p>The most important structure is coming! <code>Env</code> plays a role as <strong>Process Control Block</strong>. </p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">struct</span> Env <span class="token punctuation">{</span>
-    <span class="token keyword">struct</span> Trapframe env_tf<span class="token punctuation">;</span>    <span class="token comment" spellcheck="true">// Saved registers</span>
-    <span class="token keyword">struct</span> Env <span class="token operator">*</span>env_link<span class="token punctuation">;</span>        <span class="token comment" spellcheck="true">// Next free Env</span>
-    envid_t env_id<span class="token punctuation">;</span>            <span class="token comment" spellcheck="true">// Unique environment identifier</span>
-    envid_t env_parent_id<span class="token punctuation">;</span>        <span class="token comment" spellcheck="true">// env_id of this env's parent</span>
-    <span class="token keyword">enum</span> EnvType env_type<span class="token punctuation">;</span>        <span class="token comment" spellcheck="true">// Indicates special system environments</span>
-    <span class="token keyword">unsigned</span> env_status<span class="token punctuation">;</span>        <span class="token comment" spellcheck="true">// Status of the environment</span>
-    uint32_t env_runs<span class="token punctuation">;</span>        <span class="token comment" spellcheck="true">// Number of times environment has run</span>
+<pre class=" language-lang-c"><code class="language-lang-c">struct Env {
+    struct Trapframe env_tf;    // Saved registers
+    struct Env *env_link;        // Next free Env
+    envid_t env_id;            // Unique environment identifier
+    envid_t env_parent_id;        // env_id of this env's parent
+    enum EnvType env_type;        // Indicates special system environments
+    unsigned env_status;        // Status of the environment
+    uint32_t env_runs;        // Number of times environment has run
 
-    <span class="token comment" spellcheck="true">// Address space</span>
-    pde_t <span class="token operator">*</span>env_pgdir<span class="token punctuation">;</span>        <span class="token comment" spellcheck="true">// Kernel virtual address of page dir</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+    // Address space
+    pde_t *env_pgdir;        // Kernel virtual address of page dir
+};
 </code></pre>
 <p>The structure has a couple of fields as above:</p>
 <ol>
 <li><p>The first member is a structure named <code>Trapframe</code>. It holds the saved register values for the environment while it is not running.</p>
-<p><img src="/picture/trapframe.png"></p>
+<p><img src="/picture/trapframe.png" alt=""></p>
 </li>
 <li><p>The second is a pointer pointing to next free environment in the free environment list that we are going to use to allocate a new environment structure variable.</p>
 </li>
@@ -422,9 +422,9 @@
 </li>
 </ol>
 <p>Above, I introduced some basic structure. But how to transform them into entities? Let’s look at the source file <code>kern/env.c</code>. There are three entities that are reflected in the eyes.</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">struct</span> Env <span class="token operator">*</span>envs <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>        <span class="token comment" spellcheck="true">// All environments</span>
-<span class="token keyword">struct</span> Env <span class="token operator">*</span>curenv <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>        <span class="token comment" spellcheck="true">// The current env</span>
-<span class="token keyword">static</span> <span class="token keyword">struct</span> Env <span class="token operator">*</span>env_free_list<span class="token punctuation">;</span>    <span class="token comment" spellcheck="true">// Free environment list</span>
+<pre class=" language-lang-c"><code class="language-lang-c">struct Env *envs = NULL;        // All environments
+struct Env *curenv = NULL;        // The current env
+static struct Env *env_free_list;    // Free environment list
 </code></pre>
 <ul>
 <li><p><code>envs</code>: The <code>envs</code> pointer points to an array of <code>Env</code> structures representing all the environments in the system. The JOS Kernel will support a maximum of <code>NENV</code> simultaneously active environments.</p>
@@ -434,13 +434,13 @@
 <li><p><code>env_free_list</code>: This is the head pointer of free environment list , which point to the first environment structure variable that is ready to be assigned out.</p>
 <ul>
 <li><p>for example, if we wanna allocate a <code>env</code> for a new environment, we could do it like this: (basic for chain list)</p>
-<pre class=" language-c"><code class="language-c">e <span class="token operator">=</span> env_free_list<span class="token punctuation">;</span>
-env_free_list <span class="token operator">=</span> env_free_list<span class="token operator">-></span>env_link<span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">e = env_free_list;
+env_free_list = env_free_list->env_link;
 </code></pre>
 </li>
 <li><p>Additionally, if we want to recycle a <code>env</code>:</p>
-<pre class=" language-c"><code class="language-c">e<span class="token operator">-></span>env_free_list <span class="token operator">=</span> env_free_list<span class="token punctuation">;</span>
-env_free_list <span class="token operator">=</span> e<span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">e->env_free_list = env_free_list;
+env_free_list = e;
 </code></pre>
 </li>
 </ul>
@@ -451,15 +451,15 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
 <h3 id="2-2-Allocating-the-Environment-Array"><a href="#2-2-Allocating-the-Environment-Array" class="headerlink" title="2-2  Allocating the Environment Array"></a>2-2  Allocating the Environment Array</h3><p>Before using environment array, we should allocate space for it.</p>
 <p>The work will be done in <code>mem_init</code>, which is intended for initializing memory space, opening paging mechanism, and layout for the virtual address space.</p>
 <p>Just like the <code>pages</code> array, we allocate space for <code>envs</code>:</p>
-<pre class=" language-c"><code class="language-c">    <span class="token comment" spellcheck="true">//////////////////////////////////////////////////////////////////////</span>
-    <span class="token comment" spellcheck="true">// Make 'envs' point to an array of size 'NENV' of 'struct Env'.</span>
-    <span class="token comment" spellcheck="true">// LAB 3: Your code here.</span>
-    envs <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">struct</span> Env <span class="token operator">*</span><span class="token punctuation">)</span><span class="token function">boot_alloc</span><span class="token punctuation">(</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> Env<span class="token punctuation">)</span> <span class="token operator">*</span> NENV<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">    //////////////////////////////////////////////////////////////////////
+    // Make 'envs' point to an array of size 'NENV' of 'struct Env'.
+    // LAB 3: Your code here.
+    envs = (struct Env *)boot_alloc(sizeof(struct Env) * NENV);
 </code></pre>
 <p>And as usual, next step is of course map the array at linear address <code>UENVS</code>. </p>
-<pre class=" language-c"><code class="language-c">
-    <span class="token comment" spellcheck="true">// LAB 3: Your code here.</span>
-    <span class="token function">boot_map_region</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span>uintptr_t<span class="token punctuation">)</span>UENVS<span class="token punctuation">,</span> PTSIZE<span class="token punctuation">,</span> <span class="token punctuation">(</span>physaddr_t<span class="token punctuation">)</span><span class="token function">PADDR</span><span class="token punctuation">(</span>envs<span class="token punctuation">)</span><span class="token punctuation">,</span> PTE_U <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">
+    // LAB 3: Your code here.
+    boot_map_region(kern_pgdir, (uintptr_t)UENVS, PTSIZE, (physaddr_t)PADDR(envs), PTE_U | PTE_P);
 </code></pre>
 <p>To test whether my code is correct, <code>make qemu</code> and find that <code>check_kern_pgdir()</code> succeeds.</p>
 <h3 id="2-3-Make-the-Environment-Run"><a href="#2-3-Make-the-Environment-Run" class="headerlink" title="2-3 Make the Environment Run"></a>2-3 Make the Environment Run</h3><p>After allocating the space, we can use the <code>env</code> array to do anything. But we should get familiar with something, such as how we can load the binary image in the correct position. The guide says as below:</p>
@@ -467,31 +467,31 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
 <p>The Lab 3 <code>GNUmakefile</code> generates a number of binary images in the <code>obj/user/</code> directory. If you look at <code>kern/Makefrag</code>, you will notice some magic that “links” these binaries directly into the kernel executable as if they were <code>.o</code> files. The <code>-b binary</code> option on the linker command line causes these files to be linked in as “raw” uninterpreted binary files rather than as regular <code>.o</code> files produced by the compiler. (As far as the linker is concerned, these files do not have to be ELF images at all - they could be anything, such as text files or pictures!) If you look at <code>obj/kern/kernel.sym</code> after building the kernel, you will notice that the linker has “magically” produced a number of funny symbols with obscure names like <code>_binary_obj_user_hello_start</code>, <code>_binary_obj_user_hello_end</code>, and <code>_binary_obj_user_hello_size</code>. The linker generates these symbol names by mangling the file names of the binary files; the symbols provide the regular kernel code with a way to reference the embedded binary files.</p>
 </blockquote>
 <p>Let’s have a look at <code>obj/kern/kernel.sym</code>, which lists all the symbols in the Kernel ELF file. So the user binary ELF files are integrated into the Kernel! So surprising! It indicates that we should read ELF files from Memory instead of disk hardware. We can operate it by <code>memcpy</code> or <code>memset</code>.</p>
-<p><img src="/picture/kernsym.png"></p>
+<p><img src="/picture/kernsym.png" alt=""></p>
 <p>First, we fill the function <code>env_init</code>. It links up all the (free) nodes in <code>envs</code>.</p>
 <p>It’s usually done with the method of head interpolation. And according to the guide, the pointer <code>env_free_list</code> should point to <code>env[0]</code>. And don’t forget clear the <code>env_id</code>. </p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Mark all environments in 'envs' as free, set their env_ids to 0,</span>
-<span class="token comment" spellcheck="true">// and insert them into the env_free_list.</span>
-<span class="token comment" spellcheck="true">// Make sure the environments are in the free list in the same order</span>
-<span class="token comment" spellcheck="true">// they are in the envs array (i.e., so that the first call to</span>
-<span class="token comment" spellcheck="true">// env_alloc() returns envs[0]).</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token keyword">void</span>
-<span class="token function">env_init</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// Set up envs array</span>
-    <span class="token comment" spellcheck="true">// LAB 3: Your code here.</span>
-    env_free_list <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-    <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> NENV <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span> i <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">;</span> i<span class="token operator">--</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        envs<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>env_status <span class="token operator">=</span> ENV_FREE<span class="token punctuation">;</span>
-        envs<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>env_id <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-        envs<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>env_link <span class="token operator">=</span> env_free_list<span class="token punctuation">;</span>
-        env_free_list <span class="token operator">=</span> <span class="token operator">&amp;</span>envs<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// Mark all environments in 'envs' as free, set their env_ids to 0,
+// and insert them into the env_free_list.
+// Make sure the environments are in the free list in the same order
+// they are in the envs array (i.e., so that the first call to
+// env_alloc() returns envs[0]).
+//
+void
+env_init(void)
+{
+    // Set up envs array
+    // LAB 3: Your code here.
+    env_free_list = NULL;
+    for(int i = NENV - 1; i >= 0; i--){
+        envs[i].env_status = ENV_FREE;
+        envs[i].env_id = 0;
+        envs[i].env_link = env_free_list;
+        env_free_list = &envs[i];
+    }
 
-    <span class="token comment" spellcheck="true">// Per-CPU part of the initialization</span>
-    <span class="token function">env_init_percpu</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+    // Per-CPU part of the initialization
+    env_init_percpu();
+}
 </code></pre>
 <p>The function <code>env_setup_vm</code> is the second function we should fill in. It’s duty is to initialize the Kernel virtual memory layout for an environment pointed to by <code>e</code>.  The things it does is allocate a page directory, set <code>e-&gt;env_pgdir</code> accordingly, and initialize the Kernel portion of the new environment’s address space. In this stage, don’t map anything into the user portion.</p>
 <p>I utilise an auxiliary function called <code>map_region</code> that has the same function as <code>boot_map_region</code>. There are four regions that we should deal with:</p>
@@ -501,68 +501,68 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
 <li><code>KSTACK</code>: kernel stack of JOS</li>
 <li><code>KERNBASE</code>: kernel data and code</li>
 </ol>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">static</span> <span class="token keyword">int</span>
-<span class="token function">env_setup_vm</span><span class="token punctuation">(</span><span class="token keyword">struct</span> Env <span class="token operator">*</span>e<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token keyword">int</span> i<span class="token punctuation">;</span>
-    <span class="token keyword">struct</span> PageInfo <span class="token operator">*</span>p <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">static int
+env_setup_vm(struct Env *e)
+{
+    int i;
+    struct PageInfo *p = NULL;
 
-    <span class="token comment" spellcheck="true">// Allocate a page for the page directory</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>p <span class="token operator">=</span> <span class="token function">page_alloc</span><span class="token punctuation">(</span>ALLOC_ZERO<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_NO_MEM<span class="token punctuation">;</span>
+    // Allocate a page for the page directory
+    if (!(p = page_alloc(ALLOC_ZERO)))
+        return -E_NO_MEM;
 
-    <span class="token comment" spellcheck="true">// LAB 3: Your code here.</span>
-    p<span class="token operator">-></span>pp_ref<span class="token operator">++</span><span class="token punctuation">;</span>
-    e<span class="token operator">-></span>env_pgdir <span class="token operator">=</span> <span class="token function">KADDR</span><span class="token punctuation">(</span><span class="token function">page2pa</span><span class="token punctuation">(</span>p<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">map_region</span><span class="token punctuation">(</span>e<span class="token operator">-></span>env_pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span>uintptr_t<span class="token punctuation">)</span>UPAGES<span class="token punctuation">,</span> PTSIZE<span class="token punctuation">,</span> 
-        <span class="token punctuation">(</span>physaddr_t<span class="token punctuation">)</span><span class="token function">PADDR</span><span class="token punctuation">(</span>pages<span class="token punctuation">)</span><span class="token punctuation">,</span> PTE_U <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">map_region</span><span class="token punctuation">(</span>e<span class="token operator">-></span>env_pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span>uintptr_t<span class="token punctuation">)</span>UENVS<span class="token punctuation">,</span> PTSIZE<span class="token punctuation">,</span> 
-        <span class="token punctuation">(</span>physaddr_t<span class="token punctuation">)</span><span class="token function">PADDR</span><span class="token punctuation">(</span>envs<span class="token punctuation">)</span><span class="token punctuation">,</span> PTE_U <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">map_region</span><span class="token punctuation">(</span>e<span class="token operator">-></span>env_pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span>uintptr_t<span class="token punctuation">)</span>KSTACKTOP <span class="token operator">-</span> KSTKSIZE<span class="token punctuation">,</span> KSTKSIZE<span class="token punctuation">,</span> 
-        <span class="token punctuation">(</span>physaddr_t<span class="token punctuation">)</span><span class="token function">PADDR</span><span class="token punctuation">(</span>bootstack<span class="token punctuation">)</span><span class="token punctuation">,</span> PTE_W <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">map_region</span><span class="token punctuation">(</span>e<span class="token operator">-></span>env_pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span>uintptr_t<span class="token punctuation">)</span>KERNBASE<span class="token punctuation">,</span> <span class="token number">0xffffffff</span> <span class="token operator">-</span> KERNBASE<span class="token punctuation">,</span>
-        <span class="token punctuation">(</span>physaddr_t<span class="token punctuation">)</span><span class="token number">0</span><span class="token punctuation">,</span> PTE_W <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    // LAB 3: Your code here.
+    p->pp_ref++;
+    e->env_pgdir = KADDR(page2pa(p));
+    map_region(e->env_pgdir, (uintptr_t)UPAGES, PTSIZE, 
+        (physaddr_t)PADDR(pages), PTE_U | PTE_P);
+    map_region(e->env_pgdir, (uintptr_t)UENVS, PTSIZE, 
+        (physaddr_t)PADDR(envs), PTE_U | PTE_P);
+    map_region(e->env_pgdir, (uintptr_t)KSTACKTOP - KSTKSIZE, KSTKSIZE, 
+        (physaddr_t)PADDR(bootstack), PTE_W | PTE_P);
+    map_region(e->env_pgdir, (uintptr_t)KERNBASE, 0xffffffff - KERNBASE,
+        (physaddr_t)0, PTE_W | PTE_P);
 
-    <span class="token comment" spellcheck="true">// UVPT maps the env's own page table read-only.</span>
-    <span class="token comment" spellcheck="true">// Permissions: kernel R, user R</span>
-    e<span class="token operator">-></span>env_pgdir<span class="token punctuation">[</span><span class="token function">PDX</span><span class="token punctuation">(</span>UVPT<span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">PADDR</span><span class="token punctuation">(</span>e<span class="token operator">-></span>env_pgdir<span class="token punctuation">)</span> <span class="token operator">|</span> PTE_P <span class="token operator">|</span> PTE_U<span class="token punctuation">;</span>
+    // UVPT maps the env's own page table read-only.
+    // Permissions: kernel R, user R
+    e->env_pgdir[PDX(UVPT)] = PADDR(e->env_pgdir) | PTE_P | PTE_U;
 
-    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+    return 0;
+}
 </code></pre>
 <p>The next function is <code>region_alloc</code>.  When the parameter <code>len</code> is 0 or a negative number, it’s the illegal state. Physical pages are supposed to simultaneously be mapped for <code>kern_pgdir</code> and <code>env_pgdir</code>. Another solution is <code>lcr3(e-&gt;pgdir[PDX(UVPT)])</code>, which reaches the same goal as my method.</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Allocate len bytes of physical memory for environment env,</span>
-<span class="token comment" spellcheck="true">// and map it at virtual address va in the environment's address space.</span>
-<span class="token comment" spellcheck="true">// Does not zero or otherwise initialize the mapped pages in any way.</span>
-<span class="token comment" spellcheck="true">// Pages should be writable by user and kernel.</span>
-<span class="token comment" spellcheck="true">// Panic if any allocation attempt fails.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token keyword">static</span> <span class="token keyword">void</span>
-<span class="token function">region_alloc</span><span class="token punctuation">(</span><span class="token keyword">struct</span> Env <span class="token operator">*</span>e<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>va<span class="token punctuation">,</span> size_t len<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 3: Your code here.</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>len <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token keyword">return</span><span class="token punctuation">;</span>
-    <span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span>len <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"region_alloc: len is a negtive num\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// Allocate len bytes of physical memory for environment env,
+// and map it at virtual address va in the environment's address space.
+// Does not zero or otherwise initialize the mapped pages in any way.
+// Pages should be writable by user and kernel.
+// Panic if any allocation attempt fails.
+//
+static void
+region_alloc(struct Env *e, void *va, size_t len)
+{
+    // LAB 3: Your code here.
+    if(len == 0)return;
+    else if(len < 0)panic("region_alloc: len is a negtive num\n");
 
-    <span class="token keyword">void</span> <span class="token operator">*</span>st <span class="token operator">=</span> <span class="token function">ROUNDDOWN</span><span class="token punctuation">(</span>va<span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">*</span>end <span class="token operator">=</span> <span class="token function">ROUNDUP</span><span class="token punctuation">(</span>va <span class="token operator">+</span> len<span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">int</span> pgn <span class="token operator">=</span> <span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span><span class="token punctuation">(</span>end <span class="token operator">-</span> st<span class="token punctuation">)</span> <span class="token operator">/</span> PGSIZE<span class="token punctuation">;</span>
-    <span class="token keyword">struct</span> PageInfo <span class="token operator">*</span>pg<span class="token punctuation">;</span>
-    
-    <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> pgn<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        pg <span class="token operator">=</span> <span class="token function">page_alloc</span><span class="token punctuation">(</span><span class="token operator">~</span>ALLOC_ZERO<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>pg<span class="token punctuation">)</span><span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"region_alloc: alloc failed\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        pg<span class="token operator">-></span>pp_ref<span class="token operator">++</span><span class="token punctuation">;</span>
-        <span class="token function">page_insert</span><span class="token punctuation">(</span>e<span class="token operator">-></span>env_pgdir<span class="token punctuation">,</span> pg<span class="token punctuation">,</span> va<span class="token punctuation">,</span> PTE_W <span class="token operator">|</span> PTE_U <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token function">page_insert</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">,</span> pg<span class="token punctuation">,</span> va<span class="token punctuation">,</span> PTE_W <span class="token operator">|</span> PTE_U <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        va <span class="token operator">+</span><span class="token operator">=</span> PGSIZE<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+    void *st = ROUNDDOWN(va, PGSIZE), *end = ROUNDUP(va + len, PGSIZE);
+    int pgn = (uint32_t)(end - st) / PGSIZE;
+    struct PageInfo *pg;
+
+    for(int i = 0; i < pgn; i++){
+        pg = page_alloc(~ALLOC_ZERO);
+        if(!pg)panic("region_alloc: alloc failed\n");
+        pg->pp_ref++;
+        page_insert(e->env_pgdir, pg, va, PTE_W | PTE_U | PTE_P);
+        page_insert(kern_pgdir, pg, va, PTE_W | PTE_U | PTE_P);
+        va += PGSIZE;
+    }
+}
 </code></pre>
 <p>Having finished the previous functions, we come up with the function <code>load_icode</code>. It will load the code and data of user environment into the correct position. First, we define a variable named <code>elfhdr</code> whose type is <code>struct Elf</code> and another two variables named <code>ph</code> and <code>eph</code> pointing to the start and the end of the program header.</p>
 <p>The following code assigned ELF header to <code>elfhdr</code>, and testify that it is correct:</p>
-<pre class=" language-c"><code class="language-c">    <span class="token keyword">struct</span> Elf <span class="token operator">*</span>elfhdr<span class="token punctuation">;</span>
-    elfhdr <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">struct</span> Elf <span class="token operator">*</span><span class="token punctuation">)</span> binary<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>elfhdr <span class="token operator">-></span> e_magic <span class="token operator">!=</span> ELF_MAGIC<span class="token punctuation">)</span><span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"load_icode: elf header error\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">    struct Elf *elfhdr;
+    elfhdr = (struct Elf *) binary;
+    if(elfhdr -> e_magic != ELF_MAGIC)panic("load_icode: elf header error\n");
 </code></pre>
 <p>For further environment switching, we have to assign <code>e_entry</code> to <code>e-&gt;env_tf.tf_eip</code> so that once we switch to this environment, the register <code>eip</code> will point to the first instruction.</p>
 <p>Then, we load sections through loops:</p>
@@ -570,45 +570,45 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
 <p>Attention!!!</p>
 <p>We should map corresponding regions before moving memory! And don’t forget to clear the memory between <code>filesz</code> and <code>memsz</code>.</p>
 </blockquote>
-<pre class=" language-c"><code class="language-c">    <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token punctuation">;</span> ph <span class="token operator">&lt;</span> eph<span class="token punctuation">;</span> ph<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token comment" spellcheck="true">//cprintf("%d",ph->p_type);</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span>ph<span class="token operator">-></span>p_type <span class="token operator">==</span> ELF_PROG_LOAD<span class="token punctuation">)</span><span class="token punctuation">{</span>
-            <span class="token function">region_alloc</span><span class="token punctuation">(</span>e<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span> ph<span class="token operator">-></span>p_va<span class="token punctuation">,</span> ph<span class="token operator">-></span>p_memsz<span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token function">memcpy</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span> ph<span class="token operator">-></span>p_va<span class="token punctuation">,</span> binary <span class="token operator">+</span> ph<span class="token operator">-></span>p_offset<span class="token punctuation">,</span> ph<span class="token operator">-></span>p_memsz<span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token function">memset</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span> ph<span class="token operator">-></span>p_va <span class="token operator">+</span> ph<span class="token operator">-></span>p_filesz<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> ph<span class="token operator">-></span>p_memsz <span class="token operator">-</span> ph<span class="token operator">-></span>p_filesz<span class="token punctuation">)</span><span class="token punctuation">;</span>
-            
-        <span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">    for(; ph < eph; ph++){
+        //cprintf("%d",ph->p_type);
+        if(ph->p_type == ELF_PROG_LOAD){
+            region_alloc(e, (void *) ph->p_va, ph->p_memsz);
+            memcpy((void *) ph->p_va, binary + ph->p_offset, ph->p_memsz);
+            memset((void *) ph->p_va + ph->p_filesz, 0, ph->p_memsz - ph->p_filesz);
+
+        }
 </code></pre>
 <p>In the end, we map one page for the program’s initial stack at virtual address <code>USTACKTOP-PGSIZE</code>:</p>
-<pre class=" language-c"><code class="language-c">    <span class="token function">region_alloc</span><span class="token punctuation">(</span>e<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span> USTACKTOP <span class="token operator">-</span> PGSIZE<span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">    region_alloc(e, (void *) USTACKTOP - PGSIZE, PGSIZE);
 </code></pre>
 <p>The remaining two functions will integrate above all functions. But they are not difficult.</p>
 <p>The first one is <code>env_create</code>:</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// Allocates a new env with env_alloc, loads the named elf</span>
-<span class="token comment" spellcheck="true">// binary into it with load_icode, and sets its env_type.</span>
-<span class="token comment" spellcheck="true">// This function is ONLY called during kernel initialization,</span>
-<span class="token comment" spellcheck="true">// before running the first user-mode environment.</span>
-<span class="token comment" spellcheck="true">// The new env's parent ID is set to 0.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token keyword">void</span>
-<span class="token function">env_create</span><span class="token punctuation">(</span>uint8_t <span class="token operator">*</span>binary<span class="token punctuation">,</span> <span class="token keyword">enum</span> EnvType type<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 3: Your code here.</span>
-    <span class="token keyword">struct</span> Env <span class="token operator">*</span>env_store <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-    
-    <span class="token comment" spellcheck="true">//******a bug had confused me for a long time, it's because curenv is null!</span>
-    <span class="token comment" spellcheck="true">//int r = env_alloc( env_store, curenv->env_id);</span>
-    
-    <span class="token keyword">int</span> r <span class="token operator">=</span> <span class="token function">env_alloc</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>env_store<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">//
+// Allocates a new env with env_alloc, loads the named elf
+// binary into it with load_icode, and sets its env_type.
+// This function is ONLY called during kernel initialization,
+// before running the first user-mode environment.
+// The new env's parent ID is set to 0.
+//
+void
+env_create(uint8_t *binary, enum EnvType type)
+{
+    // LAB 3: Your code here.
+    struct Env *env_store = NULL;
 
-    <span class="token keyword">if</span><span class="token punctuation">(</span>r<span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"env_create: env alloc failed\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    env_store<span class="token operator">-></span>env_type <span class="token operator">=</span> type<span class="token punctuation">;</span>
-    
-    <span class="token function">load_icode</span><span class="token punctuation">(</span>env_store<span class="token punctuation">,</span> binary<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+    //******a bug had confused me for a long time, it's because curenv is null!
+    //int r = env_alloc( env_store, curenv->env_id);
+
+    int r = env_alloc(&env_store, 0);
+
+    if(r){
+        panic("env_create: env alloc failed\n");
+    }
+    env_store->env_type = type;
+
+    load_icode(env_store, binary);
+}
 </code></pre>
 <p>The second is <code>env_run</code>. There are two steps:</p>
 <p>Step1:</p>
@@ -623,29 +623,29 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
 <ol>
 <li>Use <code>env_pop_tf()</code> to restore the environment’s registers and drop into user mode in the environment.</li>
 </ol>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">void</span>
-<span class="token function">env_run</span><span class="token punctuation">(</span><span class="token keyword">struct</span> Env <span class="token operator">*</span>e<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 3: Your code here.</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>curenv <span class="token operator">&amp;&amp;</span> curenv<span class="token operator">-></span>env_status <span class="token operator">==</span> ENV_RUNNING<span class="token punctuation">)</span>curenv<span class="token operator">-></span>env_status <span class="token operator">=</span> ENV_RUNNABLE<span class="token punctuation">;</span>
-    curenv <span class="token operator">=</span> e<span class="token punctuation">;</span>
-    curenv<span class="token operator">-></span>env_status <span class="token operator">=</span> ENV_RUNNING<span class="token punctuation">;</span>
-    curenv<span class="token operator">-></span>env_runs<span class="token operator">++</span><span class="token punctuation">;</span>
-    <span class="token function">lcr3</span><span class="token punctuation">(</span>curenv<span class="token operator">-></span>env_pgdir<span class="token punctuation">[</span><span class="token function">PDX</span><span class="token punctuation">(</span>UVPT<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">void
+env_run(struct Env *e)
+{
+    // LAB 3: Your code here.
+    if(curenv && curenv->env_status == ENV_RUNNING)curenv->env_status = ENV_RUNNABLE;
+    curenv = e;
+    curenv->env_status = ENV_RUNNING;
+    curenv->env_runs++;
+    lcr3(curenv->env_pgdir[PDX(UVPT)]);
 
-    <span class="token function">env_pop_tf</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token punctuation">(</span>curenv<span class="token operator">-></span>env_tf<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    
-    <span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"env_run not yet implemented"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+    env_pop_tf(&(curenv->env_tf));
+
+    panic("env_run not yet implemented");
+}
 </code></pre>
 <h2 id="3-Test-it"><a href="#3-Test-it" class="headerlink" title="3 Test it"></a>3 Test it</h2><p>After struggle with bugs for a while, I succeed so far. Below is the screenshot when I debug with <code>GDB</code>. It crashed at the instruction <code>int $0x30</code>, which we will complete corresponding codes.</p>
-<p><img src="/picture/sigtrap.png"></p>
+<p><img src="/picture/sigtrap.png" alt=""></p>
 <h2 id="4-Set-IDT"><a href="#4-Set-IDT" class="headerlink" title="4  Set IDT"></a>4  Set IDT</h2><p>From now on, we should set interrupt descriptor table correct values. But before starting, we need review some assembly instructions such as <code>int</code> and <code>iret</code>.</p>
 <h3 id="4-1-INT-and-tss"><a href="#4-1-INT-and-tss" class="headerlink" title="4-1 INT and tss"></a>4-1 <code>INT</code> and <code>tss</code></h3><p>The <code>INT</code> instruction generates a call to the interrupt or exception handler specified with the destination operand. The destination operand specifies a vector from 0 to 255, encoded as an 8-bit unsigned intermediate value. Each vector provides an index to a gate descriptor in the IDT. The first 32 vector are reserved by intel for system use. Some of these vectors are used for internally generated exceptions.</p>
 <p>The <code>INT n</code> instruction is the general mnemonic for executing a software generated call to an interrupt handler. The <code>INTO</code> instruction is a special mnemonic for calling overflow exception, exception 4. The overflow interrupt checks the <code>OF</code> flag in the <code>EFLAGS</code> register and calls the overflow interrupt handler if the <code>OF</code> flag is set to 1.</p>
 <p>The <code>int 3</code>instruction uses a one-byte opcode(CC) and is intended for calling the debug exception handler with a breakpoint exception (#BP).</p>
 <p>From i386 Documents, we find what <code>INT</code> instruction exactly does in the mode that JOS is now in:</p>
-<pre class=" language-pseudocode"><code class="language-pseudocode">INTER-PRIVILEGE-LEVEL-INTERRUPT:
+<pre class=" language-lang-pseudocode"><code class="language-lang-pseudocode">INTER-PRIVILEGE-LEVEL-INTERRUPT:
     (* PE = 1, interrupt or trap gate, non-conforming code segment, DPL < CPL *)
     IF (IA32_EFER.LMA = 0) (* Not IA-32e mode *)
         THEN
@@ -683,31 +683,31 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
 </code></pre>
 <p> First, the CPU will judge how many bits the TSS is, and we goes into this branch. Now, we come across a symbol called <code>TSSstackAddress</code> that represents the offset of <code>esp</code> in the TSS descriptor in this new privilege. And then the <code>ss</code> register is loaded from <code>(TSS base + TSSstackAddress + 4)</code>. The <code>esp</code> register is loaded from <code>(TSS base + TSSstackAddress)</code>. </p>
 <p>Now, we are get the idea What <code>TSS</code> is. The function <code>trap_init_percpu</code> in <code>kern/trap.c</code> is helpful for us. Firstly, JOS loads assigns <code>KSTACKTOP</code> and <code>ts_ss0</code> to <code>ts.ts_esp0</code> and <code>ts.ts_ss0</code>(privilege 0). And then load the <code>TSS</code> portion of <code>gdt</code> and load the TSS selector. That’s the initializing process.</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Initialize and load the per-CPU TSS and IDT</span>
-<span class="token keyword">void</span>
-<span class="token function">trap_init_percpu</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// Setup a TSS so that we get the right stack</span>
-    <span class="token comment" spellcheck="true">// when we trap to the kernel.</span>
-    ts<span class="token punctuation">.</span>ts_esp0 <span class="token operator">=</span> KSTACKTOP<span class="token punctuation">;</span>
-    ts<span class="token punctuation">.</span>ts_ss0 <span class="token operator">=</span> GD_KD<span class="token punctuation">;</span>
-    ts<span class="token punctuation">.</span>ts_iomb <span class="token operator">=</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> Taskstate<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// Initialize and load the per-CPU TSS and IDT
+void
+trap_init_percpu(void)
+{
+    // Setup a TSS so that we get the right stack
+    // when we trap to the kernel.
+    ts.ts_esp0 = KSTACKTOP;
+    ts.ts_ss0 = GD_KD;
+    ts.ts_iomb = sizeof(struct Taskstate);
 
-    <span class="token comment" spellcheck="true">// Initialize the TSS slot of the gdt.</span>
-    gdt<span class="token punctuation">[</span>GD_TSS0 <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">SEG16</span><span class="token punctuation">(</span>STS_T32A<span class="token punctuation">,</span> <span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token operator">&amp;</span>ts<span class="token punctuation">)</span><span class="token punctuation">,</span>
-                    <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> Taskstate<span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    gdt<span class="token punctuation">[</span>GD_TSS0 <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">.</span>sd_s <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    // Initialize the TSS slot of the gdt.
+    gdt[GD_TSS0 >> 3] = SEG16(STS_T32A, (uint32_t) (&ts),
+                    sizeof(struct Taskstate) - 1, 0);
+    gdt[GD_TSS0 >> 3].sd_s = 0;
 
-    <span class="token comment" spellcheck="true">// Load the TSS selector (like other segment selectors, the</span>
-    <span class="token comment" spellcheck="true">// bottom three bits are special; we leave them 0)</span>
-    <span class="token function">ltr</span><span class="token punctuation">(</span>GD_TSS0<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    // Load the TSS selector (like other segment selectors, the
+    // bottom three bits are special; we leave them 0)
+    ltr(GD_TSS0);
 
-    <span class="token comment" spellcheck="true">// Load the IDT</span>
-    <span class="token function">lidt</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>idt_pd<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+    // Load the IDT
+    lidt(&idt_pd);
+}
 </code></pre>
 <p>And then it’s about <code>CS:EIP</code>:</p>
-<pre class=" language-pseudocode"><code class="language-pseudocode"> IF IDT gate is 32-bit
+<pre class=" language-lang-pseudocode"><code class="language-lang-pseudocode"> IF IDT gate is 32-bit
         THEN
             CS:EIP ← Gate(CS:EIP); (* Segment descriptor information also loaded *)
         ELSE
@@ -721,7 +721,7 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
             FI;
 </code></pre>
 <p>Lastly, hardware pushes <code>EFLAGS</code> and <code>errorcode</code>…</p>
-<pre class=" language-pseudocode"><code class="language-pseudocode">    IF IDT gate is 32-bit
+<pre class=" language-lang-pseudocode"><code class="language-lang-pseudocode">    IF IDT gate is 32-bit
             THEN
                 Push(far pointer to old stack);
                 (* Old SS and ESP, 3 words padded to 4 *)
@@ -740,27 +740,27 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
 </ol>
 <p>In contrast, conduct <code>iret</code> is the reverse process!</p>
 <h3 id="4-2-Coding"><a href="#4-2-Coding" class="headerlink" title="4-2 Coding"></a>4-2 Coding</h3><p>We should fill the assembly file <code>trapentry.S</code>. There are two macros named <code>TRAPHANDLER</code> and <code>TRAPHANDLER_NOEC</code>. The former is used to declare a code block connected with <code>IDT</code> entries with the <code>INT</code> instruction pushing <code>errorcode</code>, and the later will explicitly push <code>0</code> as <code>errorcode</code>!</p>
-<p>By looking up <a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_10.htm">80386 Programmer’s Reference Manual – Section 9.10 (mit.edu)</a>, we produce code below:</p>
-<pre class=" language-c"><code class="language-c"><span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>divide_entry<span class="token punctuation">,</span> T_DIVIDE<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>debug_entry<span class="token punctuation">,</span> T_DEBUG<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER</span><span class="token punctuation">(</span>nmi_entry<span class="token punctuation">,</span> T_NMI<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>brkpt_entry<span class="token punctuation">,</span> T_BRKPT<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>oflow_entry<span class="token punctuation">,</span> T_OFLOW<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>bound_entry<span class="token punctuation">,</span> T_BOUND<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>illop_entry<span class="token punctuation">,</span> T_ILLOP<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>device_entry<span class="token punctuation">,</span> T_DEVICE<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER</span><span class="token punctuation">(</span>dblflt_entry<span class="token punctuation">,</span> T_DBLFLT<span class="token punctuation">)</span>
+<p>By looking up <a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_10.htm">80386 Programmer’s Reference Manual — Section 9.10 (mit.edu)</a>, we produce code below:</p>
+<pre class=" language-lang-c"><code class="language-lang-c">TRAPHANDLER_NOEC(divide_entry, T_DIVIDE)
+TRAPHANDLER_NOEC(debug_entry, T_DEBUG)
+TRAPHANDLER(nmi_entry, T_NMI)
+TRAPHANDLER_NOEC(brkpt_entry, T_BRKPT)
+TRAPHANDLER_NOEC(oflow_entry, T_OFLOW)
+TRAPHANDLER_NOEC(bound_entry, T_BOUND)
+TRAPHANDLER_NOEC(illop_entry, T_ILLOP)
+TRAPHANDLER_NOEC(device_entry, T_DEVICE)
+TRAPHANDLER(dblflt_entry, T_DBLFLT)
 
-<span class="token function">TRAPHANDLER</span><span class="token punctuation">(</span>tss_entry<span class="token punctuation">,</span> T_TSS<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER</span><span class="token punctuation">(</span>segnp_entry<span class="token punctuation">,</span> T_SEGNP<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER</span><span class="token punctuation">(</span>stack_entry<span class="token punctuation">,</span> T_STACK<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER</span><span class="token punctuation">(</span>gpflt_entry<span class="token punctuation">,</span> T_GPFLT<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER</span><span class="token punctuation">(</span>pgflt_entry<span class="token punctuation">,</span> T_PGFLT<span class="token punctuation">)</span>
+TRAPHANDLER(tss_entry, T_TSS)
+TRAPHANDLER(segnp_entry, T_SEGNP)
+TRAPHANDLER(stack_entry, T_STACK)
+TRAPHANDLER(gpflt_entry, T_GPFLT)
+TRAPHANDLER(pgflt_entry, T_PGFLT)
 
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>fperr_entry<span class="token punctuation">,</span> T_FPERR<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>align_entry<span class="token punctuation">,</span> T_ALIGN<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>mchk_entry<span class="token punctuation">,</span> T_MCHK<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>simderr_entry<span class="token punctuation">,</span> T_SIMDERR<span class="token punctuation">)</span>
+TRAPHANDLER_NOEC(fperr_entry, T_FPERR)
+TRAPHANDLER_NOEC(align_entry, T_ALIGN)
+TRAPHANDLER_NOEC(mchk_entry, T_MCHK)
+TRAPHANDLER_NOEC(simderr_entry, T_SIMDERR)
 </code></pre>
 <p> All the code blocks will jump to procedure <code>_alltraps</code>, which should:</p>
 <ol>
@@ -769,7 +769,7 @@ env_free_list <span class="token operator">=</span> e<span class="token punctuat
 <li><code>pushl %esp</code> to pass a pointer to the <code>Trapframe</code> as an argument to trap()</li>
 <li><code>call trap</code></li>
 </ol>
-<pre class=" language-assembly"><code class="language-assembly"> .global _alltraps
+<pre class=" language-lang-assembly"><code class="language-lang-assembly"> .global _alltraps
 _alltraps:
     pushl %ds
     pushl %es
@@ -786,45 +786,45 @@ _alltraps:
     iret
 </code></pre>
 <p>Don’t forget initialize trap.</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">void</span>
-<span class="token function">trap_init</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token keyword">extern</span> <span class="token keyword">struct</span> Segdesc gdt<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">void
+trap_init(void)
+{
+    extern struct Segdesc gdt[];
 
-    <span class="token comment" spellcheck="true">// LAB 3: Your code here.</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_DIVIDE<span class="token punctuation">]</span><span class="token punctuation">,</span>  <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> divide_entry<span class="token punctuation">,</span>     <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_DEBUG<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> debug_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_NMI<span class="token punctuation">]</span><span class="token punctuation">,</span>     <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> nmi_entry<span class="token punctuation">,</span>         <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_BRKPT<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> brkpt_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_OFLOW<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> oflow_entry<span class="token punctuation">,</span>       <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_BOUND<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> bound_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_ILLOP<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> illop_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_DEVICE<span class="token punctuation">]</span><span class="token punctuation">,</span>  <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> device_entry<span class="token punctuation">,</span>     <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_DBLFLT<span class="token punctuation">]</span><span class="token punctuation">,</span>  <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> dblflt_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    // LAB 3: Your code here.
+    SETGATE(idt[T_DIVIDE],  0, GD_KT, divide_entry,     0);
+    SETGATE(idt[T_DEBUG],   0, GD_KT, debug_entry,      0);
+    SETGATE(idt[T_NMI],     0, GD_KT, nmi_entry,         0);
+    SETGATE(idt[T_BRKPT],   0, GD_KT, brkpt_entry,      0);
+    SETGATE(idt[T_OFLOW],   0, GD_KT, oflow_entry,       0);
+    SETGATE(idt[T_BOUND],   0, GD_KT, bound_entry,      0);
+    SETGATE(idt[T_ILLOP],   0, GD_KT, illop_entry,      0);
+    SETGATE(idt[T_DEVICE],  0, GD_KT, device_entry,     0);
+    SETGATE(idt[T_DBLFLT],  0, GD_KT, dblflt_entry,      0);
 
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_TSS<span class="token punctuation">]</span><span class="token punctuation">,</span>     <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> tss_entry<span class="token punctuation">,</span>        <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_SEGNP<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> segnp_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_STACK<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> stack_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_GPFLT<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> gpflt_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_PGFLT<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> pgflt_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    SETGATE(idt[T_TSS],     0, GD_KT, tss_entry,        0);
+    SETGATE(idt[T_SEGNP],   0, GD_KT, segnp_entry,      0);
+    SETGATE(idt[T_STACK],   0, GD_KT, stack_entry,      0);
+    SETGATE(idt[T_GPFLT],   0, GD_KT, gpflt_entry,      0);
+    SETGATE(idt[T_PGFLT],   0, GD_KT, pgflt_entry,      0);
 
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_FPERR<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">1</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> fperr_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_ALIGN<span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token number">1</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> align_entry<span class="token punctuation">,</span>      <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_MCHK<span class="token punctuation">]</span><span class="token punctuation">,</span>    <span class="token number">1</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> mchk_entry<span class="token punctuation">,</span>       <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>T_SIMDERR<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> simderr_entry<span class="token punctuation">,</span>    <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    SETGATE(idt[T_FPERR],   1, GD_KT, fperr_entry,      0);
+    SETGATE(idt[T_ALIGN],   1, GD_KT, align_entry,      0);
+    SETGATE(idt[T_MCHK],    1, GD_KT, mchk_entry,       0);
+    SETGATE(idt[T_SIMDERR], 1, GD_KT, simderr_entry,    0);
 
-    <span class="token comment" spellcheck="true">// Per-CPU setup </span>
-    <span class="token function">trap_init_percpu</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+    // Per-CPU setup 
+    trap_init_percpu();
+}
 </code></pre>
 <p>That’s all in part One.</p>
 <h3 id="4-3Test-part-One"><a href="#4-3Test-part-One" class="headerlink" title="4-3Test part One"></a>4-3Test part One</h3><p>Let’s <code>make grade</code>.</p>
-<p><img src="/picture/makegrade.png"></p>
+<p><img src="/picture/makegrade.png" alt=""></p>
 <h2 id="4-Episode"><a href="#4-Episode" class="headerlink" title="4 Episode"></a>4 Episode</h2><p>Let’s play an episode to take a relaxation (x) by recall the whole process how the JOS  running in. After <code>BIOS</code> initially boots up the machine, the control power is given to boot loader. </p>
 <h3 id="4-1-bootloader"><a href="#4-1-bootloader" class="headerlink" title="4-1 bootloader"></a>4-1 bootloader</h3><h4 id="4-1-1-boot-S"><a href="#4-1-1-boot-S" class="headerlink" title="4-1-1 boot.S"></a>4-1-1 <code>boot.S</code></h4><h5 id="4-1-1-1-disable-interrupt-and-set-segment-register"><a href="#4-1-1-1-disable-interrupt-and-set-segment-register" class="headerlink" title="4-1-1-1 disable interrupt and set segment register"></a>4-1-1-1 disable interrupt and set segment register</h5><p>The first instruction is <code>cli</code> in physical address <code>0x7c00</code>. (Because the bios boot the bootloader at <code>0x7c00</code>.) <code>cli</code> is used to disable interrupts and the subsequent <code>cld</code> is used for string operations increment. And then the <code>start</code> clear some important data segment registers, such as <code>ds</code>, <code>es</code>, <code>ss</code>.</p>
 <h5 id="4-1-1-2-enable-A20"><a href="#4-1-1-2-enable-A20" class="headerlink" title="4-1-1-2 enable A20"></a>4-1-1-2 enable A20</h5><p>Next, it enables <code>A20</code>. For backwards compatibility with the earliest PCs, physical address line 20 is tied low, so that addresses higher than <code>1MB</code> wrap around to zero by default. The code undoes this.</p>
 <h5 id="4-1-1-3-switch-to-protected-mode"><a href="#4-1-1-3-switch-to-protected-mode" class="headerlink" title="4-1-1-3 switch to protected mode"></a>4-1-1-3 switch to protected mode</h5><p>The code load <code>gdtr</code> using <code>lgtr</code>. We can see that there are two segments. One is the code segment whose base address is <code>0x0</code> and limit is <code>0xffffffff</code> with permission <code>Executable</code> and <code>readable</code>. Another is the data segment whose base address is also <code>0x0</code> and limit is <code>0xffffffff</code> as well ,but with permission <code>writable</code>.</p>
-<pre class=" language-assembly"><code class="language-assembly"># Bootstrap GDT
+<pre class=" language-lang-assembly"><code class="language-lang-assembly"># Bootstrap GDT
 .p2align 2                                # force 4 byte alignment
 gdt:
   SEG_NULL                # null seg
@@ -839,11 +839,10 @@ gdtdesc:
 <h5 id="4-1-1-4-Protcseg"><a href="#4-1-1-4-Protcseg" class="headerlink" title="4-1-1-4 Protcseg"></a>4-1-1-4 Protcseg</h5><p>It set <code>ds</code>, <code>es</code>, <code>fs</code>, <code>gs</code>, <code>ss</code> to <code>PROT_MODE_DSEG</code>. And then it makes <code>esp</code> point at <code>start</code>, which makes the space in front of <code>start</code> the temporary stack. And then call <code>bootmain</code> edited in <code>Clang</code>.</p>
 <h4 id="4-1-2-bootmain"><a href="#4-1-2-bootmain" class="headerlink" title="4-1-2 bootmain"></a>4-1-2 <code>bootmain</code></h4><p><code>bootmain</code> is used to load the <code>ELF</code> into the memory. And jump to the entry by a function pointer:</p>
 <pre><code>    ((void (*)(void)) (ELFHDR-&gt;e_entry))();
-</code></pre>
-<h3 id="4-2-Kernel"><a href="#4-2-Kernel" class="headerlink" title="4-2 Kernel"></a>4-2 Kernel</h3><h4 id="4-2-1-entry-S"><a href="#4-2-1-entry-S" class="headerlink" title="4-2-1 entry.S"></a>4-2-1 <code>entry.S</code></h4><h5 id="4-2-1-1-entry"><a href="#4-2-1-1-entry" class="headerlink" title="4-2-1-1 entry"></a>4-2-1-1 entry</h5><p>By now, we haven’t set up virtual memory yet, so we’re running from the physical address the boot loader loaded the kernel at: <code>1MB</code>. However, the C code is linked to run at <code>KERNBASE + 1MB</code>. Hence, we set up a trivial page directory that translates virtual address <code>[KERNBASE, KERNBASE + 4MB)</code> to physical addresses <code>[0, 4MB)</code>. This 4MB region will be sufficient until we set up our read page table in <code>mem_init</code>.</p>
+</code></pre><h3 id="4-2-Kernel"><a href="#4-2-Kernel" class="headerlink" title="4-2 Kernel"></a>4-2 Kernel</h3><h4 id="4-2-1-entry-S"><a href="#4-2-1-entry-S" class="headerlink" title="4-2-1 entry.S"></a>4-2-1 <code>entry.S</code></h4><h5 id="4-2-1-1-entry"><a href="#4-2-1-1-entry" class="headerlink" title="4-2-1-1 entry"></a>4-2-1-1 entry</h5><p>By now, we haven’t set up virtual memory yet, so we’re running from the physical address the boot loader loaded the kernel at: <code>1MB</code>. However, the C code is linked to run at <code>KERNBASE + 1MB</code>. Hence, we set up a trivial page directory that translates virtual address <code>[KERNBASE, KERNBASE + 4MB)</code> to physical addresses <code>[0, 4MB)</code>. This 4MB region will be sufficient until we set up our read page table in <code>mem_init</code>.</p>
 <p>First, we load the physical address of <code>entry_pgdir</code> into <code>cr3</code>. <code>entry_pgdir</code> is defined in <code>entrypgdir.c</code>. And then turn on paging by set <code>PG</code> bit in <code>cr0</code>. Note that the subsequent two instructions’ virtual address is both in <code>[KERNBASE, KERNBASE + 4MB)</code> and <code>[0, 4MB)</code>, and we can look through <code>entrypgdir.c</code> for details. These two instructions make the low <code>eip</code> ( in<code>[0, 4MB)</code>) become in high address ( in <code>[KERNBASE, KERNBASE + 4MB)</code>), But they are both map into the same physical addresses.</p>
 <h5 id="4-2-1-2-relocated"><a href="#4-2-1-2-relocated" class="headerlink" title="4-2-1-2 relocated"></a>4-2-1-2 relocated</h5><p>The procedure clear the frame pointer register <code>ebp</code> first so that the monitor’s <code>backtrace</code> can work correctly. And then it set the stack pointer <code>esp</code>. The code below is the stack region.</p>
-<pre class=" language-assembly"><code class="language-assembly">.data
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">.data
 ###################################################################
 # boot stack
 ###################################################################
@@ -857,20 +856,20 @@ bootstacktop:
 <p>Then, it jumps to <code>i386_init</code> in C code.</p>
 <h4 id="4-2-2-i386-init"><a href="#4-2-2-i386-init" class="headerlink" title="4-2-2 i386_init"></a>4-2-2 <code>i386_init</code></h4><p>The function is intended for do some initialization. First, clear the uninitialized global data (BSS) section of our program. This ensures that all static/global variables start out zero.</p>
 <h5 id="4-2-2-1"><a href="#4-2-2-1" class="headerlink" title="4-2-2-1"></a>4-2-2-1</h5><p>And then initialize the console by <code>cons_init</code>. All the functions are located in <code>console.c</code></p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// initialize the console devices</span>
-<span class="token keyword">void</span>
-<span class="token function">cons_init</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token function">cga_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">kbd_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">serial_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// initialize the console devices
+void
+cons_init(void)
+{
+    cga_init();
+    kbd_init();
+    serial_init();
 
-    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>serial_exists<span class="token punctuation">)</span>
-        <span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"Serial port does not exist!\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+    if (!serial_exists)
+        cprintf("Serial port does not exist!\n");
+}
 </code></pre>
 <h4 id="4-2-3-pmap-c"><a href="#4-2-3-pmap-c" class="headerlink" title="4-2-3 pmap.c"></a>4-2-3 <code>pmap.c</code></h4><p>After initialization of the console, <code>mem_init</code> should enter on the stage. Firstly, it use <code>i386_detect_memory</code> to get some basic information. And then allocate space for Kernel’s page directory, and map the virtual address space. Below is the memory layout:</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">/*
+<pre class=" language-lang-c"><code class="language-lang-c">/*
  * Virtual memory map:                                Permissions
  *                                                    kernel/user
  *
@@ -917,7 +916,7 @@ bootstacktop:
  *                     .                              .
  *                     .                              .
  *                     |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
- *                     |     Program Data &amp; Heap      |
+ *                     |     Program Data & Heap      |
  *    UTEXT -------->  +------------------------------+ 0x00800000
  *    PFTEMP ------->  |       Empty Memory (*)       |        PTSIZE
  *                     |                              |
@@ -932,10 +931,10 @@ bootstacktop:
  * (*) Note: The kernel ensures that "Invalid Memory" is *never* mapped.
  *     "Empty Memory" is normally unmapped, but user programs may map pages
  *     there if desired.  JOS user programs map pages temporarily at UTEMP.
- */</span>
+ */
 </code></pre>
 <p>We allocate space for the page array and the environment array. After allocating space for all the basic structures, we initialize the page array. the first page and pages between <code>IOPHYSMEM(0x000A0000)</code> and <code>EXTPHYSMEM(0x00100000)</code> are occupied and shouldn’t be replaced or allocated anymore.</p>
-<p><img src="/picture/layout.png"></p>
+<p><img src="/picture/layout.png" alt=""></p>
 <p>After the initialization of physical pages, we should set up virtual memory：</p>
 <ol>
 <li>Map <code>pages</code> read-only by the user at linear address <code>UPAGES</code></li>
@@ -944,50 +943,50 @@ bootstacktop:
 <li>Map all of physical memory at KERNBASE. The VA range <code>[KERNBASE, 2^32)</code> should map to the PA range <code>[0, 2^32 - KERNBASE)</code>. We might not have <code>2^32 - KERNBASE</code> bytes of physical memory, but we just set up the mapping anyway.</li>
 </ol>
 <p>Having mapped virtual memory, we switch from the minimal entry page directory to the full <code>kern_pgdir</code> page table we just created. Our instruction pointer should be somewhere between <code>KERNBASE</code> and <code>KERNBASE + 4MB</code> right now, which is mapped the same way by both page tables.</p>
-<pre class=" language-c"><code class="language-c"><span class="token function">lcr3</span><span class="token punctuation">(</span><span class="token function">PADDR</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">lcr3(PADDR(kern_pgdir));
 </code></pre>
 <p>And then turn on all the flags of <code>cr0</code> we need.</p>
 <p>Now,we finished the initialization of virtual memory layout.</p>
 <h4 id="4-2-4-env-init"><a href="#4-2-4-env-init" class="headerlink" title="4-2-4 env_init"></a>4-2-4 <code>env_init</code></h4><p>We set up the environment free list by a chain. And Load new <code>GDT</code> and segment descriptors using <code>env_init_percpu</code>. Read the comments if you want more details.</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Global descriptor table.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// Set up global descriptor table (GDT) with separate segments for</span>
-<span class="token comment" spellcheck="true">// kernel mode and user mode.  Segments serve many purposes on the x86.</span>
-<span class="token comment" spellcheck="true">// We don't use any of their memory-mapping capabilities, but we need</span>
-<span class="token comment" spellcheck="true">// them to switch privilege levels. </span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// The kernel and user segments are identical except for the DPL.</span>
-<span class="token comment" spellcheck="true">// To load the SS register, the CPL must equal the DPL.  Thus,</span>
-<span class="token comment" spellcheck="true">// we must duplicate the segments for the user and the kernel.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// In particular, the last argument to the SEG macro used in the</span>
-<span class="token comment" spellcheck="true">// definition of gdt specifies the Descriptor Privilege Level (DPL)</span>
-<span class="token comment" spellcheck="true">// of that descriptor: 0 for kernel and 3 for user.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token keyword">struct</span> Segdesc gdt<span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token operator">=</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// 0x0 - unused (always faults -- for trapping NULL far pointers)</span>
-    SEG_NULL<span class="token punctuation">,</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// Global descriptor table.
+//
+// Set up global descriptor table (GDT) with separate segments for
+// kernel mode and user mode.  Segments serve many purposes on the x86.
+// We don't use any of their memory-mapping capabilities, but we need
+// them to switch privilege levels. 
+//
+// The kernel and user segments are identical except for the DPL.
+// To load the SS register, the CPL must equal the DPL.  Thus,
+// we must duplicate the segments for the user and the kernel.
+//
+// In particular, the last argument to the SEG macro used in the
+// definition of gdt specifies the Descriptor Privilege Level (DPL)
+// of that descriptor: 0 for kernel and 3 for user.
+//
+struct Segdesc gdt[] =
+{
+    // 0x0 - unused (always faults -- for trapping NULL far pointers)
+    SEG_NULL,
 
-    <span class="token comment" spellcheck="true">// 0x8 - kernel code segment</span>
-    <span class="token punctuation">[</span>GD_KT <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">SEG</span><span class="token punctuation">(</span>STA_X <span class="token operator">|</span> STA_R<span class="token punctuation">,</span> <span class="token number">0x0</span><span class="token punctuation">,</span> <span class="token number">0xffffffff</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    // 0x8 - kernel code segment
+    [GD_KT >> 3] = SEG(STA_X | STA_R, 0x0, 0xffffffff, 0),
 
-    <span class="token comment" spellcheck="true">// 0x10 - kernel data segment</span>
-    <span class="token punctuation">[</span>GD_KD <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">SEG</span><span class="token punctuation">(</span>STA_W<span class="token punctuation">,</span> <span class="token number">0x0</span><span class="token punctuation">,</span> <span class="token number">0xffffffff</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    // 0x10 - kernel data segment
+    [GD_KD >> 3] = SEG(STA_W, 0x0, 0xffffffff, 0),
 
-    <span class="token comment" spellcheck="true">// 0x18 - user code segment</span>
-    <span class="token punctuation">[</span>GD_UT <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">SEG</span><span class="token punctuation">(</span>STA_X <span class="token operator">|</span> STA_R<span class="token punctuation">,</span> <span class="token number">0x0</span><span class="token punctuation">,</span> <span class="token number">0xffffffff</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    // 0x18 - user code segment
+    [GD_UT >> 3] = SEG(STA_X | STA_R, 0x0, 0xffffffff, 3),
 
-    <span class="token comment" spellcheck="true">// 0x20 - user data segment</span>
-    <span class="token punctuation">[</span>GD_UD <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">SEG</span><span class="token punctuation">(</span>STA_W<span class="token punctuation">,</span> <span class="token number">0x0</span><span class="token punctuation">,</span> <span class="token number">0xffffffff</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    // 0x20 - user data segment
+    [GD_UD >> 3] = SEG(STA_W, 0x0, 0xffffffff, 3),
 
-    <span class="token comment" spellcheck="true">// 0x28 - tss, initialized in trap_init_percpu()</span>
-    <span class="token punctuation">[</span>GD_TSS0 <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">]</span> <span class="token operator">=</span> SEG_NULL
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+    // 0x28 - tss, initialized in trap_init_percpu()
+    [GD_TSS0 >> 3] = SEG_NULL
+};
 
-<span class="token keyword">struct</span> Pseudodesc gdt_pd <span class="token operator">=</span> <span class="token punctuation">{</span>
-    <span class="token keyword">sizeof</span><span class="token punctuation">(</span>gdt<span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">unsigned</span> <span class="token keyword">long</span><span class="token punctuation">)</span> gdt
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+struct Pseudodesc gdt_pd = {
+    sizeof(gdt) - 1, (unsigned long) gdt
+};
 </code></pre>
 <h4 id="4-2-5-trap-init"><a href="#4-2-5-trap-init" class="headerlink" title="4-2-5 trap_init"></a>4-2-5 <code>trap_init</code></h4><p>we should now have the basic information we need in order to set up the IDT and handle exceptions in JOS. For now, we will set up the IDT to handle interrupt vectors <code>0-31</code> (the processor exceptions).</p>
 <p>Exceptions and interrupts are both “protected control transfers,” which cause the processor to switch from user to kernel mode (CPL=0) without giving the user-mode code any opportunity to interfere with the functioning of the kernel or other environments. In Intel’s terminology, an <em>interrupt</em> is a protected control transfer that is caused by an asynchronous event usually external to the processor, such as notification of external device I/O activity. An <em>exception</em>, in contrast, is a protected control transfer caused synchronously by the currently running code, for example due to a divide by zero or an invalid memory access.</p>
@@ -1012,11 +1011,11 @@ bootstacktop:
 <h5 id="4-2-6-3-load-icode"><a href="#4-2-6-3-load-icode" class="headerlink" title="4-2-6-3 load_icode"></a>4-2-6-3 <code>load_icode</code></h5><p>Its duty is to move the loadable section to the correct location. The detail is in the code!</p>
 <h5 id="4-2-6-4-env-run"><a href="#4-2-6-4-env-run" class="headerlink" title="4-2-6-4 env_run"></a>4-2-6-4 <code>env_run</code></h5><p>It loads the page directory’s base address into <code>cr3</code>. And change the state of the environment. Then pop the registers and conduct <code>iret</code>.</p>
 <h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><ol>
-<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_10.htm">80386 Programmer’s Reference Manual – Section 9.10 (mit.edu)</a></li>
-<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_09.htm">80386 Programmer’s Reference Manual – Section 9.9 (mit.edu)</a></li>
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_10.htm">80386 Programmer’s Reference Manual — Section 9.10 (mit.edu)</a></li>
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_09.htm">80386 Programmer’s Reference Manual — Section 9.9 (mit.edu)</a></li>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/elv/article/details/4140532">实模式、保护模式、虚拟8086模式和IA-32e模式_elv的专栏-CSDN博客</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.felixcloutier.com/x86/intn:into:int3:int1">INT n/INTO/INT3/INT1 — Call to Interrupt Procedure (felixcloutier.com)</a></li>
-<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_06.htm">80386 Programmer’s Reference Manual – Section 9.6 (mit.edu)</a></li>
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_06.htm">80386 Programmer’s Reference Manual — Section 9.6 (mit.edu)</a></li>
 <li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/3425085/the-difference-between-call-gate-interrupt-gate-trap-gate">x86 - The difference between Call Gate, Interrupt Gate, Trap Gate? - Stack Overflow</a></li>
 <li>《计算机系统基础》（第二版）（袁春风）</li>
 </ol>

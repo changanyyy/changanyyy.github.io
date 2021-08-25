@@ -309,7 +309,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    4.5k
+                    4.4k
                 </div>
                 
 
@@ -334,11 +334,11 @@
                 <h2 id="一-开篇"><a href="#一-开篇" class="headerlink" title="一.开篇"></a>一.开篇</h2><p><code>Lab2</code>的代码量要明显多于<code>Lab1</code>，可以说是难度层层递进，这个实验主要是开启分页机制，打开虚拟地址机制。这个正是我在操作系统课上没有锻炼到的地方！话不多说，我的思考过程在下面。</p>
 <h2 id="二-Lab2"><a href="#二-Lab2" class="headerlink" title="二.Lab2"></a>二.Lab2</h2><h3 id="1-回顾"><a href="#1-回顾" class="headerlink" title="1.回顾"></a>1.回顾</h3><h4 id="1-1怎么开的保护模式？"><a href="#1-1怎么开的保护模式？" class="headerlink" title="1-1怎么开的保护模式？"></a>1-1怎么开的保护模式？</h4><p>我们在合并了<code>Lab1</code>之后，先来回顾一下操作系统启动的过程。</p>
 <p>我们从<code>Kernel</code>开始，首先进入<code>entry.S</code>，然后把一个简易的页表加载上<code>cr3</code>去，这个页表的作用是把内存的<code>[KERNBASE, KERNBASE+4MB)</code>和<code>[0, 4MB)</code>都映射到物理地址<code>[0, 4MB)</code>上去！为什么要把虚拟地址<code>[0, 4MB)</code>也映射上去呢？原因是在我开启分页之后，就从实地址模式变成了保护模式，<code>CPU</code>解析地址的方式就变化了。而我们下面还有两行汇编指令的地址位于低地址，而此时的<code>EIP</code>仍然位于低地址部分！这样开启分页之后，才可以获取到正确的指令！然后通过<code>jmp</code>指令跳转到虚拟地址<code>0xf0000000</code>地址的位置！</p>
-<pre class=" language-assembly"><code class="language-assembly">mov    $relocated, %eax
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">mov    $relocated, %eax
     jmp    *%eax
 </code></pre>
 <h4 id="1-2设置简易的栈"><a href="#1-2设置简易的栈" class="headerlink" title="1-2设置简易的栈"></a>1-2设置简易的栈</h4><p>下面<code>relocated</code>的作用是初始化一下栈区，从下面的代码可以看出，栈区的大小是<code>KSTKSIZE</code>，栈区的栈顶位于高地址，即<code>bootstacktop</code></p>
-<pre class=" language-assembly"><code class="language-assembly">    .p2align    PGSHIFT        # force page alignment
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">    .p2align    PGSHIFT        # force page alignment
     .globl        bootstack
 bootstack:
     .space        KSTKSIZE
@@ -351,297 +351,297 @@ bootstacktop:
 <h3 id="2-开始coding"><a href="#2-开始coding" class="headerlink" title="2.开始coding"></a>2.开始coding</h3><h4 id="2-1进入内存初始化！"><a href="#2-1进入内存初始化！" class="headerlink" title="2-1进入内存初始化！"></a>2-1进入内存初始化！</h4><p>进入内存初始化函数之后，我们先检测以下硬件提供的内存，这个工作由<code>i386_detect_memory</code>函数来完成。</p>
 <h4 id="2-2为必要的DS分配内存"><a href="#2-2为必要的DS分配内存" class="headerlink" title="2-2为必要的DS分配内存"></a>2-2为必要的DS分配内存</h4><p>继续往下看，看见是给<code>kern_pgdir</code>变量赋值，我们可以看见它的定义是一个全局变量，表示的是页目录的首地址！我们可以知道，页目录所对应逻辑地址中的10比特，那么一共有页目录<code>2^10=1024</code>个！而一个页目录项的大小是4字节，所以一个页目录占用的大小刚好是一个页面的大小！所以我们用<code>boot_alloc</code>函数来对页目录进行分配空间（后面会提到这个函数具体干啥的）。分配完之后，还要清零。</p>
 <p>下面一步是分配一个<code>pages</code>数组，每一项对应一个物理页框，我们可以得知一共有<code>npages</code>个物理页框，所以代码如下：</p>
-<pre class=" language-c"><code class="language-c">    <span class="token comment" spellcheck="true">//////////////////////////////////////////////////////////////////////</span>
-    <span class="token comment" spellcheck="true">// Allocate an array of npages 'struct PageInfo's and store it in 'pages'.</span>
-    <span class="token comment" spellcheck="true">// The kernel uses this array to keep track of physical pages: for</span>
-    <span class="token comment" spellcheck="true">// each physical page, there is a corresponding struct PageInfo in this</span>
-    <span class="token comment" spellcheck="true">// array.  'npages' is the number of physical pages in memory.  Use memset</span>
-    <span class="token comment" spellcheck="true">// to initialize all fields of each struct PageInfo to 0.</span>
-    <span class="token comment" spellcheck="true">// Your code goes here:</span>
-    pages<span class="token operator">=</span><span class="token punctuation">(</span><span class="token keyword">struct</span> PageInfo <span class="token operator">*</span><span class="token punctuation">)</span><span class="token function">boot_alloc</span><span class="token punctuation">(</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> PageInfo<span class="token punctuation">)</span> <span class="token operator">*</span> npages<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">memset</span><span class="token punctuation">(</span>pages<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> PageInfo<span class="token punctuation">)</span> <span class="token operator">*</span> npages<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">    //////////////////////////////////////////////////////////////////////
+    // Allocate an array of npages 'struct PageInfo's and store it in 'pages'.
+    // The kernel uses this array to keep track of physical pages: for
+    // each physical page, there is a corresponding struct PageInfo in this
+    // array.  'npages' is the number of physical pages in memory.  Use memset
+    // to initialize all fields of each struct PageInfo to 0.
+    // Your code goes here:
+    pages=(struct PageInfo *)boot_alloc(sizeof(struct PageInfo) * npages);
+    memset(pages, 0, sizeof(struct PageInfo) * npages);
 </code></pre>
 <p>现在既然关于页面和页目录的数据结构分配完了，我们就对这些内存进行初始化！</p>
 <h4 id="2-3初始化分页"><a href="#2-3初始化分页" class="headerlink" title="2-3初始化分页"></a>2-3初始化分页</h4><p>对于<code>page_init</code>函数，我们要做的是把已经分配出去的页框和空闲页框分类，空闲页框用一个链表串起来！</p>
 <p>在注释里已经提示我们哪里是可以分配，哪里是不可以分配的</p>
 <ol>
-<li> Mark physical page 0 as in use. This way we preserve the real-mode IDT and BIOS structures in case we ever need them.  (Currently we don’t, but…)</li>
+<li>Mark physical page 0 as in use. This way we preserve the real-mode IDT and BIOS structures in case we ever need them.  (Currently we don’t, but…)</li>
 <li>The rest of base memory, <code>[PGSIZE, npages_basemem * PGSIZE)</code> is free.</li>
 <li>Then comes the IO hole <code>[IOPHYSMEM, EXTPHYSMEM)</code>, which must never be allocated.</li>
 <li>Then extended memory <code>[EXTPHYSMEM, ...)</code>.Some of it is in use, some is free. Where is the kernel in physical memory?  Which pages are already in use for page tables and other data structures?</li>
 </ol>
 <p>我们如何理解呢？首先，0号物理页已经被<code>BIOS</code>和引导程序之类的代码占领了（以后我们还要用的），所以0号页面必然不可能是空闲的。从1号物理页面到<code>base_memory</code>的末尾，都是空闲的（也就是图片对应的<code>Low Memory</code>），可以从检测函数的输出看出一共有<code>640KB</code>，然后剩下的就是<code>ext_memory</code>，就很多了。</p>
 <p><code>IOPHYSMEM=0x000A0000，EXTPHYSMEM=0x00100000</code>，这两者中间的是关于<code>BIOS</code>和一些显示有关的区域，不可以被分配！从<code>0x100000</code>开始的部分，就是我们自由分配的部分，有的是空闲有的却不是，但是根据我们刚开始用<code>boot_alloc</code>函数分配的规则来看，我们是按照顺序分配的，所以在<code>boot_alloc(0)</code>之前（<code>boot_alloc(0)</code>返回值是第一个以页为对齐标准的空闲的物理内存的地址！）所以在<code>EXTPHYSMEM</code>和<code>boot_alloc(0)</code>之间的内存区域也不是空闲的，而且是系统必要的数据，比如页面结构<code>PageInfo</code>，页目录，内核代码！</p>
-<p><img src="/picture/%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98.png" alt="物理内存"></p>
+<p><img src="/picture/物理内存.png" alt="物理内存"></p>
 <p>根据上面的提示，我们对物理内存进行了庖丁解牛。于是，我写出了如下优美的代码（x）：</p>
 <p>需要注意的是空闲页面链表使用的是头插法！</p>
-<pre class=" language-c"><code class="language-c">    page_free_list <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-    size_t i<span class="token punctuation">;</span>
-    <span class="token keyword">for</span> <span class="token punctuation">(</span>i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> npages<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span>
-            i<span class="token operator">==</span><span class="token number">0</span> 
-        <span class="token operator">||</span>
-            <span class="token punctuation">(</span>
-                <span class="token function">page2pa</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">>=</span> IOPHYSMEM 
-                <span class="token operator">&amp;&amp;</span> 
-                <span class="token function">page2pa</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> EXTPHYSMEM
-            <span class="token punctuation">)</span> 
-        <span class="token operator">||</span>
-            <span class="token punctuation">(</span>
-                <span class="token function">page2pa</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">>=</span> EXTPHYSMEM 
-                <span class="token operator">&amp;&amp;</span>
-                <span class="token function">page2kva</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token function">boot_alloc</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span>
-            <span class="token punctuation">)</span>
-        <span class="token punctuation">)</span><span class="token punctuation">{</span>
-            pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>pp_ref <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-            pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>pp_link <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-            <span class="token keyword">continue</span><span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-        pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>pp_ref <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-        pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>pp_link <span class="token operator">=</span> page_free_list<span class="token punctuation">;</span>
-        page_free_list <span class="token operator">=</span> <span class="token operator">&amp;</span>pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
-        <span class="token comment" spellcheck="true">//cprintf("pagefree %d",i);</span>
-    <span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">    page_free_list = NULL;
+    size_t i;
+    for (i = 0; i < npages; i++) {
+        if(
+            i==0 
+        ||
+            (
+                page2pa(&pages[i]) >= IOPHYSMEM 
+                && 
+                page2pa(&pages[i]) < EXTPHYSMEM
+            ) 
+        ||
+            (
+                page2pa(&pages[i]) >= EXTPHYSMEM 
+                &&
+                page2kva(&pages[i]) < boot_alloc(0)
+            )
+        ){
+            pages[i].pp_ref = 0;
+            pages[i].pp_link = NULL;
+            continue;
+        }
+        pages[i].pp_ref = 0;
+        pages[i].pp_link = page_free_list;
+        page_free_list = &pages[i];
+        //cprintf("pagefree %d",i);
+    }
 </code></pre>
 <h4 id="2-4关于物理页的操作"><a href="#2-4关于物理页的操作" class="headerlink" title="2-4关于物理页的操作"></a>2-4关于物理页的操作</h4><h5 id="2-4-1-page-alloc"><a href="#2-4-1-page-alloc" class="headerlink" title="2-4-1 page_alloc"></a>2-4-1 page_alloc</h5><p>这个函数就是为了分配一个物理页，从今往后代替<code>boot_alloc</code>函数。</p>
 <p>我们已经在<code>page_init</code>函数里面初始化了空闲物理页链表，这就说明我们如果要分配一个物理页面，就要在空闲页面链表里面找。当链表头是<code>NULL</code>的时候，就说明页面分配完了。还有如果置零标志位为1，那么要初始清零！</p>
 <p>分配物理页的时候并不需要给<code>ref+1</code>，因为它还没有和一个虚拟页面进行关联！</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// Allocates a physical page.  If (alloc_flags &amp; ALLOC_ZERO), fills the entire</span>
-<span class="token comment" spellcheck="true">// returned physical page with '\0' bytes.  Does NOT increment the reference</span>
-<span class="token comment" spellcheck="true">// count of the page - the caller must do these if necessary (either explicitly</span>
-<span class="token comment" spellcheck="true">// or via page_insert).</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// Be sure to set the pp_link field of the allocated page to NULL so</span>
-<span class="token comment" spellcheck="true">// page_free can check for double-free bugs.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// Returns NULL if out of free memory.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// Hint: use page2kva and memset</span>
-<span class="token keyword">struct</span> PageInfo <span class="token operator">*</span>
-<span class="token function">page_alloc</span><span class="token punctuation">(</span><span class="token keyword">int</span> alloc_flags<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">//cprintf("Entry page alloc\n");</span>
-    <span class="token comment" spellcheck="true">//out of memory</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>page_free_list <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token keyword">return</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">//
+// Allocates a physical page.  If (alloc_flags & ALLOC_ZERO), fills the entire
+// returned physical page with '\0' bytes.  Does NOT increment the reference
+// count of the page - the caller must do these if necessary (either explicitly
+// or via page_insert).
+//
+// Be sure to set the pp_link field of the allocated page to NULL so
+// page_free can check for double-free bugs.
+//
+// Returns NULL if out of free memory.
+//
+// Hint: use page2kva and memset
+struct PageInfo *
+page_alloc(int alloc_flags)
+{
+    //cprintf("Entry page alloc\n");
+    //out of memory
+    if(page_free_list == NULL)return NULL;
 
-    <span class="token keyword">struct</span> PageInfo<span class="token operator">*</span> ret <span class="token operator">=</span> page_free_list<span class="token punctuation">;</span>
-    page_free_list <span class="token operator">=</span> page_free_list <span class="token operator">-></span> pp_link<span class="token punctuation">;</span>
-    ret <span class="token operator">-></span> pp_link <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">// Fill this function in</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>alloc_flags <span class="token operator">&amp;</span> ALLOC_ZERO<span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token function">memset</span><span class="token punctuation">(</span><span class="token function">page2kva</span><span class="token punctuation">(</span>ret<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">'\0'</span><span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+    struct PageInfo* ret = page_free_list;
+    page_free_list = page_free_list -> pp_link;
+    ret -> pp_link = NULL;
+    // Fill this function in
+    if(alloc_flags & ALLOC_ZERO){
+        memset(page2kva(ret), '\0', PGSIZE);
+    }
+    return ret;
+}
 </code></pre>
 <h5 id="2-4-2-page-free"><a href="#2-4-2-page-free" class="headerlink" title="2-4-2 page_free"></a>2-4-2 page_free</h5><p>这个函数用来把物理页框归还到空闲页框链表中。使用头插法！</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// Return a page to the free list.</span>
-<span class="token comment" spellcheck="true">// (This function should only be called when pp->pp_ref reaches 0.)</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token keyword">void</span>
-<span class="token function">page_free</span><span class="token punctuation">(</span><span class="token keyword">struct</span> PageInfo <span class="token operator">*</span>pp<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// Fill this function in</span>
-    <span class="token comment" spellcheck="true">// Hint: You may want to panic if pp->pp_ref is nonzero or</span>
-    <span class="token comment" spellcheck="true">// pp->pp_link is not NULL.</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>pp<span class="token operator">-></span>pp_ref <span class="token operator">!=</span> <span class="token number">0</span> <span class="token operator">||</span> pp<span class="token operator">-></span>pp_link <span class="token operator">!=</span> <span class="token constant">NULL</span><span class="token punctuation">)</span>
-        <span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"page_free: pp is not a page in use\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    pp<span class="token operator">-></span>pp_link <span class="token operator">=</span> page_free_list<span class="token punctuation">;</span>
-    page_free_list <span class="token operator">=</span> pp<span class="token punctuation">;</span>
-    <span class="token keyword">return</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">.</span>
+<pre class=" language-lang-c"><code class="language-lang-c">//
+// Return a page to the free list.
+// (This function should only be called when pp->pp_ref reaches 0.)
+//
+void
+page_free(struct PageInfo *pp)
+{
+    // Fill this function in
+    // Hint: You may want to panic if pp->pp_ref is nonzero or
+    // pp->pp_link is not NULL.
+    if(pp->pp_ref != 0 || pp->pp_link != NULL)
+        panic("page_free: pp is not a page in use\n");
+    pp->pp_link = page_free_list;
+    page_free_list = pp;
+    return;
+}.
 </code></pre>
 <h5 id="2-4-3-page-decref"><a href="#2-4-3-page-decref" class="headerlink" title="2-4-3 page_decref"></a>2-4-3 page_decref</h5><p>这个函数用来在删除映射过程中，衰减页框的引用位，当没有被引用时，就释放这个页框！</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// Decrement the reference count on a page,</span>
-<span class="token comment" spellcheck="true">// freeing it if there are no more refs.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token keyword">void</span>
-<span class="token function">page_decref</span><span class="token punctuation">(</span><span class="token keyword">struct</span> PageInfo<span class="token operator">*</span> pp<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">--</span>pp<span class="token operator">-></span>pp_ref <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span>
-        <span class="token function">page_free</span><span class="token punctuation">(</span>pp<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">//
+// Decrement the reference count on a page,
+// freeing it if there are no more refs.
+//
+void
+page_decref(struct PageInfo* pp)
+{
+    if (--pp->pp_ref == 0)
+        page_free(pp);
+}
 </code></pre>
 <h4 id="2-5关于映射"><a href="#2-5关于映射" class="headerlink" title="2-5关于映射"></a>2-5关于映射</h4><h5 id="2-5-1-page-walk"><a href="#2-5-1-page-walk" class="headerlink" title="2-5-1 page_walk"></a>2-5-1 page_walk</h5><p>这个函数刚开始我没有理解，后来在一遍遍反复阅读中我知道了它的作用：返回值是虚拟地址<code>va</code>对应的页表项的地址！（虚拟地址）</p>
 <p>因为这个虚拟地址对应的页表页可能还没有用到，所以就没有被映射，所以需要对它分配一个物理页框，同时让页目录表项填写这个物理页框的物理地址，然后把物理页框中对应页表项的地址作为返回值。</p>
 <p>那么如何判断页表项对应的物理页框是否存在呢，那就是通过<code>present</code>位来进行判断！当对应页目录项的存在位为0，说明对应页目录表项还不存在。这时再根据<code>create</code>位来确认是否要创建新的表项。</p>
 <p>如果存在的话，那就直接返回对应的页表项地址即可！</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Given 'pgdir', a pointer to a page directory, pgdir_walk returns</span>
-<span class="token comment" spellcheck="true">// a pointer to the page table entry (PTE) for linear address 'va'.</span>
-<span class="token comment" spellcheck="true">// This requires walking the two-level page table structure.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// The relevant page table page might not exist yet.</span>
-<span class="token comment" spellcheck="true">// If this is true, and create == false, then pgdir_walk returns NULL.</span>
-<span class="token comment" spellcheck="true">// Otherwise, pgdir_walk allocates a new page table page with page_alloc.</span>
-<span class="token comment" spellcheck="true">//    - If the allocation fails, pgdir_walk returns NULL.</span>
-<span class="token comment" spellcheck="true">//    - Otherwise, the new page's reference count is incremented,</span>
-<span class="token comment" spellcheck="true">//    the page is cleared,</span>
-<span class="token comment" spellcheck="true">//    and pgdir_walk returns a pointer into the new page table page.</span>
-pte_t <span class="token operator">*</span>
-<span class="token function">pgdir_walk</span><span class="token punctuation">(</span>pde_t <span class="token operator">*</span>pgdir<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">void</span> <span class="token operator">*</span>va<span class="token punctuation">,</span> <span class="token keyword">int</span> create<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// Fill this function in</span>
-    <span class="token keyword">int</span> pde_idx <span class="token operator">=</span> <span class="token function">PDX</span><span class="token punctuation">(</span>va<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">int</span> pte_idx <span class="token operator">=</span> <span class="token function">PTX</span><span class="token punctuation">(</span>va<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    pte_t <span class="token operator">*</span>ptep <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-    <span class="token keyword">int</span> present <span class="token operator">=</span> pgdir<span class="token punctuation">[</span>pde_idx<span class="token punctuation">]</span> <span class="token operator">&amp;</span> PTE_P<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>present <span class="token operator">&amp;&amp;</span> create <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token comment" spellcheck="true">//cprintf("ptep ");</span>
-        <span class="token keyword">return</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>present <span class="token operator">&amp;&amp;</span> create <span class="token operator">==</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token keyword">struct</span> PageInfo<span class="token operator">*</span> pg <span class="token operator">=</span> <span class="token function">page_alloc</span><span class="token punctuation">(</span>ALLOC_ZERO<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token comment" spellcheck="true">//cprintf("ptep ");</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span>pg <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token keyword">return</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-        <span class="token keyword">else</span><span class="token punctuation">{</span>
-            pg<span class="token operator">-></span>pp_ref<span class="token operator">++</span><span class="token punctuation">;</span>
-            ptep <span class="token operator">=</span> <span class="token punctuation">(</span>pte_t <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token function">KADDR</span><span class="token punctuation">(</span><span class="token function">page2pa</span><span class="token punctuation">(</span>pg<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token comment" spellcheck="true">//cprintf("ptep = %x\n", ptep);</span>
-            pgdir<span class="token punctuation">[</span><span class="token function">PDX</span><span class="token punctuation">(</span>va<span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">page2pa</span><span class="token punctuation">(</span>pg<span class="token punctuation">)</span> <span class="token operator">|</span> PTE_W <span class="token operator">|</span> PTE_U <span class="token operator">|</span> PTE_P<span class="token punctuation">;</span>
-            <span class="token keyword">return</span> <span class="token operator">&amp;</span>ptep<span class="token punctuation">[</span><span class="token function">PTX</span><span class="token punctuation">(</span>va<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">else</span><span class="token punctuation">{</span>
-        ptep <span class="token operator">=</span> <span class="token punctuation">(</span>pte_t <span class="token operator">*</span><span class="token punctuation">)</span><span class="token function">KADDR</span><span class="token punctuation">(</span><span class="token function">PTE_ADDR</span><span class="token punctuation">(</span>pgdir<span class="token punctuation">[</span>pde_idx<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
-        <span class="token comment" spellcheck="true">//cprintf("ptep = %x\n", ptep);</span>
-        <span class="token keyword">return</span> <span class="token operator">&amp;</span>ptep<span class="token punctuation">[</span><span class="token function">PTX</span><span class="token punctuation">(</span>va<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// Given 'pgdir', a pointer to a page directory, pgdir_walk returns
+// a pointer to the page table entry (PTE) for linear address 'va'.
+// This requires walking the two-level page table structure.
+//
+// The relevant page table page might not exist yet.
+// If this is true, and create == false, then pgdir_walk returns NULL.
+// Otherwise, pgdir_walk allocates a new page table page with page_alloc.
+//    - If the allocation fails, pgdir_walk returns NULL.
+//    - Otherwise, the new page's reference count is incremented,
+//    the page is cleared,
+//    and pgdir_walk returns a pointer into the new page table page.
+pte_t *
+pgdir_walk(pde_t *pgdir, const void *va, int create)
+{
+    // Fill this function in
+    int pde_idx = PDX(va);
+    int pte_idx = PTX(va);
+    pte_t *ptep = NULL;
+    int present = pgdir[pde_idx] & PTE_P;
+    if(!present && create == 0){
+        //cprintf("ptep ");
+        return NULL;
+    }
+    else if(!present && create == 1){
+        struct PageInfo* pg = page_alloc(ALLOC_ZERO);
+        //cprintf("ptep ");
+        if(pg == NULL)return NULL;
+        else{
+            pg->pp_ref++;
+            ptep = (pte_t *) KADDR(page2pa(pg));
+            //cprintf("ptep = %x\n", ptep);
+            pgdir[PDX(va)] = page2pa(pg) | PTE_W | PTE_U | PTE_P;
+            return &ptep[PTX(va)];
+        }
+    }
+    else{
+        ptep = (pte_t *)KADDR(PTE_ADDR(pgdir[pde_idx])); 
+        //cprintf("ptep = %x\n", ptep);
+        return &ptep[PTX(va)];
+    }
+}
 </code></pre>
 <h5 id="2-5-2-page-insert"><a href="#2-5-2-page-insert" class="headerlink" title="2-5-2 page_insert"></a>2-5-2 page_insert</h5><p>这个函数用来进行一个映射，给定页目录表项，给定物理页框（当然是<code>page_alloc</code>分配出来的），还有保护位的参数。我们需要做的是把虚拟地址对应的页面映射到物理页框上！</p>
 <p>我们首先要做的就是先获取对应页表项的地址，然后看看是否已经映射了，如果这片虚拟地址已经映射在同一个物理页框上，那么就不可以<code>remove</code>掉，因为一旦<code>remove</code>掉就可能分配不到同一个页框！！！（因为如果有多个进程占用页框）但是可能需要更改标志位，所以先把标志位清零再更改标志位。</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">int</span>
-<span class="token function">page_insert</span><span class="token punctuation">(</span>pde_t <span class="token operator">*</span>pgdir<span class="token punctuation">,</span> <span class="token keyword">struct</span> PageInfo <span class="token operator">*</span>pp<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>va<span class="token punctuation">,</span> <span class="token keyword">int</span> perm<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// Fill this function in</span>
-    pte_t <span class="token operator">*</span>ptep <span class="token operator">=</span> <span class="token function">pgdir_walk</span><span class="token punctuation">(</span>pgdir<span class="token punctuation">,</span> va<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>ptep <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token keyword">return</span> <span class="token operator">-</span>E_NO_MEM<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token operator">*</span>ptep<span class="token punctuation">)</span> <span class="token operator">&amp;</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token function">PTE_ADDR</span><span class="token punctuation">(</span><span class="token operator">*</span>ptep<span class="token punctuation">)</span><span class="token operator">==</span><span class="token function">page2pa</span><span class="token punctuation">(</span>pp<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-            <span class="token operator">*</span>ptep <span class="token operator">&amp;</span><span class="token operator">=</span> <span class="token operator">~</span><span class="token number">0xffe</span><span class="token punctuation">;</span>
-            <span class="token operator">*</span>ptep <span class="token operator">|</span><span class="token operator">=</span> perm <span class="token operator">|</span> PTE_P<span class="token punctuation">;</span>
-            <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-        <span class="token keyword">else</span>
-            <span class="token function">page_remove</span><span class="token punctuation">(</span>pgdir<span class="token punctuation">,</span> va<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token operator">*</span>ptep <span class="token operator">=</span> <span class="token function">page2pa</span><span class="token punctuation">(</span>pp<span class="token punctuation">)</span> <span class="token operator">|</span> perm <span class="token operator">|</span> PTE_P<span class="token punctuation">;</span>
-    pp <span class="token operator">-></span> pp_ref<span class="token operator">++</span><span class="token punctuation">;</span>
-    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">int
+page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
+{
+    // Fill this function in
+    pte_t *ptep = pgdir_walk(pgdir, va, 1);
+    if(ptep == NULL)return -E_NO_MEM;
+    if((*ptep) & PTE_P){
+        if(PTE_ADDR(*ptep)==page2pa(pp)){
+            *ptep &= ~0xffe;
+            *ptep |= perm | PTE_P;
+            return 0;
+        }
+        else
+            page_remove(pgdir, va);
+    }
+    *ptep = page2pa(pp) | perm | PTE_P;
+    pp -> pp_ref++;
+    return 0;
+}
 </code></pre>
 <h5 id="2-5-3-page-lookup"><a href="#2-5-3-page-lookup" class="headerlink" title="2-5-3 page_lookup"></a>2-5-3 page_lookup</h5><p>这个函数是用来查找对应虚拟地址是否已经映射到对应的物理页框中去，如果已经映射返回对应的<code>PageInfo</code>结构，否则返回<code>NULL</code>，并且把<code>pte</code>存入<code>pte_store</code>中去。</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">struct</span> PageInfo <span class="token operator">*</span>
-<span class="token function">page_lookup</span><span class="token punctuation">(</span>pde_t <span class="token operator">*</span>pgdir<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>va<span class="token punctuation">,</span> pte_t <span class="token operator">*</span><span class="token operator">*</span>pte_store<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// Fill this function in</span>
-    pte_t<span class="token operator">*</span> ptep <span class="token operator">=</span> <span class="token function">pgdir_walk</span><span class="token punctuation">(</span>pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>va<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>ptep <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token keyword">return</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>pte_store<span class="token punctuation">)</span><span class="token operator">*</span>pte_store <span class="token operator">=</span> ptep<span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">//cprintf("%x\n", PTE_ADDR(*ptep));</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token operator">*</span>ptep<span class="token punctuation">)</span> <span class="token operator">&amp;</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">)</span>
-        <span class="token keyword">return</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
-    <span class="token keyword">else</span> 
-        <span class="token keyword">return</span> <span class="token function">pa2page</span><span class="token punctuation">(</span><span class="token function">PTE_ADDR</span><span class="token punctuation">(</span><span class="token operator">*</span>ptep<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">struct PageInfo *
+page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
+{
+    // Fill this function in
+    pte_t* ptep = pgdir_walk(pgdir, (void *)va, 0);
+    if(ptep == NULL)return NULL;
+    if(pte_store)*pte_store = ptep;
+    //cprintf("%x\n", PTE_ADDR(*ptep));
+    if(!((*ptep) & PTE_P))
+        return NULL;
+    else 
+        return pa2page(PTE_ADDR(*ptep));
+}
 </code></pre>
 <h5 id="2-5-4-page-remove"><a href="#2-5-4-page-remove" class="headerlink" title="2-5-4 page_remove"></a>2-5-4 page_remove</h5><p>这个函数是移去映射，先关闭<code>va</code>对应的<code>tlb</code>，再对对应的<code>PTE</code>清零！最后别忘了减小<code>ref</code>。</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">void</span>
-<span class="token function">page_remove</span><span class="token punctuation">(</span>pde_t <span class="token operator">*</span>pgdir<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>va<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// Fill this function in</span>
-    <span class="token function">tlb_invalidate</span><span class="token punctuation">(</span>pgdir<span class="token punctuation">,</span>va<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    pte_t <span class="token operator">*</span>ptep <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token keyword">struct</span> PageInfo <span class="token operator">*</span>pg <span class="token operator">=</span> <span class="token function">page_lookup</span><span class="token punctuation">(</span>pgdir<span class="token punctuation">,</span> va<span class="token punctuation">,</span> <span class="token operator">&amp;</span>ptep<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>pg <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token keyword">return</span><span class="token punctuation">;</span>
-    <span class="token operator">*</span>ptep <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token function">page_decref</span><span class="token punctuation">(</span>pg<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">void
+page_remove(pde_t *pgdir, void *va)
+{
+    // Fill this function in
+    tlb_invalidate(pgdir,va);
+    pte_t *ptep = 0;
+    struct PageInfo *pg = page_lookup(pgdir, va, &ptep);
+    if(pg == NULL)return;
+    *ptep = 0;
+    page_decref(pg);
+}
 </code></pre>
 <h5 id="2-5-5-boot-map-region"><a href="#2-5-5-boot-map-region" class="headerlink" title="2-5-5 boot_map_region"></a>2-5-5 boot_map_region</h5><p>映射函数，把<code>[va, va + size)</code>对应的虚拟内存映射到<code>[pa, pa + size)</code>物理内存上。我最开始采用的方法是对内存直接比较，但是会出bug，后来改成按照页面的个数进行映射，这样就不会出现问题（并且<code>va</code>，<code>pa</code>，<code>size</code>都是按照页面大小对齐的）。</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Map [va, va+size) of virtual address space to physical [pa, pa+size)</span>
-<span class="token comment" spellcheck="true">// in the page table rooted at pgdir.  Size is a multiple of PGSIZE, and</span>
-<span class="token comment" spellcheck="true">// va and pa are both page-aligned.</span>
-<span class="token comment" spellcheck="true">// Use permission bits perm|PTE_P for the entries.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// This function is only intended to set up the ``static'' mappings</span>
-<span class="token comment" spellcheck="true">// above UTOP. As such, it should *not* change the pp_ref field on the</span>
-<span class="token comment" spellcheck="true">// mapped pages.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// Hint: the TA solution uses pgdir_walk</span>
-<span class="token keyword">static</span> <span class="token keyword">void</span>
-<span class="token function">boot_map_region</span><span class="token punctuation">(</span>pde_t <span class="token operator">*</span>pgdir<span class="token punctuation">,</span> uintptr_t va<span class="token punctuation">,</span> size_t size<span class="token punctuation">,</span> physaddr_t pa<span class="token punctuation">,</span> <span class="token keyword">int</span> perm<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// Fill this function in</span>
-    <span class="token keyword">int</span> pgn <span class="token operator">=</span> size <span class="token operator">/</span> PGSIZE<span class="token punctuation">;</span>
-    pte_t <span class="token operator">*</span>ptep<span class="token punctuation">;</span>
-    <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> pgn<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        ptep <span class="token operator">=</span> <span class="token function">pgdir_walk</span><span class="token punctuation">(</span>pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>va<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>ptep<span class="token punctuation">)</span><span class="token punctuation">{</span>
-            <span class="token comment" spellcheck="true">//cprintf("success map\n");</span>
-            <span class="token keyword">return</span><span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-        <span class="token operator">*</span>ptep <span class="token operator">=</span> pa <span class="token operator">|</span> perm <span class="token operator">|</span> PTE_P<span class="token punctuation">;</span>
-        va <span class="token operator">+</span><span class="token operator">=</span> PGSIZE<span class="token punctuation">;</span> 
-        pa <span class="token operator">+</span><span class="token operator">=</span> PGSIZE<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token comment" spellcheck="true">//cprintf("success map\n");</span>
-    <span class="token keyword">return</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// Map [va, va+size) of virtual address space to physical [pa, pa+size)
+// in the page table rooted at pgdir.  Size is a multiple of PGSIZE, and
+// va and pa are both page-aligned.
+// Use permission bits perm|PTE_P for the entries.
+//
+// This function is only intended to set up the ``static'' mappings
+// above UTOP. As such, it should *not* change the pp_ref field on the
+// mapped pages.
+//
+// Hint: the TA solution uses pgdir_walk
+static void
+boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm)
+{
+    // Fill this function in
+    int pgn = size / PGSIZE;
+    pte_t *ptep;
+    for(int i = 0; i < pgn; i++){
+        ptep = pgdir_walk(pgdir, (void *)va, 1);
+        if(!ptep){
+            //cprintf("success map\n");
+            return;
+        }
+        *ptep = pa | perm | PTE_P;
+        va += PGSIZE; 
+        pa += PGSIZE;
+    }
+    //cprintf("success map\n");
+    return;
+}
 </code></pre>
 <h4 id="2-6虚拟空间映射"><a href="#2-6虚拟空间映射" class="headerlink" title="2-6虚拟空间映射"></a>2-6虚拟空间映射</h4><p>下面在<code>mem_init</code>里面，我们映射了三个不同的区域。</p>
 <p>先映射页目录，对于应用程序的内核和用户空间，都是只读的权限，所以是<code>PTE_U</code>（这段代码是给出来的，并不是自己写的）</p>
-<pre class=" language-c"><code class="language-c">kern_pgdir<span class="token punctuation">[</span><span class="token function">PDX</span><span class="token punctuation">(</span>UVPT<span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">PADDR</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">)</span> <span class="token operator">|</span> PTE_U <span class="token operator">|</span> PTE_P<span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">kern_pgdir[PDX(UVPT)] = PADDR(kern_pgdir) | PTE_U | PTE_P;
 </code></pre>
 <p>映射页框数据结构<code>PageInfo</code>，把虚拟地址空间<code>UPAGES</code>映射到<code>pages</code>所在数组的地址空间，这样<code>kernel</code>可以通过内核空间对它可以修改。但是用户却不可以通过用户进行修改，只能读！</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">//////////////////////////////////////////////////////////////////////</span>
-    <span class="token comment" spellcheck="true">// Now we set up virtual memory</span>
+<pre class=" language-lang-c"><code class="language-lang-c">//////////////////////////////////////////////////////////////////////
+    // Now we set up virtual memory
 
-    <span class="token comment" spellcheck="true">//////////////////////////////////////////////////////////////////////</span>
-    <span class="token comment" spellcheck="true">// Map 'pages' read-only by the user at linear address UPAGES</span>
-    <span class="token comment" spellcheck="true">// Permissions:</span>
-    <span class="token comment" spellcheck="true">//    - the new image at UPAGES -- kernel R, user R</span>
-    <span class="token comment" spellcheck="true">//      (ie. perm = PTE_U | PTE_P)</span>
-    <span class="token comment" spellcheck="true">//    - pages itself -- kernel RW, user NONE</span>
-    <span class="token comment" spellcheck="true">// Your code goes here:</span>
-    <span class="token function">boot_map_region</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span>uintptr_t<span class="token punctuation">)</span>UPAGES<span class="token punctuation">,</span> PTSIZE<span class="token punctuation">,</span> <span class="token punctuation">(</span>physaddr_t<span class="token punctuation">)</span><span class="token function">PADDR</span><span class="token punctuation">(</span>pages<span class="token punctuation">)</span><span class="token punctuation">,</span> PTE_U <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    //////////////////////////////////////////////////////////////////////
+    // Map 'pages' read-only by the user at linear address UPAGES
+    // Permissions:
+    //    - the new image at UPAGES -- kernel R, user R
+    //      (ie. perm = PTE_U | PTE_P)
+    //    - pages itself -- kernel RW, user NONE
+    // Your code goes here:
+    boot_map_region(kern_pgdir, (uintptr_t)UPAGES, PTSIZE, (physaddr_t)PADDR(pages), PTE_U | PTE_P);
 </code></pre>
 <p>下面是映射内核栈，让<code>KSTACKTOP-KSTKSIZE</code>以下的地区不被映射，这样如果栈区越界就会报错，所以如下面的代码。</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">//////////////////////////////////////////////////////////////////////</span>
-    <span class="token comment" spellcheck="true">// Use the physical memory that 'bootstack' refers to as the kernel</span>
-    <span class="token comment" spellcheck="true">// stack.  The kernel stack grows down from virtual address KSTACKTOP.</span>
-    <span class="token comment" spellcheck="true">// We consider the entire range from [KSTACKTOP-PTSIZE, KSTACKTOP)</span>
-    <span class="token comment" spellcheck="true">// to be the kernel stack, but break this into two pieces:</span>
-    <span class="token comment" spellcheck="true">//     * [KSTACKTOP-KSTKSIZE, KSTACKTOP) -- backed by physical memory</span>
-    <span class="token comment" spellcheck="true">//     * [KSTACKTOP-PTSIZE, KSTACKTOP-KSTKSIZE) -- not backed; so if</span>
-    <span class="token comment" spellcheck="true">//       the kernel overflows its stack, it will fault rather than</span>
-    <span class="token comment" spellcheck="true">//       overwrite memory.  Known as a "guard page".</span>
-    <span class="token comment" spellcheck="true">//     Permissions: kernel RW, user NONE</span>
-    <span class="token comment" spellcheck="true">// Your code goes here:</span>
-    <span class="token function">boot_map_region</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span>uintptr_t<span class="token punctuation">)</span>KSTACKTOP <span class="token operator">-</span> KSTKSIZE<span class="token punctuation">,</span> KSTKSIZE<span class="token punctuation">,</span> <span class="token function">PADDR</span><span class="token punctuation">(</span>bootstack<span class="token punctuation">)</span><span class="token punctuation">,</span> PTE_W <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">//////////////////////////////////////////////////////////////////////
+    // Use the physical memory that 'bootstack' refers to as the kernel
+    // stack.  The kernel stack grows down from virtual address KSTACKTOP.
+    // We consider the entire range from [KSTACKTOP-PTSIZE, KSTACKTOP)
+    // to be the kernel stack, but break this into two pieces:
+    //     * [KSTACKTOP-KSTKSIZE, KSTACKTOP) -- backed by physical memory
+    //     * [KSTACKTOP-PTSIZE, KSTACKTOP-KSTKSIZE) -- not backed; so if
+    //       the kernel overflows its stack, it will fault rather than
+    //       overwrite memory.  Known as a "guard page".
+    //     Permissions: kernel RW, user NONE
+    // Your code goes here:
+    boot_map_region(kern_pgdir, (uintptr_t)KSTACKTOP - KSTKSIZE, KSTKSIZE, PADDR(bootstack), PTE_W | PTE_P);
 </code></pre>
 <p>最后映射<code>KERNBASE</code>之后的所有虚拟空间！，映射到物理内存最低位</p>
-<pre class=" language-c"><code class="language-c">    <span class="token comment" spellcheck="true">//////////////////////////////////////////////////////////////////////</span>
-    <span class="token comment" spellcheck="true">// Map all of physical memory at KERNBASE.</span>
-    <span class="token comment" spellcheck="true">// Ie.  the VA range [KERNBASE, 2^32) should map to</span>
-    <span class="token comment" spellcheck="true">//      the PA range [0, 2^32 - KERNBASE)</span>
-    <span class="token comment" spellcheck="true">// We might not have 2^32 - KERNBASE bytes of physical memory, but</span>
-    <span class="token comment" spellcheck="true">// we just set up the mapping anyway.</span>
-    <span class="token comment" spellcheck="true">// Permissions: kernel RW, user NONE</span>
-    <span class="token comment" spellcheck="true">// Your code goes here:</span>
-    <span class="token function">boot_map_region</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span>uintptr_t<span class="token punctuation">)</span>KERNBASE<span class="token punctuation">,</span> <span class="token number">0xffffffff</span> <span class="token operator">-</span> KERNBASE<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> PTE_W <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">    //////////////////////////////////////////////////////////////////////
+    // Map all of physical memory at KERNBASE.
+    // Ie.  the VA range [KERNBASE, 2^32) should map to
+    //      the PA range [0, 2^32 - KERNBASE)
+    // We might not have 2^32 - KERNBASE bytes of physical memory, but
+    // we just set up the mapping anyway.
+    // Permissions: kernel RW, user NONE
+    // Your code goes here:
+    boot_map_region(kern_pgdir, (uintptr_t)KERNBASE, 0xffffffff - KERNBASE, 0, PTE_W | PTE_P);
 </code></pre>
 <h2 id="三-下面回答几个问题："><a href="#三-下面回答几个问题：" class="headerlink" title="三.下面回答几个问题："></a>三.下面回答几个问题：</h2><p>1.<strong>Assuming that the following JOS kernel code is correct, what type should variable <code>x</code> have, <code>uintptr_t</code> or <code>physaddr_t</code>?</strong></p>
 <pre><code>    mystery_t x;
     char* value = return_a_pointer();
     *value = 10;
     x = (mystery_t) value;
-</code></pre>
-<p>答：</p>
+</code></pre><p>答：</p>
 <p>2.填下面的表：</p>
+<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -650,7 +650,8 @@ pte_t <span class="token operator">*</span>
 <th>Points to (logically):</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>1023</td>
 <td>0xffc00000</td>
 <td>Page Table for [252MB,256MB) of phys memory</td>
@@ -690,7 +691,9 @@ pte_t <span class="token operator">*</span>
 <td>0x00000000</td>
 <td>Page Table for [0MB,4MB) of phys memory</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
+</div>
 <p>3.<strong>We have placed the kernel and user environment in the same address space. Why will user programs not be able to read or write the kernel’s memory? What specific mechanisms protect the kernel memory?</strong></p>
 <p>答：由于页表可以设置权限（参见附录），如果<code>PTE_U</code>位为0的话，用户就无法读写内核代码</p>
 <p>4.<strong>What is the maximum amount of physical memory that this operating system can support? Why?</strong></p>
@@ -699,22 +702,22 @@ pte_t <span class="token operator">*</span>
 <p>我们的额外负载有<code>pages</code>数组，还有页目录，页表</p>
 <p>当达到最大的物理内存的话，所有的页目录页表和<code>pages</code>数组都在工作。</p>
 <p>页目录占用空间<code>4KB</code>，页表占用<code>1024*4KB=4096KB</code>，<code>pages</code>占用<code>4KB*1024=4MB</code>，加起来大约<code>8MB</code></p>
-<p><img src="/picture/szo.png"></p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">struct</span> PageInfo <span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// Next page on the free list.</span>
-    <span class="token keyword">struct</span> PageInfo <span class="token operator">*</span>pp_link<span class="token punctuation">;</span>
+<p><img src="/picture/szo.png" alt=""></p>
+<pre class=" language-lang-c"><code class="language-lang-c">struct PageInfo {
+    // Next page on the free list.
+    struct PageInfo *pp_link;
 
-    <span class="token comment" spellcheck="true">// pp_ref is the count of pointers (usually in page table entries)</span>
-    <span class="token comment" spellcheck="true">// to this page, for pages allocated using page_alloc.</span>
-    <span class="token comment" spellcheck="true">// Pages allocated at boot time using pmap.c's</span>
-    <span class="token comment" spellcheck="true">// boot_alloc do not have valid reference count fields.</span>
+    // pp_ref is the count of pointers (usually in page table entries)
+    // to this page, for pages allocated using page_alloc.
+    // Pages allocated at boot time using pmap.c's
+    // boot_alloc do not have valid reference count fields.
 
-    uint16_t pp_ref<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
+    uint16_t pp_ref;
+};
 </code></pre>
 <p>6.<strong>Revisit the page table setup in <code>kern/entry.S</code> and <code>kern/entrypgdir.c</code>. Immediately after we turn on paging, EIP is still a low number (a little over 1MB). At what point do we transition to running at an EIP above KERNBASE? What makes it possible for us to continue executing at a low EIP between when we enable paging and when we begin running at an EIP above KERNBASE? Why is this transition necessary?</strong></p>
 <p>答：上面的回顾里面已经解释过了，<code>jmp</code>指令完成了到高地址的跳转。</p>
-<h2 id="三-附录"><a href="#三-附录" class="headerlink" title="三.附录"></a>三.附录</h2><h3 id="1-页目录项和页表项"><a href="#1-页目录项和页表项" class="headerlink" title="1.页目录项和页表项"></a>1.页目录项和页表项</h3><p><img src="/picture/pdepte.png"></p>
+<h2 id="三-附录"><a href="#三-附录" class="headerlink" title="三.附录"></a>三.附录</h2><h3 id="1-页目录项和页表项"><a href="#1-页目录项和页表项" class="headerlink" title="1.页目录项和页表项"></a>1.页目录项和页表项</h3><p><img src="/picture/pdepte.png" alt=""></p>
 <p>上图就是页目录项和页表项的格式。可以看出，由于页表或者页的物理地址都是4KB对齐的（低12位全是零），所以上图中只保留了物理基地址的高20位（bit[31:12]）。低12位可以安排其他用途。</p>
 <p>【P】：存在位。为1表示页表或者页位于内存中。否则，表示不在内存中，必须先予以创建或者从磁盘调入内存后方可使用。<br>【R/W】：读写标志。为1表示页面可以被读写，为0表示只读。当处理器运行在0、1、2特权级时，此位不起作用。页目录中的这个位对其所映射的所有页面起作用。<br>【U/S】：用户/超级用户标志。为1时，允许所有特权级别的程序访问；为0时，仅允许特权级为0、1、2的程序访问。页目录中的这个位对其所映射的所有页面起作用。<br>【PWT】：Page级的Write-Through标志位。为1时使用Write-Through的Cache类型；为0时使用Write-Back的Cache类型。当CR0.CD=1时（Cache被Disable掉），此标志被忽略。对于我们的实验，此位清零。<br>【PCD】：Page级的Cache Disable标志位。为1时，物理页面是不能被Cache的；为0时允许Cache。当CR0.CD=1时，此标志被忽略。对于我们的实验，此位清零。<br>【A】：访问位。该位由处理器固件设置，用来指示此表项所指向的页是否已被访问（读或写），一旦置位，处理器从不清这个标志位。这个位可以被操作系统用来监视页的使用频率。<br>【D】：脏位。该位由处理器固件设置，用来指示此表项所指向的页是否写过数据。<br>【PS】：Page Size位。为0时，页的大小是4KB；为1时，页的大小是4MB（for normal 32-bit addressing ）或者2MB（if extended physical addressing is enabled).<br>【G】：全局位。如果页是全局的，那么它将在高速缓存中一直保存。当CR4.PGE=1时，可以设置此位为1，指示Page是全局Page，在CR3被更新时，TLB内的全局Page不会被刷新。<br>【AVL】：被处理器忽略，软件可以使用。</p>
 <h2 id="四-reference"><a href="#四-reference" class="headerlink" title="四.reference"></a>四.reference</h2><p>1.<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/3be92c8228b6">6.828 操作系统 lab2 实验报告 - 简书 (jianshu.com)</a></p>

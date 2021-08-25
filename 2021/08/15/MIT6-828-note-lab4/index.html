@@ -309,14 +309,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    4.7k
+                    4.5k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    29 分
+                    28 分
                 </div>
                 
 
@@ -334,7 +334,7 @@
                 <h1 id="Lab4-note"><a href="#Lab4-note" class="headerlink" title="Lab4 note"></a>Lab4 note</h1><h2 id="1-introduction"><a href="#1-introduction" class="headerlink" title="1 introduction"></a>1 introduction</h2><p>In this lab, we should implement the preemptive multitasking mechanism among multiple simultaneously active user-mode environment. The lab is divided into 3 parts, which in each part we have disparate tasks to complete. In part A, we will add multiprocessor support to our system, while we will implement a Unix-like <code>fork</code> in part B. Ultimately, we will add support for inter-process communication (<code>IPC</code>), allowing different user-mode environments to communicate and synchronize with each other explicitly.</p>
 <h2 id="2-preparation"><a href="#2-preparation" class="headerlink" title="2 preparation"></a>2 preparation</h2><p>Before starting, we are supposed to acquire some propaedeutics about multitask and multiprocessor. There are some word abbreviations about this aspect: BSP, AP, MP. Below is the explanation of them.</p>
 <h3 id="2-1-operating-system-boot-up"><a href="#2-1-operating-system-boot-up" class="headerlink" title="2-1  operating system boot-up"></a>2-1  operating system boot-up</h3><p>While all processors in an MP-compliant system are functionally identical, one of the processors will be designated as the boot processor (BSP) at system initialization by system hardware or by application processors (APs). <strong>The BSP is responsible for booting the operating system.</strong> Once the MP operating system is up and running, the BSP functions as an AP. Usually a processor is designed as the BSP because it is capable of controlling all system hardware, including AP start up and shut down. The operating system must determine and remember the APIC ID of the designated BSP, so it can keep the BSP operating as the last running processor during system shut down. The BSP is not necessarily the first processor, especially in fault-tolerant MP systems in which any available processor can be designated as the BSP. There are some AP states at the time that the first instruction of the operating system is executed, while our process are in halted condition with interrupts disabled. This means that the AP’s local APICs (<code>lapic</code>) are passively monitor the APIC bus and will react only to INIT or STARTUP inter-processor interrupts (IPIs).</p>
-<h3 id="2-2-AP-start-up"><a href="#2-2-AP-start-up" class="headerlink" title="2-2 AP start up"></a>2-2 AP start up</h3><p><img src="/picture/stup.png"></p>
+<h3 id="2-2-AP-start-up"><a href="#2-2-AP-start-up" class="headerlink" title="2-2 AP start up"></a>2-2 AP start up</h3><p><img src="/picture/stup.png" alt=""></p>
 <h2 id="3-Part-A-Multiprocessor-Support-and-Cooperative-Multitasking"><a href="#3-Part-A-Multiprocessor-Support-and-Cooperative-Multitasking" class="headerlink" title="3 Part A: Multiprocessor Support and Cooperative Multitasking"></a>3 Part A: Multiprocessor Support and Cooperative Multitasking</h2><p>There are some new include files and source files at this stage. Let’s have a look at the crucial ones.</p>
 <h3 id="3-1-mmio-map-region"><a href="#3-1-mmio-map-region" class="headerlink" title="3-1 mmio_map_region"></a>3-1 <code>mmio_map_region</code></h3><p>In <code>kern/init.c</code>, we see a function called <code>lapic_init</code> and trace into it. It brings me to a source file named <code>lapic.c</code>. A variable called <code>lapicaddr</code> is initialized in <code>mpconfig.c</code>. There are three structures: <code>mp</code>, <code>mpconf</code>, <code>mpproc</code>. There are some functions related to multiprocessor:</p>
 <ul>
@@ -350,23 +350,23 @@
 </ul>
 <p>Above is some basic auxiliary functions. And the most significant procedure is <code>mp_init</code>. It looks for the <code>mpconfig</code> and assign the address of local APIC to <code>lapicaddr</code>. And then it initializes <code>cpus[]</code> with the aid of the configuration we read.</p>
 <p>so,we get the physical address of <code>LAPIC</code>. We can map the physical address in the virtual memory so that we can access it.</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// Reserve size bytes in the MMIO region and map [pa,pa+size) at this</span>
-<span class="token comment" spellcheck="true">// location.  Return the base of the reserved region.  size does *not*</span>
-<span class="token comment" spellcheck="true">// have to be multiple of PGSIZE.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token keyword">void</span> <span class="token operator">*</span>
-<span class="token function">mmio_map_region</span><span class="token punctuation">(</span>physaddr_t pa<span class="token punctuation">,</span> size_t size<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// Your code here:</span>
-    size <span class="token operator">=</span> <span class="token function">ROUNDUP</span><span class="token punctuation">(</span>size<span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>base <span class="token operator">+</span> size <span class="token operator">>=</span> MMIOLIM<span class="token punctuation">)</span>
-        <span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"mmio_map_region: out of memory\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">boot_map_region</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">,</span> base<span class="token punctuation">,</span> size<span class="token punctuation">,</span> pa<span class="token punctuation">,</span> PTE_PCD<span class="token operator">|</span>PTE_PWT<span class="token operator">|</span>PTE_W<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    base <span class="token operator">+</span><span class="token operator">=</span> size<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">//
+// Reserve size bytes in the MMIO region and map [pa,pa+size) at this
+// location.  Return the base of the reserved region.  size does *not*
+// have to be multiple of PGSIZE.
+//
+void *
+mmio_map_region(physaddr_t pa, size_t size)
+{
+    // Your code here:
+    size = ROUNDUP(size, PGSIZE);
+    if(base + size >= MMIOLIM)
+        panic("mmio_map_region: out of memory\n");
+    boot_map_region(kern_pgdir, base, size, pa, PTE_PCD|PTE_PWT|PTE_W);
+    base += size;
+}
 </code></pre>
-<h3 id="3-2-modify-page-init"><a href="#3-2-modify-page-init" class="headerlink" title="3-2 modify page_init"></a>3-2 modify <code>page_init</code></h3><p><img src="/picture/3-2.png"></p>
+<h3 id="3-2-modify-page-init"><a href="#3-2-modify-page-init" class="headerlink" title="3-2 modify page_init"></a>3-2 modify <code>page_init</code></h3><p><img src="/picture/3-2.png" alt=""></p>
 <h3 id="3-3-mem-init-mp"><a href="#3-3-mem-init-mp" class="headerlink" title="3-3 mem_init_mp"></a>3-3 <code>mem_init_mp</code></h3><p>When writing a multiprocessor OS, it is important to distinguish between per-CPU state that is private to each processor, and global state that the whole system shares. <code>kern/cpu.h</code> defines most of the per-CPU state, including <code>struct CpuInfo</code>, which stores per-CPU variables. <code>cpunum()</code> always returns the ID of the CPU that calls it, which can be used as an index into arrays like <code>cpus</code>. Alternatively, the macro <code>thiscpu</code> is shorthand for the current CPU’s <code>struct CpuInfo</code>.</p>
 <p>Here is the per-CPU state you should be aware of:</p>
 <ul>
@@ -383,67 +383,67 @@
 </li>
 </ul>
 <p>We should accomplish the function <code>mem_init_mp</code>. The graph in <code>memlayout</code> illustrates the memory layout of different CPUs’ kernel stack in the virtual memory. The code is below:</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Modify mappings in kern_pgdir to support SMP</span>
-<span class="token comment" spellcheck="true">//   - Map the per-CPU stacks in the region [KSTACKTOP-PTSIZE, KSTACKTOP)</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token keyword">static</span> <span class="token keyword">void</span>
-<span class="token function">mem_init_mp</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here:</span>
-    uint32_t kstracktop_i<span class="token punctuation">;</span>
-    <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> NCPU<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        kstracktop_i <span class="token operator">=</span> KSTACKTOP <span class="token operator">-</span> i <span class="token operator">*</span> <span class="token punctuation">(</span>KSTKSIZE <span class="token operator">+</span> KSTKGAP<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token function">boot_map_region</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">,</span> kstracktop_i <span class="token operator">-</span> KSTKSIZE<span class="token punctuation">,</span> 
-            KSTKSIZE<span class="token punctuation">,</span> <span class="token function">PADDR</span><span class="token punctuation">(</span>percpu_kstacks<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span> PTE_W<span class="token operator">|</span>PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// Modify mappings in kern_pgdir to support SMP
+//   - Map the per-CPU stacks in the region [KSTACKTOP-PTSIZE, KSTACKTOP)
+//
+static void
+mem_init_mp(void)
+{
+    // LAB 4: Your code here:
+    uint32_t kstracktop_i;
+    for(int i = 0; i < NCPU; i++){
+        kstracktop_i = KSTACKTOP - i * (KSTKSIZE + KSTKGAP);
+        boot_map_region(kern_pgdir, kstracktop_i - KSTKSIZE, 
+            KSTKSIZE, PADDR(percpu_kstacks[i]), PTE_W|PTE_P);
+    }
+}
 </code></pre>
 <h3 id="3-4-trap-init-per-cpu"><a href="#3-4-trap-init-per-cpu" class="headerlink" title="3-4 trap_init_per_cpu"></a>3-4 <code>trap_init_per_cpu</code></h3><p>Task segment will store for each CPU, so we shouldn’t use <code>ts</code> anymore, and replace <code>ts</code> with <code>thiscpu</code> instead.</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Initialize and load the per-CPU TSS and IDT</span>
-<span class="token keyword">void</span>
-<span class="token function">trap_init_percpu</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here:</span>
-    <span class="token comment" spellcheck="true">// Setup a TSS so that we get the right stack</span>
-    <span class="token comment" spellcheck="true">// when we trap to the kernel.</span>
-    thiscpu<span class="token operator">-></span>cpu_ts<span class="token punctuation">.</span>ts_esp0 <span class="token operator">=</span> KSTACKTOP <span class="token operator">-</span> <span class="token function">cpunum</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token punctuation">(</span>KSTKSIZE <span class="token operator">+</span> KSTKGAP<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    thiscpu<span class="token operator">-></span>cpu_ts<span class="token punctuation">.</span>ts_ss0 <span class="token operator">=</span> GD_KD<span class="token punctuation">;</span>
-    thiscpu<span class="token operator">-></span>cpu_ts<span class="token punctuation">.</span>ts_iomb <span class="token operator">=</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> Taskstate<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// Initialize and load the per-CPU TSS and IDT
+void
+trap_init_percpu(void)
+{
+    // LAB 4: Your code here:
+    // Setup a TSS so that we get the right stack
+    // when we trap to the kernel.
+    thiscpu->cpu_ts.ts_esp0 = KSTACKTOP - cpunum() * (KSTKSIZE + KSTKGAP);
+    thiscpu->cpu_ts.ts_ss0 = GD_KD;
+    thiscpu->cpu_ts.ts_iomb = sizeof(struct Taskstate);
 
-    <span class="token comment" spellcheck="true">// Initialize the TSS slot of the gdt.</span>
-    gdt<span class="token punctuation">[</span><span class="token punctuation">(</span>GD_TSS0 <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token function">cpunum</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">SEG16</span><span class="token punctuation">(</span>STS_T32A<span class="token punctuation">,</span> <span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token punctuation">(</span>thiscpu<span class="token operator">-></span>cpu_ts<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-                    <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> Taskstate<span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    gdt<span class="token punctuation">[</span><span class="token punctuation">(</span>GD_TSS0 <span class="token operator">>></span> <span class="token number">3</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token function">cpunum</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">.</span>sd_s <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>        
-    
-    <span class="token comment" spellcheck="true">// Load the TSS selector (like other segment selectors, the</span>
-    <span class="token comment" spellcheck="true">// bottom three bits are special; we leave them 0)</span>
-    <span class="token function">ltr</span><span class="token punctuation">(</span>GD_TSS0 <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token function">cpunum</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    // Initialize the TSS slot of the gdt.
+    gdt[(GD_TSS0 >> 3) + cpunum()] = SEG16(STS_T32A, (uint32_t) (&(thiscpu->cpu_ts)),
+                    sizeof(struct Taskstate) - 1, 0);
+    gdt[(GD_TSS0 >> 3) + cpunum()].sd_s = 0;        
 
-    <span class="token comment" spellcheck="true">// Load the IDT</span>
-    <span class="token function">lidt</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>idt_pd<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+    // Load the TSS selector (like other segment selectors, the
+    // bottom three bits are special; we leave them 0)
+    ltr(GD_TSS0 + (cpunum() << 3));
+
+    // Load the IDT
+    lidt(&idt_pd);
+}
 </code></pre>
 <h3 id="3-5-scheduler"><a href="#3-5-scheduler" class="headerlink" title="3-5 scheduler"></a>3-5 <code>scheduler</code></h3><p>In the scheduler, we must choose a user environment to run and run it. The scheduler we will implement is a round-robin one. We scan the <code>envs</code> array from <code>curenv</code>. If <code>curenv</code> isn’t existing (That means there has not been a user environment yet.) ,The scanning will start from <code>envs[0]</code>. If some environment is runnable, run it!</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Choose a user environment to run and run it.</span>
-<span class="token keyword">void</span>
-<span class="token function">sched_yield</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token keyword">struct</span> Env <span class="token operator">*</span>idle<span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    <span class="token keyword">int</span> curid <span class="token operator">=</span> curenv <span class="token operator">?</span> <span class="token function">ENVX</span><span class="token punctuation">(</span>curenv<span class="token operator">-></span>env_id<span class="token punctuation">)</span> <span class="token punctuation">:</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
-    
-    <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token punctuation">(</span>curid <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">%</span> NENV<span class="token punctuation">;</span> i <span class="token operator">!=</span> curid<span class="token punctuation">;</span> i <span class="token operator">=</span> <span class="token punctuation">(</span>i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">%</span> NENV<span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span>envs<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>env_status <span class="token operator">==</span> ENV_RUNNABLE<span class="token punctuation">)</span><span class="token punctuation">{</span>
-            <span class="token function">env_run</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>envs<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>curenv<span class="token operator">-></span>env_status <span class="token operator">==</span> ENV_RUNNING<span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token function">env_run</span><span class="token punctuation">(</span>curenv<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// Choose a user environment to run and run it.
+void
+sched_yield(void)
+{
+    struct Env *idle;
+    // LAB 4: Your code here.
+    int curid = curenv ? ENVX(curenv->env_id) : -1;
 
-    <span class="token comment" spellcheck="true">// sched_halt never returns</span>
-    <span class="token function">sched_halt</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+    for(int i = (curid + 1) % NENV; i != curid; i = (i + 1) % NENV){
+        if(envs[i].env_status == ENV_RUNNABLE){
+            env_run(&envs[i]);
+        }
+    }
+    if(curenv->env_status == ENV_RUNNING){
+        env_run(curenv);
+    }
+
+    // sched_halt never returns
+    sched_halt();
+}
 </code></pre>
 <h3 id="3-6-system-call"><a href="#3-6-system-call" class="headerlink" title="3-6 system call"></a>3-6 <code>system call</code></h3><p>We will provide a different, more primitive set of system calls for creating new user-mode environments. With these system calls we can implement a Unix-like <code>fork()</code> entirely in user space, in addition to other styles of environment creation. The new system calls  we need for JOS are as follows:</p>
 <ul>
@@ -465,132 +465,136 @@
 <p>The description on the comments is very detailed. So I omit the details how to implement these syscalls. Here is the code:</p>
 <ul>
 <li><p><code>sys_exofork</code>:</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">static</span> envid_t
-<span class="token function">sys_exofork</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    <span class="token keyword">struct</span> Env <span class="token operator">*</span>e<span class="token punctuation">;</span>
-    <span class="token keyword">int</span> res<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>res <span class="token operator">=</span> <span class="token function">env_alloc</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>e<span class="token punctuation">,</span> curenv<span class="token operator">-></span>env_id<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
-        <span class="token keyword">return</span> res<span class="token punctuation">;</span>
-    e<span class="token operator">-></span>env_status <span class="token operator">=</span> ENV_NOT_RUNNABLE<span class="token punctuation">;</span>
-    e<span class="token operator">-></span>env_tf <span class="token operator">=</span> curenv<span class="token operator">-></span>env_tf<span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">static envid_t
+sys_exofork(void)
+{
+    // LAB 4: Your code here.
+    struct Env *e;
+    int res;
+    if((res = env_alloc(&e, curenv->env_id)) < 0)
+        return res;
+    e->env_status = ENV_NOT_RUNNABLE;
+    e->env_tf = curenv->env_tf;
 
-    e<span class="token operator">-></span>env_tf<span class="token punctuation">.</span>tf_regs<span class="token punctuation">.</span>reg_eax <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>curenv<span class="token operator">-></span>env_id <span class="token operator">!=</span> e<span class="token operator">-></span>env_id<span class="token punctuation">)</span><span class="token keyword">return</span> e<span class="token operator">-></span>env_id<span class="token punctuation">;</span>
-    <span class="token keyword">else</span> <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">//panic("sys_exofork not implemented");</span>
-<span class="token punctuation">}</span>
+    e->env_tf.tf_regs.reg_eax = 0;
+    if(curenv->env_id != e->env_id)return e->env_id;
+    else return 0;
+    //panic("sys_exofork not implemented");
+}
 </code></pre>
 </li>
 <li><p><code>sys_env_set_status</code>:</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">//    -E_INVAL if status is not a valid status for an environment.</span>
-<span class="token keyword">static</span> <span class="token keyword">int</span>
-<span class="token function">sys_env_set_status</span><span class="token punctuation">(</span>envid_t envid<span class="token punctuation">,</span> <span class="token keyword">int</span> status<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    <span class="token keyword">struct</span> Env <span class="token operator">*</span>e<span class="token punctuation">;</span>
-    <span class="token keyword">int</span> res<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>res <span class="token operator">=</span> <span class="token function">envid2env</span><span class="token punctuation">(</span>envid<span class="token punctuation">,</span> <span class="token operator">&amp;</span>e<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
-        <span class="token keyword">return</span> res<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>    status <span class="token operator">!=</span> ENV_FREE <span class="token operator">&amp;&amp;</span>
-        status <span class="token operator">!=</span> ENV_DYING <span class="token operator">&amp;&amp;</span>
-        status <span class="token operator">!=</span> ENV_RUNNABLE <span class="token operator">&amp;&amp;</span>
-        status <span class="token operator">!=</span> ENV_RUNNING <span class="token operator">&amp;&amp;</span>
-        status <span class="token operator">!=</span> ENV_NOT_RUNNABLE
-    <span class="token punctuation">)</span>
-    <span class="token keyword">return</span> <span class="token operator">-</span>E_INVAL<span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">//    -E_INVAL if status is not a valid status for an environment.
+static int
+sys_env_set_status(envid_t envid, int status)
+{
+    // LAB 4: Your code here.
+    struct Env *e;
+    int res;
+    if((res = envid2env(envid, &e, 1)) < 0)
+        return res;
+    if(    status != ENV_FREE &&
+        status != ENV_DYING &&
+        status != ENV_RUNNABLE &&
+        status != ENV_RUNNING &&
+        status != ENV_NOT_RUNNABLE
+    )
+    return -E_INVAL;
 
-    e<span class="token operator">-></span>env_status <span class="token operator">=</span> status<span class="token punctuation">;</span>
-    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">//panic("sys_env_set_status not implemented");</span>
-<span class="token punctuation">}</span>
+    e->env_status = status;
+    return 0;
+    //panic("sys_env_set_status not implemented");
+}
 </code></pre>
 </li>
 <li><p><code>sys_page_alloc</code>:</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">static</span> <span class="token keyword">int</span>
-<span class="token function">sys_page_alloc</span><span class="token punctuation">(</span>envid_t envid<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>va<span class="token punctuation">,</span> <span class="token keyword">int</span> perm<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    <span class="token keyword">struct</span> Env <span class="token operator">*</span>e<span class="token punctuation">;</span>
-    <span class="token keyword">int</span> res<span class="token punctuation">;</span>
-    res <span class="token operator">=</span> <span class="token function">envid2env</span><span class="token punctuation">(</span>envid<span class="token punctuation">,</span> <span class="token operator">&amp;</span>e<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>res <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> 
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_BAD_ENV<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>va <span class="token operator">></span> UTOP <span class="token operator">||</span> <span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>va <span class="token operator">!=</span> <span class="token function">ROUNDUP</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>va<span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">)</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_INVAL<span class="token punctuation">;</span>
-    <span class="token keyword">struct</span> PageInfo <span class="token operator">*</span>pp <span class="token operator">=</span> <span class="token function">page_alloc</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>pp <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span> 
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_NO_MEM<span class="token punctuation">;</span>
-    <span class="token keyword">int</span> corperm <span class="token operator">=</span> PTE_P <span class="token operator">|</span> PTE_U <span class="token operator">|</span> PTE_W <span class="token operator">|</span> PTE_AVAIL<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token operator">~</span>corperm <span class="token operator">&amp;</span> perm<span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_INVAL<span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">static int
+sys_page_alloc(envid_t envid, void *va, int perm)
+{
+    // LAB 4: Your code here.
+    struct Env *e;
+    int res;
+    res = envid2env(envid, &e, 1);
+    if(res < 0) 
+        return -E_BAD_ENV;
+    if((uint32_t)va > UTOP || (uint32_t)va != ROUNDUP((uint32_t)va, PGSIZE))
+        return -E_INVAL;
+    struct PageInfo *pp = page_alloc(1);
+    if(pp == NULL) 
+        return -E_NO_MEM;
+    int corperm = PTE_P | PTE_U | PTE_W | PTE_AVAIL;
+    if((~corperm & perm) != 0)
+        return -E_INVAL;
 
-    res <span class="token operator">=</span> <span class="token function">page_insert</span><span class="token punctuation">(</span>e<span class="token operator">-></span>env_pgdir<span class="token punctuation">,</span> pp<span class="token punctuation">,</span> va<span class="token punctuation">,</span> perm<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>res <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token function">page_free</span><span class="token punctuation">(</span>pp<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">return</span> res<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    pp<span class="token operator">-></span>pp_ref<span class="token operator">++</span><span class="token punctuation">;</span>
-    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">//panic("sys_page_alloc not implemented");</span>
-<span class="token punctuation">}</span>
+    res = page_insert(e->env_pgdir, pp, va, perm);
+    if(res < 0){
+        page_free(pp);
+        return res;
+    }
+    pp->pp_ref++;
+    return 0;
+    //panic("sys_page_alloc not implemented");
+}
 </code></pre>
 </li>
+</ul>
+<ul>
 <li><p><code>sys_page_map</code>:</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">static</span> <span class="token keyword">int</span>
-<span class="token function">sys_page_map</span><span class="token punctuation">(</span>envid_t srcenvid<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>srcva<span class="token punctuation">,</span>
-         envid_t dstenvid<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>dstva<span class="token punctuation">,</span> <span class="token keyword">int</span> perm<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    <span class="token keyword">struct</span> Env <span class="token operator">*</span>srcenv<span class="token punctuation">,</span> <span class="token operator">*</span>dstenv<span class="token punctuation">;</span>
-    <span class="token keyword">int</span> res<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token function">envid2env</span><span class="token punctuation">(</span>srcenvid<span class="token punctuation">,</span> <span class="token operator">&amp;</span>srcenv<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span> <span class="token operator">||</span>
-        <span class="token function">envid2env</span><span class="token punctuation">(</span>dstenvid<span class="token punctuation">,</span> <span class="token operator">&amp;</span>dstenv<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span> <span class="token punctuation">)</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_BAD_ENV<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>srcva <span class="token operator">></span> UTOP <span class="token operator">||</span> <span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>srcva <span class="token operator">!=</span> <span class="token function">ROUNDUP</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>srcva<span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">)</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_INVAL<span class="token punctuation">;</span>
-    <span class="token keyword">int</span> corperm <span class="token operator">=</span> PTE_P <span class="token operator">|</span> PTE_U <span class="token operator">|</span> PTE_W <span class="token operator">|</span> PTE_AVAIL<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token operator">~</span>corperm <span class="token operator">&amp;</span> perm<span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_INVAL<span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">static int
+sys_page_map(envid_t srcenvid, void *srcva,
+         envid_t dstenvid, void *dstva, int perm)
+{
+    // LAB 4: Your code here.
+    struct Env *srcenv, *dstenv;
+    int res;
+    if( envid2env(srcenvid, &srcenv, 1) < 0 ||
+        envid2env(dstenvid, &dstenv, 1) < 0 )
+        return -E_BAD_ENV;
+    if((uint32_t)srcva > UTOP || (uint32_t)srcva != ROUNDUP((uint32_t)srcva, PGSIZE))
+        return -E_INVAL;
+    int corperm = PTE_P | PTE_U | PTE_W | PTE_AVAIL;
+    if((~corperm & perm) != 0)
+        return -E_INVAL;
 
-    pte_t <span class="token operator">*</span>srcpte<span class="token punctuation">,</span> <span class="token operator">*</span>dstpte<span class="token punctuation">;</span>
-    <span class="token keyword">struct</span> PageInfo <span class="token operator">*</span>pp<span class="token punctuation">;</span>
-    pp <span class="token operator">=</span> <span class="token function">page_lookup</span><span class="token punctuation">(</span>srcenv<span class="token operator">-></span>env_pgdir<span class="token punctuation">,</span> srcva<span class="token punctuation">,</span> <span class="token operator">&amp;</span>srcpte<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>perm<span class="token operator">&amp;</span>PTE_W<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span><span class="token operator">*</span>srcpte<span class="token operator">&amp;</span>PTE_W<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> 
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_INVAL<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>pp<span class="token punctuation">)</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_INVAL<span class="token punctuation">;</span>
-    res <span class="token operator">=</span> <span class="token function">page_insert</span><span class="token punctuation">(</span>dstenv<span class="token operator">-></span>env_pgdir<span class="token punctuation">,</span> pp<span class="token punctuation">,</span> dstva<span class="token punctuation">,</span> perm<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>res <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token keyword">return</span> <span class="token operator">-</span>E_NO_MEM<span class="token punctuation">;</span>
-    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">//panic("sys_page_map not implemented");</span>
-<span class="token punctuation">}</span>
+    pte_t *srcpte, *dstpte;
+    struct PageInfo *pp;
+    pp = page_lookup(srcenv->env_pgdir, srcva, &srcpte);
+    if((perm&PTE_W) && (*srcpte&PTE_W) == 0) 
+        return -E_INVAL;
+    if(!pp)
+        return -E_INVAL;
+    res = page_insert(dstenv->env_pgdir, pp, dstva, perm);
+    if(res < 0)return -E_NO_MEM;
+    return 0;
+    //panic("sys_page_map not implemented");
+}
 </code></pre>
 </li>
+</ul>
+<ul>
 <li><p><code>sys_page_unmap</code>: </p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">static</span> <span class="token keyword">int</span>
-<span class="token function">sys_page_unmap</span><span class="token punctuation">(</span>envid_t envid<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>va<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    <span class="token keyword">struct</span> Env <span class="token operator">*</span>e<span class="token punctuation">;</span>
-    <span class="token keyword">int</span> res<span class="token punctuation">;</span>
-    res <span class="token operator">=</span> <span class="token function">envid2env</span><span class="token punctuation">(</span>envid<span class="token punctuation">,</span> <span class="token operator">&amp;</span>e<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>res <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> 
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_BAD_ENV<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>va <span class="token operator">></span> UTOP <span class="token operator">||</span> <span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>va <span class="token operator">!=</span> <span class="token function">ROUNDUP</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>va<span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">)</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_INVAL<span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">static int
+sys_page_unmap(envid_t envid, void *va)
+{
+    // LAB 4: Your code here.
+    struct Env *e;
+    int res;
+    res = envid2env(envid, &e, 1);
+    if(res < 0) 
+        return -E_BAD_ENV;
+    if((uint32_t)va > UTOP || (uint32_t)va != ROUNDUP((uint32_t)va, PGSIZE))
+        return -E_INVAL;
 
-    pte_t <span class="token operator">*</span>pte<span class="token punctuation">;</span>
-    <span class="token keyword">struct</span> PageInfo <span class="token operator">*</span>pp<span class="token punctuation">;</span>
-    pp <span class="token operator">=</span> <span class="token function">page_lookup</span><span class="token punctuation">(</span>e<span class="token operator">-></span>env_pgdir<span class="token punctuation">,</span> va<span class="token punctuation">,</span> <span class="token operator">&amp;</span>pte<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>pp <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span>
-        <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token function">page_remove</span><span class="token punctuation">(</span>e<span class="token operator">-></span>env_pgdir<span class="token punctuation">,</span> va<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    pte_t *pte;
+    struct PageInfo *pp;
+    pp = page_lookup(e->env_pgdir, va, &pte);
+    if(pp == NULL)
+        return 0;
+    page_remove(e->env_pgdir, va);
+    return 0;
 
-    <span class="token comment" spellcheck="true">//panic("sys_page_unmap not implemented");</span>
-<span class="token punctuation">}</span>
+    //panic("sys_page_unmap not implemented");
+}
 </code></pre>
 </li>
 </ul>
@@ -598,17 +602,17 @@
 <p><strong>Copy-on-write (sometimes referred to as “<code>COW</code>“)</strong> is an optimization strategy used in computer programming. The fundamental idea is that if multiple callers ask for resources which are initially indistinguishable, you can give them pointers to the same resource. This function can be maintained until a caller tries to modify its “copy” of the resource, at which point a true private copy is created to prevent the changes becoming visible to everyone else. All of this happens transparently to the callers. The primary advantage is that if a caller never makes any modifications, no private copy need ever be created. It avoids a lot of unnecessary overhead.</p>
 <p>In OS world, creating a process is a significant field of the application of <code>COW</code>. We can use <code>fork()</code> or <code>vfork()</code> to create a new process. <code>vfork</code> follows the concept of copy-on-write. For example, the child process created by <code>vfork</code> will share the data and code segment with the parent process. This speeds up the forking time. It is expected to use <code>vfork</code> if you are performing <code>exec</code> followed by <code>vfork</code>. So <code>vfork</code> will create the child process which will share data and code segment with its parent but when we call exec, it will load up the image of a new executable in the address space of the child process. In our lab, <code>fork</code> in <code>lib/fork.c</code> is so similar to <code>vfork</code>.</p>
 <h3 id="4-1-sys-env-set-pgfault-upcall"><a href="#4-1-sys-env-set-pgfault-upcall" class="headerlink" title="4-1 sys_env_set_pgfault_upcall"></a>4-1 <code>sys_env_set_pgfault_upcall</code></h3><p>When a process wants to write on a page marked <code>COW</code>(with the permission <code>read-only</code>), a page fault occur. If we want to deal with the fault in user space, we should install a user page fault handler for the kernel. <code>sys_env_set_pgfault_upcall</code> is the function that install a user page fault handler. The code is below:</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">static</span> <span class="token keyword">int</span>
-<span class="token function">sys_env_set_pgfault_upcall</span><span class="token punctuation">(</span>envid_t envid<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>func<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    <span class="token keyword">struct</span> Env <span class="token operator">*</span>e<span class="token punctuation">;</span>
-    <span class="token keyword">int</span> ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    ret <span class="token operator">=</span> <span class="token function">envid2env</span><span class="token punctuation">(</span>envid<span class="token punctuation">,</span> <span class="token operator">&amp;</span>e<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token keyword">return</span> <span class="token operator">-</span>E_BAD_ENV<span class="token punctuation">;</span>
-    e<span class="token operator">-></span>env_pgfault_upcall <span class="token operator">=</span> func<span class="token punctuation">;</span>
-    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">static int
+sys_env_set_pgfault_upcall(envid_t envid, void *func)
+{
+    // LAB 4: Your code here.
+    struct Env *e;
+    int ret = 0;
+    ret = envid2env(envid, &e, 1);
+    if(ret < 0)return -E_BAD_ENV;
+    e->env_pgfault_upcall = func;
+    return 0;
+}
 </code></pre>
 <h3 id="4-2-page-fault-handler"><a href="#4-2-page-fault-handler" class="headerlink" title="4-2 page_fault_handler"></a>4-2 <code>page_fault_handler</code></h3><p>After installing the user page fault handler, we are supposed to modify page fault handler in kernel, make the OS run the page fault handler in user space. </p>
 <ul>
@@ -617,62 +621,62 @@
 <li>pay attention to dealing with the recursive case!</li>
 </ul>
 <p>emmm… You may have a question why we need a exception stack. In my opinion, it ensures the consistency of operations that deal with all the pages in virtual memory except user exception stack. (Maybe)</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">void</span>
-<span class="token function">page_fault_handler</span><span class="token punctuation">(</span><span class="token keyword">struct</span> Trapframe <span class="token operator">*</span>tf<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    uint32_t fault_va<span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">// Read processor's CR2 register to find the faulting address</span>
-    fault_va <span class="token operator">=</span> <span class="token function">rcr2</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">// Handle kernel-mode page faults.</span>
-    <span class="token comment" spellcheck="true">// LAB 3: Your code here.</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token punctuation">(</span>tf<span class="token operator">-></span>tf_cs <span class="token operator">&amp;</span> <span class="token number">3</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"[%08x] user fault va %08x ip %08x\n"</span><span class="token punctuation">,</span>
-        curenv<span class="token operator">-></span>env_id<span class="token punctuation">,</span> fault_va<span class="token punctuation">,</span> tf<span class="token operator">-></span>tf_eip<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token function">print_trapframe</span><span class="token punctuation">(</span>tf<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"kernel page fault\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">void
+page_fault_handler(struct Trapframe *tf)
+{
+    uint32_t fault_va;
+    // Read processor's CR2 register to find the faulting address
+    fault_va = rcr2();
+    // Handle kernel-mode page faults.
+    // LAB 3: Your code here.
+    if( (tf->tf_cs & 3) == 0){
+        cprintf("[%08x] user fault va %08x ip %08x\n",
+        curenv->env_id, fault_va, tf->tf_eip);
+        print_trapframe(tf);
+        panic("kernel page fault\n");
+    }
 
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    <span class="token comment" spellcheck="true">// Destroy the environment that caused the fault.</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>curenv<span class="token operator">-></span>env_pgfault_upcall <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token comment" spellcheck="true">//cprintf("111\n");</span>
-        <span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"[%08x] user fault va %08x ip %08x\n"</span><span class="token punctuation">,</span>
-        curenv<span class="token operator">-></span>env_id<span class="token punctuation">,</span> fault_va<span class="token punctuation">,</span> tf<span class="token operator">-></span>tf_eip<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token function">print_trapframe</span><span class="token punctuation">(</span>tf<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token function">env_destroy</span><span class="token punctuation">(</span>curenv<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    
-    uint32_t size <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> stktop <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>tf<span class="token operator">-></span>tf_esp <span class="token operator">&lt;</span> UXSTACKTOP <span class="token operator">&amp;&amp;</span> tf<span class="token operator">-></span>tf_esp <span class="token operator">>=</span> UXSTACKTOP <span class="token operator">-</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">{</span>
-        size <span class="token operator">=</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> UTrapframe<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        stktop <span class="token operator">=</span> tf<span class="token operator">-></span>tf_esp<span class="token punctuation">;</span>
-        <span class="token comment" spellcheck="true">//cprintf("%x\n",stktop - size);</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">else</span><span class="token punctuation">{</span>
-        size <span class="token operator">=</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> UTrapframe<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        stktop <span class="token operator">=</span> UXSTACKTOP<span class="token punctuation">;</span>
-        <span class="token comment" spellcheck="true">//cprintf("aa %x\n",stktop - size);</span>
-    <span class="token punctuation">}</span>
-    <span class="token function">user_mem_assert</span><span class="token punctuation">(</span>curenv<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span><span class="token punctuation">(</span>stktop <span class="token operator">-</span> size<span class="token punctuation">)</span><span class="token punctuation">,</span> size<span class="token punctuation">,</span> PTE_U<span class="token operator">|</span>PTE_P<span class="token operator">|</span>PTE_W<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    
-    <span class="token keyword">struct</span> UTrapframe <span class="token operator">*</span>utf <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">struct</span> UTrapframe <span class="token operator">*</span><span class="token punctuation">)</span><span class="token punctuation">(</span>stktop <span class="token operator">-</span> size<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    utf<span class="token operator">-></span>utf_esp <span class="token operator">=</span> tf<span class="token operator">-></span>tf_esp<span class="token punctuation">;</span>
-    utf<span class="token operator">-></span>utf_eflags <span class="token operator">=</span> tf<span class="token operator">-></span>tf_eflags<span class="token punctuation">;</span>
-    utf<span class="token operator">-></span>utf_eip <span class="token operator">=</span> tf<span class="token operator">-></span>tf_eip<span class="token punctuation">;</span>
-    utf<span class="token operator">-></span>utf_regs <span class="token operator">=</span> tf<span class="token operator">-></span>tf_regs<span class="token punctuation">;</span>
-    utf<span class="token operator">-></span>utf_err <span class="token operator">=</span> tf<span class="token operator">-></span>tf_err<span class="token punctuation">;</span>
-    utf<span class="token operator">-></span>utf_fault_va <span class="token operator">=</span> fault_va<span class="token punctuation">;</span>
+    // LAB 4: Your code here.
+    // Destroy the environment that caused the fault.
+    if(curenv->env_pgfault_upcall == NULL){
+        //cprintf("111\n");
+        cprintf("[%08x] user fault va %08x ip %08x\n",
+        curenv->env_id, fault_va, tf->tf_eip);
+        print_trapframe(tf);
+        env_destroy(curenv);
+    }
 
-    curenv<span class="token operator">-></span>env_tf<span class="token punctuation">.</span>tf_esp <span class="token operator">=</span> <span class="token punctuation">(</span>uintptr_t<span class="token punctuation">)</span>utf<span class="token punctuation">;</span>
-    curenv<span class="token operator">-></span>env_tf<span class="token punctuation">.</span>tf_eip <span class="token operator">=</span> <span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>curenv<span class="token operator">-></span>env_pgfault_upcall<span class="token punctuation">;</span>
-    <span class="token function">env_run</span><span class="token punctuation">(</span>curenv<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    uint32_t size = 0, stktop = 0;
+    if(tf->tf_esp < UXSTACKTOP && tf->tf_esp >= UXSTACKTOP - PGSIZE){
+        size = sizeof(struct UTrapframe) + sizeof(uint32_t);
+        stktop = tf->tf_esp;
+        //cprintf("%x\n",stktop - size);
+    }
+    else{
+        size = sizeof(struct UTrapframe);
+        stktop = UXSTACKTOP;
+        //cprintf("aa %x\n",stktop - size);
+    }
+    user_mem_assert(curenv, (void *)(stktop - size), size, PTE_U|PTE_P|PTE_W);
 
-<span class="token punctuation">}</span>
+    struct UTrapframe *utf = (struct UTrapframe *)(stktop - size);
+    utf->utf_esp = tf->tf_esp;
+    utf->utf_eflags = tf->tf_eflags;
+    utf->utf_eip = tf->tf_eip;
+    utf->utf_regs = tf->tf_regs;
+    utf->utf_err = tf->tf_err;
+    utf->utf_fault_va = fault_va;
+
+    curenv->env_tf.tf_esp = (uintptr_t)utf;
+    curenv->env_tf.tf_eip = (uint32_t)curenv->env_pgfault_upcall;
+    env_run(curenv);
+
+}
 </code></pre>
 <h3 id="4-3-pgfault-upcall"><a href="#4-3-pgfault-upcall" class="headerlink" title="4-3  _pgfault_upcall"></a>4-3  <code>_pgfault_upcall</code></h3><p>Now we come to the entry of user page fault handler, <code>_pgfault_upcall</code> can be seen as a scheduler of <code>_pgfault_handler</code> (the entity of user page handler). After returning from <code>_pgfault_handler</code>, there are a trap frame lying on user exception stack. We add 8 to <code>esp</code> to skip over <code>fault_va</code> and <code>error_code</code>. <code>esp</code> now points at the regular register. Because later we will <code>ret</code> to the location where the page fault occurs, we should move the <code>eip</code> to the user stack.  Then restore the trap-time registers and switch to user stack.</p>
-<p><img src="/picture/utf.png"></p>
+<p><img src="/picture/utf.png" alt=""></p>
 <p>Here is the code:</p>
-<pre class=" language-assembly"><code class="language-assembly">.text
+<pre class=" language-lang-assembly"><code class="language-lang-assembly">.text
 .globl _pgfault_upcall
 _pgfault_upcall:
     // Call the C page fault handler.
@@ -680,7 +684,7 @@ _pgfault_upcall:
     movl _pgfault_handler, %eax
     call *%eax
     addl $4, %esp            // pop function argument
-    
+
     //significant, move eip to the user stack in order to ret
     // LAB 4: Your code here.
     addl $8, %esp
@@ -711,361 +715,360 @@ _pgfault_upcall:
     ret
 </code></pre>
 <h3 id="4-4-COW-fork"><a href="#4-4-COW-fork" class="headerlink" title="4-4 COW fork"></a>4-4 <code>COW fork</code></h3><p>Here is the code:</p>
-<pre class=" language-c"><code class="language-c"><span class="token keyword">static</span> <span class="token keyword">void</span>
-<span class="token function">pgfault</span><span class="token punctuation">(</span><span class="token keyword">struct</span> UTrapframe <span class="token operator">*</span>utf<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token keyword">void</span> <span class="token operator">*</span>addr <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span> utf<span class="token operator">-></span>utf_fault_va<span class="token punctuation">;</span>
-    uint32_t err <span class="token operator">=</span> utf<span class="token operator">-></span>utf_err<span class="token punctuation">;</span>
-    <span class="token keyword">int</span> r<span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    pte_t pte <span class="token operator">=</span> uvpt<span class="token punctuation">[</span><span class="token function">PGNUM</span><span class="token punctuation">(</span>addr<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">static void
+pgfault(struct UTrapframe *utf)
+{
+    void *addr = (void *) utf->utf_fault_va;
+    uint32_t err = utf->utf_err;
+    int r;
+    // LAB 4: Your code here.
+    pte_t pte = uvpt[PGNUM(addr)];
 
-    <span class="token comment" spellcheck="true">//cprintf("%e\n",err);</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token punctuation">(</span>err<span class="token operator">&amp;</span>FEC_WR<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>pte <span class="token operator">&amp;</span> PTE_COW<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"%x\n"</span><span class="token punctuation">,</span>addr<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"pgfault: it's not a write err\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    addr <span class="token operator">=</span> <span class="token function">ROUNDDOWN</span><span class="token punctuation">(</span>addr<span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    //cprintf("%e\n",err);
+    if( (err&FEC_WR) == 0 && (pte & PTE_COW)){
+        cprintf("%x\n",addr);
+        panic("pgfault: it's not a write err\n");
+    }
+    // LAB 4: Your code here.
+    addr = ROUNDDOWN(addr, PGSIZE);
 
-    <span class="token comment" spellcheck="true">//allocate a new page, and map it at PFTEMP</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token function">sys_page_alloc</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>PFTEMP<span class="token punctuation">,</span> PTE_P<span class="token operator">|</span>PTE_W<span class="token operator">|</span>PTE_U<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"sys_page_alloc: alloc failed\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
+    //allocate a new page, and map it at PFTEMP
+    if(sys_page_alloc(0, (void *)PFTEMP, PTE_P|PTE_W|PTE_U) < 0){
+        panic("sys_page_alloc: alloc failed\n");
+    }
 
-    <span class="token comment" spellcheck="true">//move the content at virtual address addr to PFTEMP</span>
-    <span class="token function">memmove</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>PFTEMP<span class="token punctuation">,</span> addr<span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    
-    <span class="token comment" spellcheck="true">//remap the page at PFTEMP at new virtual address addr</span>
-    <span class="token comment" spellcheck="true">//Here was a small bug troubling me for a long time, which I ignored PTE_W !!!</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token function">sys_page_map</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>PFTEMP<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>addr<span class="token punctuation">,</span> PTE_W<span class="token operator">|</span>PTE_U<span class="token operator">|</span>PTE_P<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"map failed\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
+    //move the content at virtual address addr to PFTEMP
+    memmove((void *)PFTEMP, addr, PGSIZE);
 
-    <span class="token comment" spellcheck="true">//unmap the virtual address PFTEMP</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token function">sys_page_unmap</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>PFTEMP<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"failed\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+    //remap the page at PFTEMP at new virtual address addr
+    //Here was a small bug troubling me for a long time, which I ignored PTE_W !!!
+    if(sys_page_map(0, (void *)PFTEMP, 0, (void *)addr, PTE_W|PTE_U|PTE_P) < 0){
+        panic("map failed\n");
+    }
 
-<span class="token keyword">static</span> <span class="token keyword">int</span>
-<span class="token function">duppage</span><span class="token punctuation">(</span>envid_t envid<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> pn<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token keyword">int</span> r<span class="token punctuation">;</span>
-    <span class="token keyword">struct</span> Env <span class="token operator">*</span>dstenv <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">struct</span> Env <span class="token operator">*</span><span class="token punctuation">)</span>envs <span class="token operator">+</span> <span class="token function">ENVX</span><span class="token punctuation">(</span>envid<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">void</span> <span class="token operator">*</span>addr <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span><span class="token punctuation">(</span>pn <span class="token operator">*</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">//the pte is certainly existing, because fork will check it.</span>
-    pte_t pte <span class="token operator">=</span> uvpt<span class="token punctuation">[</span>pn<span class="token punctuation">]</span><span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
+    //unmap the virtual address PFTEMP
+    if(sys_page_unmap(0, (void *)PFTEMP) < 0){
+        panic("failed\n");
+    }
+}
+
+static int
+duppage(envid_t envid, unsigned pn)
+{
+    int r;
+    struct Env *dstenv = (struct Env *)envs + ENVX(envid);
+    void *addr = (void *)(pn * PGSIZE);
+    //the pte is certainly existing, because fork will check it.
+    pte_t pte = uvpt[pn];
+    // LAB 4: Your code here.
 
 
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>pte<span class="token operator">&amp;</span>PTE_COW<span class="token punctuation">)</span> <span class="token operator">||</span> <span class="token punctuation">(</span>pte<span class="token operator">&amp;</span>PTE_W<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        
-        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>r <span class="token operator">=</span> <span class="token function">sys_page_map</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> addr<span class="token punctuation">,</span> dstenv<span class="token operator">-></span>env_id<span class="token punctuation">,</span> addr<span class="token punctuation">,</span> PTE_P<span class="token operator">|</span>PTE_U<span class="token operator">|</span>PTE_COW<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-            <span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"sys_page_map: %e\n"</span><span class="token punctuation">,</span> r<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>r <span class="token operator">=</span> <span class="token function">sys_page_map</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> addr<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> addr<span class="token punctuation">,</span> PTE_P<span class="token operator">|</span>PTE_U<span class="token operator">|</span>PTE_COW<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-            <span class="token function">cprintf</span><span class="token punctuation">(</span><span class="token string">"sys_page_map: %e\n"</span><span class="token punctuation">,</span> r<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">else</span><span class="token punctuation">{</span>
-        <span class="token function">sys_page_map</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span>addr<span class="token punctuation">,</span> dstenv<span class="token operator">-></span>env_id<span class="token punctuation">,</span> addr<span class="token punctuation">,</span> PTE_U<span class="token operator">|</span>PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
+    if((pte&PTE_COW) || (pte&PTE_W)){
 
-    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+        if((r = sys_page_map(0, addr, dstenv->env_id, addr, PTE_P|PTE_U|PTE_COW)) < 0){
+            cprintf("sys_page_map: %e\n", r);
+        }
+        if((r = sys_page_map(0, addr, 0, addr, PTE_P|PTE_U|PTE_COW)) < 0){
+            cprintf("sys_page_map: %e\n", r);
+        }
+    }
+    else{
+        sys_page_map(0,addr, dstenv->env_id, addr, PTE_U|PTE_P);
+    }
+
+    return 0;
+}
 
 envid_t
-<span class="token function">fork</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    envid_t envid<span class="token punctuation">;</span>
-    uint8_t <span class="token operator">*</span>addr<span class="token punctuation">;</span>
-    <span class="token keyword">int</span> r<span class="token punctuation">;</span>
-    uint32_t pn<span class="token punctuation">;</span>
+fork(void)
+{
+    // LAB 4: Your code here.
+    envid_t envid;
+    uint8_t *addr;
+    int r;
+    uint32_t pn;
 
-    <span class="token function">set_pgfault_handler</span><span class="token punctuation">(</span>pgfault<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    set_pgfault_handler(pgfault);
 
-    envid <span class="token operator">=</span> <span class="token function">sys_exofork</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    
-    <span class="token comment" spellcheck="true">//sys_exfork returns from child </span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span>envid <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-        thisenv <span class="token operator">=</span> <span class="token operator">&amp;</span>envs<span class="token punctuation">[</span><span class="token function">ENVX</span><span class="token punctuation">(</span><span class="token function">sys_getenvid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-        <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
+    envid = sys_exofork();
 
-    <span class="token comment" spellcheck="true">// operate through all the page below UTOP</span>
-    <span class="token keyword">for</span> <span class="token punctuation">(</span>addr <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> <span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>addr <span class="token operator">&lt;</span> USTACKTOP<span class="token punctuation">;</span> addr <span class="token operator">+</span><span class="token operator">=</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">{</span>
-        pn <span class="token operator">=</span> <span class="token function">PGNUM</span><span class="token punctuation">(</span>addr<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token punctuation">(</span>PTE_P <span class="token operator">&amp;</span> uvpd<span class="token punctuation">[</span><span class="token function">PDX</span><span class="token punctuation">(</span>addr<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>PTE_P<span class="token operator">&amp;</span>uvpt<span class="token punctuation">[</span>pn<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>        
-            <span class="token function">duppage</span><span class="token punctuation">(</span>envid<span class="token punctuation">,</span> pn<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
+    //sys_exfork returns from child 
+    if (envid == 0) {
+        thisenv = &envs[ENVX(sys_getenvid())];
+        return 0;
+    }
 
-    <span class="token comment" spellcheck="true">// allocate a new page for UXSTACKTOP</span>
-    <span class="token function">sys_page_alloc</span><span class="token punctuation">(</span>envid<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span><span class="token punctuation">(</span>UXSTACKTOP <span class="token operator">-</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">,</span> PTE_W<span class="token operator">|</span>PTE_U<span class="token operator">|</span>PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    // operate through all the page below UTOP
+    for (addr = 0; (uint32_t)addr < USTACKTOP; addr += PGSIZE){
+        pn = PGNUM(addr);
+        if( (PTE_P & uvpd[PDX(addr)]) && (PTE_P&uvpt[pn])){        
+            duppage(envid, pn);
+        }
+    }
 
-    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>r <span class="token operator">=</span> <span class="token function">sys_env_set_status</span><span class="token punctuation">(</span>envid<span class="token punctuation">,</span> ENV_RUNNABLE<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"sys_env_set_status: %e"</span><span class="token punctuation">,</span> r<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
+    // allocate a new page for UXSTACKTOP
+    sys_page_alloc(envid, (void *)(UXSTACKTOP - PGSIZE), PTE_W|PTE_U|PTE_P);
 
-    <span class="token keyword">return</span> envid<span class="token punctuation">;</span>
+    if ((r = sys_env_set_status(envid, ENV_RUNNABLE)) < 0){
+        panic("sys_env_set_status: %e", r);
+    }
 
+    return envid;
 </code></pre>
 <h2 id="5-Part-C-Preemptive-Multitasking-and-Inter-Process-communication-IPC"><a href="#5-Part-C-Preemptive-Multitasking-and-Inter-Process-communication-IPC" class="headerlink" title="5 Part C: Preemptive Multitasking and Inter-Process communication (IPC)"></a>5 Part C: Preemptive Multitasking and Inter-Process communication (IPC)</h2><h3 id="5-1-Preemptive-Multitasking"><a href="#5-1-Preemptive-Multitasking" class="headerlink" title="5-1 Preemptive Multitasking"></a>5-1 <code>Preemptive Multitasking</code></h3><p>In this part, we will implement preemptive multitasking, forcefully retaking control of the CPU from it. In order to achieve it, we must extend our kernel to support external hardware interrupts from the clock hardware. We should add some entries to both <code>trapentry.S</code> and <code>IDT</code>:</p>
 <ul>
 <li><p><code>trapentry.S</code>:</p>
-<pre class=" language-c"><code class="language-c"><span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>irq_timer<span class="token punctuation">,</span> IRQ_OFFSET <span class="token operator">+</span> IRQ_TIMER<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>irq_kbd<span class="token punctuation">,</span> IRQ_OFFSET <span class="token operator">+</span> IRQ_KBD<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>irq_serial<span class="token punctuation">,</span> IRQ_OFFSET <span class="token operator">+</span> IRQ_SERIAL<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>irq_spurious<span class="token punctuation">,</span> IRQ_OFFSET <span class="token operator">+</span> IRQ_SPURIOUS<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>irq_ide<span class="token punctuation">,</span> IRQ_OFFSET <span class="token operator">+</span> IRQ_IDE<span class="token punctuation">)</span>
-<span class="token function">TRAPHANDLER_NOEC</span><span class="token punctuation">(</span>irq_error<span class="token punctuation">,</span> IRQ_OFFSET <span class="token operator">+</span> IRQ_ERROR<span class="token punctuation">)</span>
+<pre class=" language-lang-c"><code class="language-lang-c">TRAPHANDLER_NOEC(irq_timer, IRQ_OFFSET + IRQ_TIMER)
+TRAPHANDLER_NOEC(irq_kbd, IRQ_OFFSET + IRQ_KBD)
+TRAPHANDLER_NOEC(irq_serial, IRQ_OFFSET + IRQ_SERIAL)
+TRAPHANDLER_NOEC(irq_spurious, IRQ_OFFSET + IRQ_SPURIOUS)
+TRAPHANDLER_NOEC(irq_ide, IRQ_OFFSET + IRQ_IDE)
+TRAPHANDLER_NOEC(irq_error, IRQ_OFFSET + IRQ_ERROR)
 </code></pre>
 </li>
 <li><p>extend IDT in <code>trap.c</code></p>
-<pre class=" language-c"><code class="language-c">    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>IRQ_OFFSET <span class="token operator">+</span> IRQ_TIMER<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> irq_timer<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>IRQ_OFFSET <span class="token operator">+</span> IRQ_KBD<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> irq_kbd<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>IRQ_OFFSET <span class="token operator">+</span> IRQ_SERIAL<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> irq_serial<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>IRQ_OFFSET <span class="token operator">+</span> IRQ_SPURIOUS<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> irq_spurious<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>IRQ_OFFSET <span class="token operator">+</span> IRQ_IDE<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> irq_ide<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">SETGATE</span><span class="token punctuation">(</span>idt<span class="token punctuation">[</span>IRQ_OFFSET <span class="token operator">+</span> IRQ_ERROR<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> GD_KT<span class="token punctuation">,</span> irq_error<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">    SETGATE(idt[IRQ_OFFSET + IRQ_TIMER], 0, GD_KT, irq_timer, 0);
+    SETGATE(idt[IRQ_OFFSET + IRQ_KBD], 0, GD_KT, irq_kbd, 0);
+    SETGATE(idt[IRQ_OFFSET + IRQ_SERIAL], 0, GD_KT, irq_serial, 0);
+    SETGATE(idt[IRQ_OFFSET + IRQ_SPURIOUS], 0, GD_KT, irq_spurious, 0);
+    SETGATE(idt[IRQ_OFFSET + IRQ_IDE], 0, GD_KT, irq_ide, 0);
+    SETGATE(idt[IRQ_OFFSET + IRQ_ERROR], 0, GD_KT, irq_error, 0);
 </code></pre>
 </li>
 </ul>
 <p>By now, the basic settings are done.</p>
 <p>Then we make interrupt enabled in user environment. The first thing is enable interrupts while initializing an environment:</p>
 <p>In <code>env_alloc</code>, we add <code>e-&gt;env_tf.tf_eflags |= FL_IF;</code> to enable interrupts, so that a user environment starts running with IF set to 1. Don’t forget to uncomment <code>'sti'</code>. Then modify the kernel’s <code>trap_dispatch()</code> function so that it calls <code>sched_yield()</code> to find and run a different environment whenever a clock interrupt takes place.</p>
-<pre class=" language-c"><code class="language-c">    <span class="token comment" spellcheck="true">// Handle clock interrupts. Don't forget to acknowledge the</span>
-    <span class="token comment" spellcheck="true">// interrupt using lapic_eoi() before calling the scheduler!</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>tf<span class="token operator">-></span>tf_trapno <span class="token operator">==</span> IRQ_OFFSET <span class="token operator">+</span> IRQ_TIMER<span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token function">lapic_eoi</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token function">sched_yield</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">return</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
+<pre class=" language-lang-c"><code class="language-lang-c">    // Handle clock interrupts. Don't forget to acknowledge the
+    // interrupt using lapic_eoi() before calling the scheduler!
+    // LAB 4: Your code here.
+    if(tf->tf_trapno == IRQ_OFFSET + IRQ_TIMER){
+        lapic_eoi();
+        sched_yield();
+        return;
+    }
 </code></pre>
 <h3 id="5-2-IPC"><a href="#5-2-IPC" class="headerlink" title="5-2 IPC"></a>5-2 <code>IPC</code></h3><p>It’s enough to read the guide of this part and comments in codes to accomplish <code>IPC</code>.</p>
 <p>The followings is <code>syscall</code>:</p>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Try to send 'value' to the target env 'envid'.</span>
-<span class="token comment" spellcheck="true">// If srcva &lt; UTOP, then also send page currently mapped at 'srcva',</span>
-<span class="token comment" spellcheck="true">// so that receiver gets a duplicate mapping of the same page.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// The send fails with a return value of -E_IPC_NOT_RECV if the</span>
-<span class="token comment" spellcheck="true">// target is not blocked, waiting for an IPC.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// The send also can fail for the other reasons listed below.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// Otherwise, the send succeeds, and the target's ipc fields are</span>
-<span class="token comment" spellcheck="true">// updated as follows:</span>
-<span class="token comment" spellcheck="true">//    env_ipc_recving is set to 0 to block future sends;</span>
-<span class="token comment" spellcheck="true">//    env_ipc_from is set to the sending envid;</span>
-<span class="token comment" spellcheck="true">//    env_ipc_value is set to the 'value' parameter;</span>
-<span class="token comment" spellcheck="true">//    env_ipc_perm is set to 'perm' if a page was transferred, 0 otherwise.</span>
-<span class="token comment" spellcheck="true">// The target environment is marked runnable again, returning 0</span>
-<span class="token comment" spellcheck="true">// from the paused sys_ipc_recv system call.  (Hint: does the</span>
-<span class="token comment" spellcheck="true">// sys_ipc_recv function ever actually return?)</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// If the sender wants to send a page but the receiver isn't asking for one,</span>
-<span class="token comment" spellcheck="true">// then no page mapping is transferred, but no error occurs.</span>
-<span class="token comment" spellcheck="true">// The ipc only happens when no errors occur.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// Returns 0 on success, &lt; 0 on error.</span>
-<span class="token comment" spellcheck="true">// Errors are:</span>
-<span class="token comment" spellcheck="true">//    -E_BAD_ENV if environment envid doesn't currently exist.</span>
-<span class="token comment" spellcheck="true">//        (No need to check permissions.)</span>
-<span class="token comment" spellcheck="true">//    -E_IPC_NOT_RECV if envid is not currently blocked in sys_ipc_recv,</span>
-<span class="token comment" spellcheck="true">//        or another environment managed to send first.</span>
-<span class="token comment" spellcheck="true">//    -E_INVAL if srcva &lt; UTOP but srcva is not page-aligned.</span>
-<span class="token comment" spellcheck="true">//    -E_INVAL if srcva &lt; UTOP and perm is inappropriate</span>
-<span class="token comment" spellcheck="true">//        (see sys_page_alloc).</span>
-<span class="token comment" spellcheck="true">//    -E_INVAL if srcva &lt; UTOP but srcva is not mapped in the caller's</span>
-<span class="token comment" spellcheck="true">//        address space.</span>
-<span class="token comment" spellcheck="true">//    -E_INVAL if (perm &amp; PTE_W), but srcva is read-only in the</span>
-<span class="token comment" spellcheck="true">//        current environment's address space.</span>
-<span class="token comment" spellcheck="true">//    -E_NO_MEM if there's not enough memory to map srcva in envid's</span>
-<span class="token comment" spellcheck="true">//        address space.</span>
-<span class="token keyword">static</span> <span class="token keyword">int</span>
-<span class="token function">sys_ipc_try_send</span><span class="token punctuation">(</span>envid_t envid<span class="token punctuation">,</span> uint32_t value<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>srcva<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> perm<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    <span class="token comment" spellcheck="true">//cprintf("send\n");</span>
-    <span class="token keyword">struct</span> Env <span class="token operator">*</span>dstenv<span class="token punctuation">;</span>
-    <span class="token keyword">int</span> r <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token function">envid2env</span><span class="token punctuation">(</span>envid<span class="token punctuation">,</span> <span class="token operator">&amp;</span>dstenv<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_BAD_ENV<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>dstenv<span class="token operator">-></span>env_ipc_recving <span class="token operator">==</span> false<span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_IPC_NOT_RECV<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>srcva <span class="token operator">&lt;</span> UTOP <span class="token operator">&amp;&amp;</span> srcva <span class="token operator">!=</span> <span class="token function">ROUNDDOWN</span><span class="token punctuation">(</span>srcva<span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_INVAL<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">int</span> corperm <span class="token operator">=</span> PTE_P <span class="token operator">|</span> PTE_U <span class="token operator">|</span> PTE_W <span class="token operator">|</span> PTE_AVAIL<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>srcva <span class="token operator">&lt;</span> UTOP <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span><span class="token operator">~</span>corperm <span class="token operator">&amp;</span> perm<span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_INVAL<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">struct</span> PageInfo <span class="token operator">*</span>pp<span class="token punctuation">,</span> <span class="token operator">*</span>pp2<span class="token punctuation">;</span>
-    pte_t <span class="token operator">*</span>ptep<span class="token punctuation">,</span> <span class="token operator">*</span>dstptep<span class="token punctuation">;</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// Try to send 'value' to the target env 'envid'.
+// If srcva < UTOP, then also send page currently mapped at 'srcva',
+// so that receiver gets a duplicate mapping of the same page.
+//
+// The send fails with a return value of -E_IPC_NOT_RECV if the
+// target is not blocked, waiting for an IPC.
+//
+// The send also can fail for the other reasons listed below.
+//
+// Otherwise, the send succeeds, and the target's ipc fields are
+// updated as follows:
+//    env_ipc_recving is set to 0 to block future sends;
+//    env_ipc_from is set to the sending envid;
+//    env_ipc_value is set to the 'value' parameter;
+//    env_ipc_perm is set to 'perm' if a page was transferred, 0 otherwise.
+// The target environment is marked runnable again, returning 0
+// from the paused sys_ipc_recv system call.  (Hint: does the
+// sys_ipc_recv function ever actually return?)
+//
+// If the sender wants to send a page but the receiver isn't asking for one,
+// then no page mapping is transferred, but no error occurs.
+// The ipc only happens when no errors occur.
+//
+// Returns 0 on success, < 0 on error.
+// Errors are:
+//    -E_BAD_ENV if environment envid doesn't currently exist.
+//        (No need to check permissions.)
+//    -E_IPC_NOT_RECV if envid is not currently blocked in sys_ipc_recv,
+//        or another environment managed to send first.
+//    -E_INVAL if srcva < UTOP but srcva is not page-aligned.
+//    -E_INVAL if srcva < UTOP and perm is inappropriate
+//        (see sys_page_alloc).
+//    -E_INVAL if srcva < UTOP but srcva is not mapped in the caller's
+//        address space.
+//    -E_INVAL if (perm & PTE_W), but srcva is read-only in the
+//        current environment's address space.
+//    -E_NO_MEM if there's not enough memory to map srcva in envid's
+//        address space.
+static int
+sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
+{
+    // LAB 4: Your code here.
+    //cprintf("send\n");
+    struct Env *dstenv;
+    int r = 0;
+    if(envid2env(envid, &dstenv, 0) < 0){
+        return -E_BAD_ENV;
+    }
+    if(dstenv->env_ipc_recving == false){
+        return -E_IPC_NOT_RECV;
+    }
+    if((uint32_t)srcva < UTOP && srcva != ROUNDDOWN(srcva, PGSIZE)){
+        return -E_INVAL;
+    }
+    int corperm = PTE_P | PTE_U | PTE_W | PTE_AVAIL;
+    if((uint32_t)srcva < UTOP && (~corperm & perm) != 0){
+        return -E_INVAL;
+    }
+    struct PageInfo *pp, *pp2;
+    pte_t *ptep, *dstptep;
 
 
-    pp <span class="token operator">=</span> <span class="token function">page_lookup</span><span class="token punctuation">(</span>curenv<span class="token operator">-></span>env_pgdir<span class="token punctuation">,</span> srcva<span class="token punctuation">,</span> <span class="token operator">&amp;</span>ptep<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>srcva <span class="token operator">&lt;</span> UTOP <span class="token operator">&amp;&amp;</span> pp <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_INVAL<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token operator">*</span>ptep<span class="token punctuation">)</span> <span class="token operator">&amp;</span> PTE_W<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>perm <span class="token operator">&amp;</span> PTE_W<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_INVAL<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>srcva <span class="token operator">!=</span>UTOP <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span><span class="token punctuation">(</span>dstenv<span class="token operator">-></span>env_ipc_dstva<span class="token punctuation">)</span> <span class="token operator">==</span> UTOP<span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
+    pp = page_lookup(curenv->env_pgdir, srcva, &ptep);
+    if((uint32_t)srcva < UTOP && pp == NULL){
+        return -E_INVAL;
+    }
+    if(((*ptep) & PTE_W) == 0 && (perm & PTE_W)){
+        return -E_INVAL;
+    }
+    if((uint32_t)srcva !=UTOP && (uint32_t)(dstenv->env_ipc_dstva) == UTOP){
+        return 0;
+    }
 
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>srcva <span class="token operator">!=</span> UTOP<span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token function">envid2env</span><span class="token punctuation">(</span>envid<span class="token punctuation">,</span> <span class="token operator">&amp;</span>dstenv<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span> <span class="token punctuation">)</span><span class="token punctuation">{</span>
-            <span class="token keyword">return</span> <span class="token operator">-</span>E_BAD_ENV<span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-        pp2 <span class="token operator">=</span> <span class="token function">page_lookup</span><span class="token punctuation">(</span>dstenv<span class="token operator">-></span>env_pgdir<span class="token punctuation">,</span> srcva<span class="token punctuation">,</span> <span class="token operator">&amp;</span>dstptep<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span>pp2 <span class="token operator">!=</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-            <span class="token keyword">return</span> <span class="token operator">-</span>E_NO_MEM<span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token function">page_insert</span><span class="token punctuation">(</span>dstenv<span class="token operator">-></span>env_pgdir<span class="token punctuation">,</span> pp<span class="token punctuation">,</span> dstenv<span class="token operator">-></span>env_ipc_dstva<span class="token punctuation">,</span> perm<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-            <span class="token keyword">return</span> <span class="token operator">-</span>E_NO_MEM<span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
+    if((uint32_t)srcva != UTOP){
+        if( envid2env(envid, &dstenv, 0) < 0 ){
+            return -E_BAD_ENV;
+        }
+        pp2 = page_lookup(dstenv->env_pgdir, srcva, &dstptep);
+        if(pp2 != NULL){
+            return -E_NO_MEM;
+        }
+        if(page_insert(dstenv->env_pgdir, pp, dstenv->env_ipc_dstva, perm) < 0){
+            return -E_NO_MEM;
+        }
+    }
 
-    dstenv<span class="token operator">-></span>env_ipc_recving <span class="token operator">=</span> false<span class="token punctuation">;</span>
-    dstenv<span class="token operator">-></span>env_ipc_from <span class="token operator">=</span> curenv<span class="token operator">-></span>env_id<span class="token punctuation">;</span>
-    dstenv<span class="token operator">-></span>env_ipc_value <span class="token operator">=</span> value<span class="token punctuation">;</span>
-    dstenv<span class="token operator">-></span>env_ipc_perm <span class="token operator">=</span> srcva <span class="token operator">?</span> perm <span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    dstenv<span class="token operator">-></span>env_status <span class="token operator">=</span> ENV_RUNNABLE<span class="token punctuation">;</span>
-    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">//panic("sys_ipc_try_send not implemented");</span>
-<span class="token punctuation">}</span>
+    dstenv->env_ipc_recving = false;
+    dstenv->env_ipc_from = curenv->env_id;
+    dstenv->env_ipc_value = value;
+    dstenv->env_ipc_perm = srcva ? perm : 0;
+    dstenv->env_status = ENV_RUNNABLE;
+    return 0;
+    //panic("sys_ipc_try_send not implemented");
+}
 
-<span class="token comment" spellcheck="true">// Block until a value is ready.  Record that you want to receive</span>
-<span class="token comment" spellcheck="true">// using the env_ipc_recving and env_ipc_dstva fields of struct Env,</span>
-<span class="token comment" spellcheck="true">// mark yourself not runnable, and then give up the CPU.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// If 'dstva' is &lt; UTOP, then you are willing to receive a page of data.</span>
-<span class="token comment" spellcheck="true">// 'dstva' is the virtual address at which the sent page should be mapped.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// This function only returns on error, but the system call will eventually</span>
-<span class="token comment" spellcheck="true">// return 0 on success.</span>
-<span class="token comment" spellcheck="true">// Return &lt; 0 on error.  Errors are:</span>
-<span class="token comment" spellcheck="true">//    -E_INVAL if dstva &lt; UTOP but dstva is not page-aligned.</span>
-<span class="token keyword">static</span> <span class="token keyword">int</span>
-<span class="token function">sys_ipc_recv</span><span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span>dstva<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    <span class="token comment" spellcheck="true">//cprintf("recv\n");</span>
+// Block until a value is ready.  Record that you want to receive
+// using the env_ipc_recving and env_ipc_dstva fields of struct Env,
+// mark yourself not runnable, and then give up the CPU.
+//
+// If 'dstva' is < UTOP, then you are willing to receive a page of data.
+// 'dstva' is the virtual address at which the sent page should be mapped.
+//
+// This function only returns on error, but the system call will eventually
+// return 0 on success.
+// Return < 0 on error.  Errors are:
+//    -E_INVAL if dstva < UTOP but dstva is not page-aligned.
+static int
+sys_ipc_recv(void *dstva)
+{
+    // LAB 4: Your code here.
+    //cprintf("recv\n");
 
-    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>dstva <span class="token operator">&lt;</span> UTOP <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>dstva <span class="token operator">!=</span> <span class="token function">ROUNDDOWN</span><span class="token punctuation">(</span><span class="token punctuation">(</span>uint32_t<span class="token punctuation">)</span>dstva<span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token keyword">return</span> <span class="token operator">-</span>E_INVAL<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    
-    curenv<span class="token operator">-></span>env_ipc_recving<span class="token operator">=</span> true<span class="token punctuation">;</span>
-    curenv<span class="token operator">-></span>env_ipc_dstva <span class="token operator">=</span> dstva<span class="token punctuation">;</span>
-    curenv<span class="token operator">-></span>env_status <span class="token operator">=</span> ENV_NOT_RUNNABLE<span class="token punctuation">;</span>
-    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">//cprintf("finish schedule\n");</span>
-    <span class="token comment" spellcheck="true">//panic("sys_ipc_recv not implemented");</span>
-    <span class="token comment" spellcheck="true">//return 0;</span>
-<span class="token punctuation">}</span>
+    if((uint32_t)dstva < UTOP && (uint32_t)dstva != ROUNDDOWN((uint32_t)dstva, PGSIZE)){
+        return -E_INVAL;
+    }
+
+    curenv->env_ipc_recving= true;
+    curenv->env_ipc_dstva = dstva;
+    curenv->env_status = ENV_NOT_RUNNABLE;
+    return 0;
+    //cprintf("finish schedule\n");
+    //panic("sys_ipc_recv not implemented");
+    //return 0;
+}
 </code></pre>
 <ul>
 <li><code>ipc.c</code></li>
 </ul>
-<pre class=" language-c"><code class="language-c"><span class="token comment" spellcheck="true">// Receive a value via IPC and return it.</span>
-<span class="token comment" spellcheck="true">// If 'pg' is nonnull, then any page sent by the sender will be mapped at</span>
-<span class="token comment" spellcheck="true">//    that address.</span>
-<span class="token comment" spellcheck="true">// If 'from_env_store' is nonnull, then store the IPC sender's envid in</span>
-<span class="token comment" spellcheck="true">//    *from_env_store.</span>
-<span class="token comment" spellcheck="true">// If 'perm_store' is nonnull, then store the IPC sender's page permission</span>
-<span class="token comment" spellcheck="true">//    in *perm_store (this is nonzero iff a page was successfully</span>
-<span class="token comment" spellcheck="true">//    transferred to 'pg').</span>
-<span class="token comment" spellcheck="true">// If the system call fails, then store 0 in *fromenv and *perm (if</span>
-<span class="token comment" spellcheck="true">//    they're nonnull) and return the error.</span>
-<span class="token comment" spellcheck="true">// Otherwise, return the value sent by the sender</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// Hint:</span>
-<span class="token comment" spellcheck="true">//   Use 'thisenv' to discover the value and who sent it.</span>
-<span class="token comment" spellcheck="true">//   If 'pg' is null, pass sys_ipc_recv a value that it will understand</span>
-<span class="token comment" spellcheck="true">//   as meaning "no page".  (Zero is not the right value, since that's</span>
-<span class="token comment" spellcheck="true">//   a perfectly valid place to map a page.)</span>
+<pre class=" language-lang-c"><code class="language-lang-c">// Receive a value via IPC and return it.
+// If 'pg' is nonnull, then any page sent by the sender will be mapped at
+//    that address.
+// If 'from_env_store' is nonnull, then store the IPC sender's envid in
+//    *from_env_store.
+// If 'perm_store' is nonnull, then store the IPC sender's page permission
+//    in *perm_store (this is nonzero iff a page was successfully
+//    transferred to 'pg').
+// If the system call fails, then store 0 in *fromenv and *perm (if
+//    they're nonnull) and return the error.
+// Otherwise, return the value sent by the sender
+//
+// Hint:
+//   Use 'thisenv' to discover the value and who sent it.
+//   If 'pg' is null, pass sys_ipc_recv a value that it will understand
+//   as meaning "no page".  (Zero is not the right value, since that's
+//   a perfectly valid place to map a page.)
 int32_t
-<span class="token function">ipc_recv</span><span class="token punctuation">(</span>envid_t <span class="token operator">*</span>from_env_store<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>pg<span class="token punctuation">,</span> <span class="token keyword">int</span> <span class="token operator">*</span>perm_store<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    <span class="token keyword">int</span> r<span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>pg <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        pg <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>UTOP<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token comment" spellcheck="true">//cprintf("%x\n", (uint32_t)pg);</span>
-    
-    <span class="token keyword">while</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        r <span class="token operator">=</span> <span class="token function">sys_ipc_recv</span><span class="token punctuation">(</span>pg<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span>r <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        
-            <span class="token keyword">if</span><span class="token punctuation">(</span>from_env_store <span class="token operator">!=</span> <span class="token constant">NULL</span><span class="token punctuation">)</span> <span class="token operator">*</span>from_env_store <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-            <span class="token keyword">if</span><span class="token punctuation">(</span>perm_store <span class="token operator">!=</span> <span class="token constant">NULL</span><span class="token punctuation">)</span> <span class="token operator">*</span>perm_store <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-            <span class="token comment" spellcheck="true">//cprintf("error: %e\n", r);</span>
-            <span class="token keyword">return</span> r<span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span>thisenv<span class="token operator">-></span>env_ipc_recving <span class="token operator">==</span> false<span class="token punctuation">)</span><span class="token keyword">break</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
+ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)
+{
+    // LAB 4: Your code here.
+    int r;
+    if(pg == NULL){
+        pg = (void *)UTOP;
+    }
+    //cprintf("%x\n", (uint32_t)pg);
 
-    <span class="token keyword">if</span><span class="token punctuation">(</span>from_env_store <span class="token operator">!=</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token operator">*</span>from_env_store <span class="token operator">=</span> thisenv<span class="token operator">-></span>env_ipc_from<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    
-    <span class="token keyword">if</span><span class="token punctuation">(</span>perm_store <span class="token operator">!=</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        <span class="token operator">*</span>perm_store <span class="token operator">=</span> thisenv<span class="token operator">-></span>env_ipc_perm<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    
-    <span class="token keyword">return</span> thisenv<span class="token operator">-></span>env_ipc_value<span class="token punctuation">;</span>
-    <span class="token comment" spellcheck="true">//panic("ipc_recv not implemented");</span>
-    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+    while(1){
+        r = sys_ipc_recv(pg);
+        if(r < 0){
 
-<span class="token comment" spellcheck="true">// Send 'val' (and 'pg' with 'perm', if 'pg' is nonnull) to 'toenv'.</span>
-<span class="token comment" spellcheck="true">// This function keeps trying until it succeeds.</span>
-<span class="token comment" spellcheck="true">// It should panic() on any error other than -E_IPC_NOT_RECV.</span>
-<span class="token comment" spellcheck="true">//</span>
-<span class="token comment" spellcheck="true">// Hint:</span>
-<span class="token comment" spellcheck="true">//   Use sys_yield() to be CPU-friendly.</span>
-<span class="token comment" spellcheck="true">//   If 'pg' is null, pass sys_ipc_try_send a value that it will understand</span>
-<span class="token comment" spellcheck="true">//   as meaning "no page".  (Zero is not the right value.)</span>
-<span class="token keyword">void</span>
-<span class="token function">ipc_send</span><span class="token punctuation">(</span>envid_t to_env<span class="token punctuation">,</span> uint32_t val<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>pg<span class="token punctuation">,</span> <span class="token keyword">int</span> perm<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token comment" spellcheck="true">// LAB 4: Your code here.</span>
-    <span class="token keyword">int</span> r <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span><span class="token punctuation">(</span>pg <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        pg <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>UTOP<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token keyword">while</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-        r <span class="token operator">=</span> <span class="token function">sys_ipc_try_send</span><span class="token punctuation">(</span>to_env<span class="token punctuation">,</span> val<span class="token punctuation">,</span> pg<span class="token punctuation">,</span> perm<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span>r <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span> 
-            <span class="token keyword">break</span><span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-        <span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span>r <span class="token operator">!=</span> <span class="token operator">-</span>E_IPC_NOT_RECV<span class="token punctuation">)</span><span class="token punctuation">{</span>
-            <span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"ipc_send: %e\n"</span><span class="token punctuation">,</span> r<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-        <span class="token function">sys_yield</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token comment" spellcheck="true">//panic("ipc_send not implemented");</span>
-<span class="token punctuation">}</span>
+            if(from_env_store != NULL) *from_env_store = 0;
+            if(perm_store != NULL) *perm_store = 0;
+            //cprintf("error: %e\n", r);
+            return r;
+        }
+        if(thisenv->env_ipc_recving == false)break;
+    }
+
+    if(from_env_store != NULL){
+        *from_env_store = thisenv->env_ipc_from;
+    }
+
+    if(perm_store != NULL){
+        *perm_store = thisenv->env_ipc_perm;
+    }
+
+    return thisenv->env_ipc_value;
+    //panic("ipc_recv not implemented");
+    return 0;
+}
+
+// Send 'val' (and 'pg' with 'perm', if 'pg' is nonnull) to 'toenv'.
+// This function keeps trying until it succeeds.
+// It should panic() on any error other than -E_IPC_NOT_RECV.
+//
+// Hint:
+//   Use sys_yield() to be CPU-friendly.
+//   If 'pg' is null, pass sys_ipc_try_send a value that it will understand
+//   as meaning "no page".  (Zero is not the right value.)
+void
+ipc_send(envid_t to_env, uint32_t val, void *pg, int perm)
+{
+    // LAB 4: Your code here.
+    int r = 0;
+    if(pg == NULL){
+        pg = (void *)UTOP;
+    }
+    while(1){
+        r = sys_ipc_try_send(to_env, val, pg, perm);
+        if(r == 0){ 
+            break;
+        }
+        else if(r != -E_IPC_NOT_RECV){
+            panic("ipc_send: %e\n", r);
+        }
+        sys_yield();
+    }
+    //panic("ipc_send not implemented");
+}
 </code></pre>
 <h2 id="6-Question"><a href="#6-Question" class="headerlink" title="6 Question"></a>6 Question</h2><ol>
 <li><p>question: Compare <code>kern/mpentry.S</code> side by side with <code>boot/boot.S</code>. Bearing in mind that <code>kern/mpentry.S</code> is compiled and linked to run above <code>KERNBASE</code> just like everything else in the kernel, what is the purpose of macro <code>MPBOOTPHYS</code>? Why is it necessary in <code>kern/mpentry.S</code> but not in <code>boot/boot.S</code>? In other words, what could go wrong if it were omitted in <code>kern/mpentry.S</code>?</p>
 <p>answer:  Below is the macro <code>MPBOOTPHYS</code>. As we know, the symbol <code>mpentry_start</code> is linked at the link address that is above <code>KERNBASE</code>, but when a <code>CPU</code> initially starts, it begins in real mode. The load address begins at <code>0x7000</code> (<code>MPENTRY_PADDR</code>), so the macro is designated for translate a link address to the corresponding load address, which allows the <code>CPU</code> can work well before turning on paging.</p>
-<pre class=" language-c"><code class="language-c"><span class="token macro property">#<span class="token directive keyword">define</span> MPBOOTPHYS(s) ((s) - mpentry_start + MPENTRY_PADDR)</span>
+<pre class=" language-lang-c"><code class="language-lang-c">#define MPBOOTPHYS(s) ((s) - mpentry_start + MPENTRY_PADDR)
 </code></pre>
 </li>
 </ol>
 <h2 id="7-reference"><a href="#7-reference" class="headerlink" title="7 reference"></a>7 reference</h2><ol>
 <li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/ia32/MPspec.pdf">MultiProcessor Specification (mit.edu)</a></li>
-<li>[optimization - What is copy-on-write? - Stack Overflow](<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/628938/what-is-copy-on-write#:~:text=&quot;Copy">https://stackoverflow.com/questions/628938/what-is-copy-on-write#:~:text="Copy</a> on write” means more or less what,is used to resolve concurrency sorts of problems.)</li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/628938/what-is-copy-on-write#:~:text=&quot;Copy on write&quot; means more or less what,is used to resolve concurrency sorts of problems.">optimization - What is copy-on-write? - Stack Overflow</a></li>
 <li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/labs/lab4/">Lab 4: Preemptive Multitasking (mit.edu)</a></li>
 </ol>
 

@@ -373,11 +373,11 @@
 <ul>
 <li>a finite <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Set_(mathematics">set</a>) of states $Q$.</li>
 <li>a finite set of <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Input_symbol">input symbols</a> $\Sigma$.</li>
-<li>a transition function $\Delta: Q\times\Sigma_\epsilon \rightarrow \Rho (Q)$</li>
+<li>a transition function $\Delta: Q\times\Sigma_\epsilon \rightarrow P(Q)$</li>
 <li>an <em>initial</em> (or <em>start</em>) state $q_0\in Q$</li>
 <li>a set of states $F$ distinguished as <strong>accepting</strong> (or <strong>final</strong>) <em>states</em> $F\subseteq Q$.</li>
 </ul>
-<p>其中，$\Rho (Q)$是$Q$的幂集，$\Sigma_\epsilon=\Sigma\cup{\epsilon}$。</p>
+<p>其中，$P(Q)$是$Q$的幂集，$\Sigma_\epsilon=\Sigma\cup{\epsilon}$。</p>
 <h4 id="2-1-2-状态转移图"><a href="#2-1-2-状态转移图" class="headerlink" title="2-1-2 状态转移图"></a>2-1-2 状态转移图</h4><p>下面是NFA的一个例子，可以看见转移的目标是一个集合。</p>
 <p><img src="/picture/nfa.png" alt=""></p>
 <h3 id="2-2-和DFA的区别"><a href="#2-2-和DFA的区别" class="headerlink" title="2-2 和DFA的区别"></a>2-2 和DFA的区别</h3><p>说说和确定性的区别：</p>
@@ -421,14 +421,7 @@
 <p>例：设计一个识别单词<code>web</code>和<code>ebay</code>的<code>NFA</code></p>
 <p><img src="/picture/sbdc.png" alt=""></p>
 <p>我写了个<code>c++</code>代码来模拟这个NFA</p>
-<pre class=" language-lang-c++"><code class="language-lang-c++">#include<iostream>
-#include<string>
-#include<stdio.h>
-#include<unistd.h>
-#include <sys/types.h>
-#include<stdlib.h>
-
-void words_recg(std::string s){
+<pre class=" language-lang-c++"><code class="language-lang-c++">void words_recg(std::string s){
     int state = 1;
     int idx;
     pid_t pid;
@@ -459,7 +452,7 @@ void words_recg(std::string s){
         break;
 
         case 4:
-            std::cout<<"Find web at "<<idx-3<<std::endl;
+            printf(<<"Find web at %d\n",(idx-3));
             goto End;
         break;
 
@@ -479,9 +472,9 @@ void words_recg(std::string s){
         break;
 
         case 8:
-            std::cout<<"Find ebay at "<<idx-4<<std::endl;
+            printf(<<"Find ebay at %d\n",(idx-4));
             goto End;
-        default: std::cout<<"error"<<std::endl;
+        default:
         break;
         }
     }
@@ -497,7 +490,7 @@ int main(){
 }
 </code></pre>
 <p>下面是运行结果：</p>
-<p><img src="/picture/find.png" alt=""></p>
+<p><img src="/picture/web.png" alt=""></p>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
 <li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Deterministic_finite_automaton">Deterministic finite automaton - Wikipedia</a></li>
 <li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton">Nondeterministic finite automaton - Wikipedia</a></li>

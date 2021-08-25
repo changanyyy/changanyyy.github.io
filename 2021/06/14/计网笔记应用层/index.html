@@ -342,7 +342,7 @@
 </ul>
 <h3 id="三种应用类型"><a href="#三种应用类型" class="headerlink" title="三种应用类型"></a>三种应用类型</h3><h4 id="1-流媒体"><a href="#1-流媒体" class="headerlink" title="1.流媒体"></a>1.流媒体</h4><p>因为整个视频文件太大，所以变成”流“来存储音频和视频，在完全下载下来之前就可以播放。在服务器上面的存储：可以比音频或者视频传输地更快（意味着在客户机缓存）。</p>
 <p>流媒体存储的视频：</p>
-<p><img src="/picture/streaming.png"></p>
+<p><img src="/picture/streaming.png" alt=""></p>
 <p>存在一些挑战：</p>
 <ul>
 <li>持续的播放约束，一旦客户播放开始，重放就要匹配得上原来的时间。但是网络延迟是可变的，所以我们需要客户机端的缓冲区来匹配播放需要</li>
@@ -350,14 +350,14 @@
 <li>视频包可能会丢失</li>
 </ul>
 <p>改进之后：（多了buffer）</p>
-<p><img src="/picture/s.png"></p>
+<p><img src="/picture/s.png" alt=""></p>
 <h5 id="利用的协议"><a href="#利用的协议" class="headerlink" title="利用的协议"></a>利用的协议</h5><p>UDP</p>
 <p>服务器以一个对于客户合适的速率发送</p>
 <p>要有一个比较短的播放延迟来对抗网络抖动</p>
 <p>UDP可能穿不过防火墙</p>
 <p>HTTP</p>
 <p>通过<code>HTTP GET</code>来获取多媒体文件。在TCP下以一个最小的可能速率发送</p>
-<p><img src="/picture/HTTPTCP.png"></p>
+<p><img src="/picture/HTTPTCP.png" alt=""></p>
 <p>填充速率波动取决于TCP拥塞控制，重传机制。需要更大的播放延时。HTTP/TCP可以轻松穿过防火墙</p>
 <p>DASH</p>
 <p>Dynamic，Adaptive Streaming over HTTP</p>

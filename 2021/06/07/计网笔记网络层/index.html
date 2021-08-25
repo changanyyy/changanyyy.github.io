@@ -334,24 +334,24 @@
 <li>在每一个主机和路由器都有运输层协议</li>
 <li>路由器检查IP数据报的header域，然后通过它传递</li>
 </ol>
-<p><img src="/picture/zzy.png"></p>
+<p><img src="/picture/zzy.png" alt=""></p>
 <p>两个关键的功能：</p>
 <p>交换和路由：运用路由算法决定从源到目的发包的路由路线，找到从源到目的最短路线（路由决定转发表）</p>
 <p>转发：从输入端口转发到特定的输出端口，进行错误处理排队和调度</p>
 <p>连接建立：在数据报开始发送之前，终端主机和路由器之间建立虚拟连接（和运输层对比，网络层的连接建立是包括主机和路由器，而运输层是在两个主机进程之间！）</p>
 <h2 id="二-网络服务模型"><a href="#二-网络服务模型" class="headerlink" title="二.网络服务模型"></a>二.网络服务模型</h2><p>信道的什么服务模型来从发送方到接收方传输数据报？</p>
 <h3 id="例子：ATM的网络服务模型"><a href="#例子：ATM的网络服务模型" class="headerlink" title="例子：ATM的网络服务模型"></a>例子：ATM的网络服务模型</h3><p>恒定比特率（CBR）和可变比特率（VBR），有效比特率和未定义比特率</p>
-<p><img src="/picture/atm.png"></p>
+<p><img src="/picture/atm.png" alt=""></p>
 <h3 id="例子：IP的网络服务模型"><a href="#例子：IP的网络服务模型" class="headerlink" title="例子：IP的网络服务模型"></a>例子：IP的网络服务模型</h3><p>尽力而为</p>
-<p><img src="/picture/ip.png"></p>
+<p><img src="/picture/ip.png" alt=""></p>
 <h2 id="三-IP路由器"><a href="#三-IP路由器" class="headerlink" title="三.IP路由器"></a>三.IP路由器</h2><p>互联网基础设施的核心！</p>
 <p>路由器的容量=NXR（其中N是外部路由端口的数量，R是每个端口的速率）</p>
-<p><img src="/picture/isp.png"></p>
+<p><img src="/picture/isp.png" alt=""></p>
 <h3 id="不同类型的路由器"><a href="#不同类型的路由器" class="headerlink" title="不同类型的路由器"></a>不同类型的路由器</h3><h4 id="1-核心路由器"><a href="#1-核心路由器" class="headerlink" title="1.核心路由器"></a>1.核心路由器</h4><p>R = 10/40/100/200/400 Gbps  NR = O(100) Tbps (总共)</p>
 <h4 id="2-边缘路由器"><a href="#2-边缘路由器" class="headerlink" title="2.边缘路由器"></a>2.边缘路由器</h4><p>R = 1/10/40/100 Gbps NR = O(100) Gbps</p>
 <h4 id="2-小型商用"><a href="#2-小型商用" class="headerlink" title="2.小型商用"></a>2.小型商用</h4><p>R = 1 Gbps  NR &lt; 10 Gbps</p>
-<h3 id="路由器的内部：架构概览"><a href="#路由器的内部：架构概览" class="headerlink" title="路由器的内部：架构概览"></a>路由器的内部：架构概览</h3><h4 id="1-总览"><a href="#1-总览" class="headerlink" title="1.总览"></a>1.总览</h4><p><img src="/picture/router%E6%9E%B6%E6%9E%84%E6%A6%82%E8%A7%88.png"></p>
-<h4 id="2-输入端口"><a href="#2-输入端口" class="headerlink" title="2.输入端口"></a>2.输入端口</h4><p><img src="/picture/11.png"></p>
+<h3 id="路由器的内部：架构概览"><a href="#路由器的内部：架构概览" class="headerlink" title="路由器的内部：架构概览"></a>路由器的内部：架构概览</h3><h4 id="1-总览"><a href="#1-总览" class="headerlink" title="1.总览"></a>1.总览</h4><p><img src="/picture/router架构概览.png" alt=""></p>
+<h4 id="2-输入端口"><a href="#2-输入端口" class="headerlink" title="2.输入端口"></a>2.输入端口</h4><p><img src="/picture/11.png" alt=""></p>
 <p>输入端口的任务：</p>
 <ul>
 <li>收到包（物理层的任务）</li>
@@ -360,11 +360,11 @@
 <li>排队：如果包到达太快就要缓存排队</li>
 </ul>
 <h5 id="查找合适的输出端口"><a href="#查找合适的输出端口" class="headerlink" title="查找合适的输出端口"></a>查找合适的输出端口</h5><p>如果一个表项对应一个地址就要有40亿个表项，为了可扩展性，地址是聚合的，目标地址按一定范围映射。<strong>按照最长前缀匹配规则</strong></p>
-<p><img src="/picture/%E6%9C%80%E9%95%BF%E5%89%8D%E7%BC%80.png"></p>
+<p><img src="/picture/最长前缀.png" alt=""></p>
 <p>由于一个个表项匹配复杂度有点高，我们可以利用树形结构</p>
-<p><img src="/picture/tree.png"></p>
+<p><img src="/picture/tree.png" alt=""></p>
 <h5 id="处理速度"><a href="#处理速度" class="headerlink" title="处理速度"></a>处理速度</h5><p>输入端口的任务要更新包头还有转发表查询，大多数被硬件处理！</p>
-<h4 id="3-输出端口"><a href="#3-输出端口" class="headerlink" title="3.输出端口"></a>3.输出端口</h4><p><img src="/picture/outputport.png"></p>
+<h4 id="3-输出端口"><a href="#3-输出端口" class="headerlink" title="3.输出端口"></a>3.输出端口</h4><p><img src="/picture/outputport.png" alt=""></p>
 <p>输出端口任务：</p>
 <ul>
 <li>包分类：把包映射到流里面</li>
@@ -372,7 +372,7 @@
 <li>调度：决定哪些包什么时候传输（从排队的包里面选择进行传输，当buffer满了就要选择包丢弃）</li>
 </ul>
 <p>缓冲处理先进先出：最简单，没有分类，buffer满了的话就丢掉后来的包</p>
-<p><img src="/picture/fifo.png"></p>
+<p><img src="/picture/fifo.png" alt=""></p>
 <p>包分类：根据header域来把IP包分类，比如源和目的的IP地址，源和目的的TCP端口号，服务类型，协议类型……</p>
 <h5 id="调度"><a href="#调度" class="headerlink" title="调度"></a>调度</h5><p>对于每一个流（“flow”）都有一个队列，调度器决定什么时候才能够哪个队列发包。调度器的目标是：快！</p>
 <h6 id="优先级调度"><a href="#优先级调度" class="headerlink" title="优先级调度"></a>优先级调度</h6><p>在最高优先级的要在低优先级之前转发</p>
@@ -387,7 +387,7 @@
 <li>通过总线交换</li>
 <li>通过物联的网络交换：比如横梁</li>
 </ul>
-<p><img src="/picture/3%E7%A7%8D.png" alt="三种交换结构"></p>
+<p><img src="/picture/3种.png" alt="三种交换结构"></p>
 <h5 id="4-1-通过共享内存交换"><a href="#4-1-通过共享内存交换" class="headerlink" title="4-1 通过共享内存交换"></a>4-1 通过共享内存交换</h5><p>第一代路由器采用这种，它是一种直接在CPU控制下交换的传统的电脑，分组被拷贝到系统的内存里面。速度被内存的带宽限制</p>
 <h5 id="4-2-通过总线交换"><a href="#4-2-通过总线交换" class="headerlink" title="4-2 通过总线交换"></a>4-2 通过总线交换</h5><p>数据报通过共享总线从输入端口内存传送到输出端口内存，速率被总线的带宽限制</p>
 <h5 id="4-3-通过网状结构交换"><a href="#4-3-通过网状结构交换" class="headerlink" title="4-3 通过网状结构交换"></a>4-3 通过网状结构交换</h5><p>克服了总线带宽的限制</p>
@@ -402,8 +402,8 @@
 <p>拥塞：分组排队和等待链路</p>
 <h4 id="分组交换的两种类型"><a href="#分组交换的两种类型" class="headerlink" title="分组交换的两种类型"></a>分组交换的两种类型</h4><p>虚电路网络：对信息流提供网络服务，VC网络提供基于服务的网络连接，比如ATM，X.25，Frame Relay</p>
 <p>数据报网络：对单个的分组提供网络服务，数据报网络提供网络层无连接服务，例如IP网络</p>
-<p><img src="/picture/%E8%99%9A%E7%94%B5%E8%B7%AF%E8%B7%AF%E7%94%B1.png" alt="虚电路路由"></p>
-<p><img src="/picture/%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%B7%AF%E7%94%B1.png" alt="数据报路由"></p>
+<p><img src="/picture/虚电路路由.png" alt="虚电路路由"></p>
+<p><img src="/picture/数据报路由.png" alt="数据报路由"></p>
 <h5 id="虚电路网络"><a href="#虚电路网络" class="headerlink" title="虚电路网络"></a>虚电路网络</h5><ul>
 <li>对于每个信息流要进行连接建立和拆除</li>
 <li>每个分组带着VC号</li>
@@ -414,11 +414,11 @@
 <h6 id="虚电路的实现"><a href="#虚电路的实现" class="headerlink" title="虚电路的实现"></a>虚电路的实现</h6><p>一个虚电路包括一条从源到目的的路径，还包括VC号（每个链路一个），交换机里面转发表的表项。</p>
 <p>注意：属于VC的分组携带VC号（而不是地址！！！），VC号可能在每条链路上被改变，转发表列出了新的VC号</p>
 <p>VC的转发表如下：</p>
-<p><img src="/picture/vc%E8%BD%AC%E5%8F%91%E8%A1%A8.png" alt="vc转发表"></p>
+<p><img src="/picture/vc转发表.png" alt="vc转发表"></p>
 <h6 id="信令协议"><a href="#信令协议" class="headerlink" title="信令协议"></a>信令协议</h6><p>被用来建立，维护，拆除虚电路</p>
 <p>被用在ATM，frame-relay，X.25</p>
 <p>现在已经不用了</p>
-<p><img src="/picture/%E4%BF%A1%E4%BB%A4%E5%8D%8F%E8%AE%AE.png" alt="信令协议"></p>
+<p><img src="/picture/信令协议.png" alt="信令协议"></p>
 <h5 id="数据报网络"><a href="#数据报网络" class="headerlink" title="数据报网络"></a>数据报网络</h5><p>在网络层不需要连接建立，没有网络层的“连接”概念</p>
 <p>交换：没有端对端的链接的状态</p>
 <p>用目的主机地址来进行分组转发</p>
@@ -482,6 +482,7 @@
 <p><code>Header length</code>表明头里面有多少个4字节，一般是5（20bype），如果有<code>Options</code>域的话可能就更多</p>
 <h4 id="2-把包送到目的"><a href="#2-把包送到目的" class="headerlink" title="2.把包送到目的"></a>2.把包送到目的</h4><p>需要目的IP地址，32bit</p>
 <p>我们插入一个小插曲，辨析一下MAC地址和IP地址的区别</p>
+<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -489,7 +490,8 @@
 <th>IP地址</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>在适配器生产时被硬编码</td>
 <td>后期被配置的，可以被动态学习到</td>
 </tr>
@@ -509,7 +511,9 @@
 <td>被用来在同一个网络下传送包</td>
 <td>用来给目的IP子网传送包</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
+</div>
 <h4 id="3-处理路径上的问题"><a href="#3-处理路径上的问题" class="headerlink" title="3.处理路径上的问题"></a>3.处理路径上的问题</h4><p>循环：为了破除循环，设计了<code>TTL(Time to Live)</code>，8bit</p>
 <p>错误：检验和<code>checksum(16bit)</code></p>
 <p>包太大：分段域，一共32bit，里面还有更细致的划分</p>
@@ -536,11 +540,11 @@
 <li>MF：置1，表示这个不是末尾的切片</li>
 </ul>
 <p>下面我们来举个分片的例子</p>
-<p><img src="/picture/%E5%88%86%E7%89%871.png"></p>
-<p><img src="/picture/%E5%88%86%E7%89%872.png"></p>
-<p><img src="/picture/%E5%88%86%E7%89%873.png"></p>
-<p><img src="/picture/%E5%88%86%E7%89%874.png"></p>
-<p><img src="/picture/%E5%88%86%E7%89%875.png"></p>
+<p><img src="/picture/分片1.png" alt=""></p>
+<p><img src="/picture/分片2.png" alt=""></p>
+<p><img src="/picture/分片3.png" alt=""></p>
+<p><img src="/picture/分片4.png" alt=""></p>
+<p><img src="/picture/分片5.png" alt=""></p>
 <h4 id="4-支持更新"><a href="#4-支持更新" class="headerlink" title="4.支持更新"></a>4.支持更新</h4><p>通过版本号<code>version number(4 bit)</code>，或许还可以算上”特殊处理域“</p>
 <h4 id="5-支持一些特殊处理"><a href="#5-支持一些特殊处理" class="headerlink" title="5.支持一些特殊处理"></a>5.支持一些特殊处理</h4><h5 id="5-1特殊处理域"><a href="#5-1特殊处理域" class="headerlink" title="5-1特殊处理域"></a>5-1特殊处理域</h5><p><code>Type of Service</code>服务类型域</p>
 <p>允许包被按需对待，比如不同的优先级，不同的拥塞提醒之类的（比如说一些实时语音通话比较注重时延，一些文件比较注重准确率）。在不同的运营商（自治域）可能要被重新定义</p>
@@ -550,7 +554,7 @@
 <p><img src="/picture/protocol.png" alt="协议栈"></p>
 <h3 id="IPv4头"><a href="#IPv4头" class="headerlink" title="IPv4头"></a>IPv4头</h3><p><img src="/picture/ipv4.png" alt="IPv4"></p>
 <h3 id="IPv6"><a href="#IPv6" class="headerlink" title="IPv6"></a>IPv6</h3><p>IPv4地址枯竭迫使它的出现，专注于简化IP协议，抛弃一些不必要的字段，形成了一种优雅，无二义性的协议</p>
-<p><img src="/picture/%E5%AF%B9%E6%AF%94.png" alt="IPv4和IPv6的对比"></p>
+<p><img src="/picture/对比.png" alt="IPv4和IPv6的对比"></p>
 <p>总结一下这些变化：</p>
 <ol>
 <li>切片被清除</li>
@@ -566,9 +570,9 @@
 <p>从主机的视角来看，由一个应用生成并且有同样的传输服务要求，或许包含一个单独的或者多个TCP连接。一个应用可能生成一个或者多个流</p>
 <p>从路由器的视角看，这个是影响这些包如何被路由器处理的共享属性</p>
 <p>流是独一无二的标识，被源和目的地址标识和非零的流标签所定义。流需求被定义优先于流的发端。路由器通过简单的在一个表中查询流标签来决定如何路由和处理分组。</p>
-<h5 id="IPv6头的结构（包含拓展的header）"><a href="#IPv6头的结构（包含拓展的header）" class="headerlink" title="IPv6头的结构（包含拓展的header）"></a>IPv6头的结构（包含拓展的header）</h5><p><img src="/picture/ipv6s.png"></p>
+<h5 id="IPv6头的结构（包含拓展的header）"><a href="#IPv6头的结构（包含拓展的header）" class="headerlink" title="IPv6头的结构（包含拓展的header）"></a>IPv6头的结构（包含拓展的header）</h5><p><img src="/picture/ipv6s.png" alt=""></p>
 <p>可选的部分在拓展headers里面，在主header后面呈菊花链状</p>
-<p><img src="/picture/header.png"></p>
+<p><img src="/picture/header.png" alt=""></p>
 <p>这些header是按序出现的</p>
 <p>路由器在ipv6里面不切片，因为要在核心里面更有效率的处理，切片已经在主机里面做好了。如果包在下一跳发现太大了，那么就发送包太大error消息（ICMPv6消息）</p>
 <h5 id="广播"><a href="#广播" class="headerlink" title="广播"></a>广播</h5><p>iPv6没有广播，有一个“全部节点”多播群组：ff02::1</p>
@@ -599,10 +603,10 @@
 <h3 id="C类地址"><a href="#C类地址" class="headerlink" title="C类地址"></a>C类地址</h3><p><img src="/picture/C.png" alt="C类地址"></p>
 <h3 id="子网和子网掩码"><a href="#子网和子网掩码" class="headerlink" title="子网和子网掩码"></a>子网和子网掩码</h3><p>处理网络地址不足，地址的主机部分分为子网号和主机号。子网掩码指出哪些比特是子网号，哪些是主机号，每个局域网被分配一个子网号，本地路由器在子网里面路由</p>
 <p>子网对于因特网的其余部分看起来像一个单独的网络，把全部的网络从网络号和路由的复杂中隔离出来</p>
-<p><img src="/picture/subtorest.png"></p>
-<p><img src="/picture/route.png"></p>
+<p><img src="/picture/subtorest.png" alt=""></p>
+<p><img src="/picture/route.png" alt=""></p>
 <h3 id="CIDR记法"><a href="#CIDR记法" class="headerlink" title="CIDR记法"></a>CIDR记法</h3><p>无类域间路由，一个IP地址以“A.B.C.D/n”的形式被呈现，n叫做IP前缀</p>
-<p><img src="/picture/CIDR.png"></p>
+<p><img src="/picture/CIDR.png" alt=""></p>
 <h2 id="七-网络层协议簇"><a href="#七-网络层协议簇" class="headerlink" title="七.网络层协议簇"></a>七.网络层协议簇</h2><h3 id="NAT-Network-Address-Translation"><a href="#NAT-Network-Address-Translation" class="headerlink" title="NAT(Network Address Translation)"></a>NAT(Network Address Translation)</h3><p>对内部和外部流量启用不同的IP地址</p>
 <p>网络地址转换发生在带有更广阔的因特网的内联网接口</p>
 <p>目的：</p>
@@ -618,9 +622,9 @@
 <li>单地址：NAT/Overloading/Masquerading/Network Address  Port Translation (NAPT）</li>
 </ul>
 <p>图解NAT：</p>
-<p><img src="/picture/NAT.png"></p>
-<p><img src="/picture/overload.png"></p>
-<p><img src="/picture/%E7%BD%91%E7%BB%9C%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2.png" alt="网络地址转换"></p>
+<p><img src="/picture/NAT.png" alt=""></p>
+<p><img src="/picture/overload.png" alt=""></p>
+<p><img src="/picture/网络地址转换.png" alt="网络地址转换"></p>
 <p>NAT是很有争议的，地址不时会发生变化，必须被P2P应用纳入考虑</p>
 <h3 id="ICMP"><a href="#ICMP" class="headerlink" title="ICMP"></a>ICMP</h3><p><code>Internet Control Message Protocol</code></p>
 <p>用来在主机和路由器间传播错误和控制消息</p>
@@ -654,12 +658,12 @@
 </ol>
 <h2 id="八-移动IP"><a href="#八-移动IP" class="headerlink" title="八.移动IP"></a>八.移动IP</h2><p>移动IP标准在1996年被IESG批准，同年被IETF作为一种被提议的标准发布。它被发明出来是为了应对日益增长的PDA和Laptop的使用需求。</p>
 <p>数据报从一个网络移动到另一个网络需要用到目的的IP地址，IP地址被划分为两部分<code>&lt;netID,hostID&gt;</code>，大多数网络应用支持<code>TCP</code>连接，<code>TCP</code>使用IP地址和端口号来路由和交付。当移动设备从一个网络移动到另一个的时候，它的IP地址动态改变，因此TCP连接在每次移动的时候需要重启正在进行的会话。移动IP正在解决动态变化的IP地址的问题，就不必重启TCP，就好像移动设备的IP地址假装没改变</p>
-<p><img src="/picture/mip.png"></p>
+<p><img src="/picture/mip.png" alt=""></p>
 <h3 id="不同的实体"><a href="#不同的实体" class="headerlink" title="不同的实体"></a>不同的实体</h3><p>移动节点：一个或许会改变它的接入点或者从一个网络到另一个网络连接的主机</p>
 <p>通信节点：一个要给移动节点发包的主机</p>
 <p>归属代理：一个在归属网络上维护一个已注册移动节点列表的节点</p>
 <p>外部代理：一个在外部网络上帮助移动节点发送数据报的路由器</p>
-<h3 id="三角路由"><a href="#三角路由" class="headerlink" title="三角路由"></a>三角路由</h3><p><img src="/picture/%E4%B8%89%E8%A7%92%E8%B7%AF%E7%94%B1.png"></p>
+<h3 id="三角路由"><a href="#三角路由" class="headerlink" title="三角路由"></a>三角路由</h3><p><img src="/picture/三角路由.png" alt=""></p>
 <h3 id="协议的细节"><a href="#协议的细节" class="headerlink" title="协议的细节"></a>协议的细节</h3><p>移动路由有三种能力：发现，注册，隧道技术</p>
 <h4 id="1-发现"><a href="#1-发现" class="headerlink" title="1.发现"></a>1.发现</h4><p>移动（外部）代理：周期性发送带有移动代理广告扩展的ICMP路由广告来表明它的存在</p>
 <p>移动节点：可以向代理请求广告或者简单地等待下一个广告</p>
@@ -671,20 +675,20 @@
 <li>归属代理发送<code>registration reply</code>给外部代理</li>
 <li>外部代理转发这个<code>reply</code>给移动节点</li>
 </ol>
-<p><img src="/picture/registration.png"></p>
+<p><img src="/picture/registration.png" alt=""></p>
 <p>下面是一个注册的例子</p>
-<p><img src="/picture/%E4%BE%8B%E5%AD%90.png"></p>
+<p><img src="/picture/例子.png" alt=""></p>
 <h4 id="3-隧道"><a href="#3-隧道" class="headerlink" title="3.隧道"></a>3.隧道</h4><p>在注册之后，一个IP隧道建立起来了，在归属代理和移动节点的COA之间建立。归属节点广播把移动节点IP地址绑定到归属代理MAC地址的ARP请求。因此，归属代理收到了发送给移动节点的包，会通过IP隧道转发给外部代理</p>
-<p><img src="/picture/111.png"></p>
+<p><img src="/picture/111.png" alt=""></p>
 <h2 id="九-路由算法"><a href="#九-路由算法" class="headerlink" title="九.路由算法"></a>九.路由算法</h2><p>路由分为中心化的路由和分布式路由</p>
 <p>中心化：固定的并且需要配置</p>
 <p>分布式：通过洪泛，随机的，自适应的</p>
-<p><img src="/picture/cvd.png"></p>
+<p><img src="/picture/cvd.png" alt=""></p>
 <h3 id="插播：洪泛（分布式）"><a href="#插播：洪泛（分布式）" class="headerlink" title="插播：洪泛（分布式）"></a>插播：洪泛（分布式）</h3><p>洪泛不需要全局网络信息，分组被交换机发送给所有邻居，分组在除了入链路的每个链路都会转发，最后很多拷贝会到达目的。</p>
 <p>洪泛的性质：所有可能的路由都会被尝试，至少一个包会通过最小cost路由，所有的交换机都被访问过（分布式，可能用于路由）</p>
 <h3 id="随机路由（分布式）"><a href="#随机路由（分布式）" class="headerlink" title="随机路由（分布式）"></a>随机路由（分布式）</h3><p>节点选择一个出链路来转发到来的包，选择是随机或者轮流的，基于概率。不需要什么网络信息，适合强连通网络，路由不是最佳的。</p>
 <p>以下说明如何分配概率：</p>
-<p><img src="/picture/p.png"></p>
+<p><img src="/picture/p.png" alt=""></p>
 <h3 id="自适应路由"><a href="#自适应路由" class="headerlink" title="自适应路由"></a>自适应路由</h3><p>被用作几乎所有分组交换网络，当网络状况改变时候路由决策也会改变。需要网络的信息，需要在网络质量和开销之间权衡。有助于拥塞控制</p>
 <h3 id="两种最小花费算法"><a href="#两种最小花费算法" class="headerlink" title="两种最小花费算法"></a>两种最小花费算法</h3><p><code>Dijkstra</code>算法和<code>Bellman-Ford</code>算法</p>
 <h4 id="Dijkstra算法"><a href="#Dijkstra算法" class="headerlink" title="Dijkstra算法"></a>Dijkstra算法</h4><p>找到从给定源到其他所有节点的最短路径</p>
@@ -720,14 +724,13 @@
 </ol>
 <p>算法在所有节点被添加到T中时结束</p>
 <p>步骤2和3的一次迭代会添加一个新节点到T中</p>
-<p><img src="/picture/dijkstra.png"></p>
+<p><img src="/picture/dijkstra.png" alt=""></p>
 <p>但是可能会出现震荡，解决办法就是非同步运行路由算法，链路代价更新随机化（让每台路由器发送链路通告的时间随机化）</p>
 <h4 id="Bellman-Ford算法"><a href="#Bellman-Ford算法" class="headerlink" title="Bellman-Ford算法"></a>Bellman-Ford算法</h4><p>找到一条从给定节点包含最多一条链路的最短路径，</p>
 <p>找到一条从给定节点包含最多两条链路的最多路径（基于前面的步骤）</p>
 <p>找到一条…不断进行迭代</p>
 <ul>
-<li><p>s是源点</p>
-</li>
+<li>s是源点</li>
 <li><p><code>w(i,j)</code>是从i到j的链路消耗</p>
 <ul>
 <li><code>w(i,i)+0</code></li>
@@ -737,13 +740,12 @@
 </li>
 <li><p>h是在当前阶段路径上链路的最大数量</p>
 </li>
-<li><p><code>L_h(n)</code>是在当前不超过h条链路的限制下从s到n的最短链路消耗</p>
-</li>
+<li><code>L_h(n)</code>是在当前不超过h条链路的限制下从s到n的最短链路消耗</li>
 </ul>
 <h5 id="算法过程-1"><a href="#算法过程-1" class="headerlink" title="算法过程"></a>算法过程</h5><ol>
 <li>初始化<ul>
 <li><code>L_0(n) = ∞, for all n ≠ s</code> </li>
-<li><code>L_1(n) = w(s, n) </code></li>
+<li><code>L_1(n) = w(s, n)</code></li>
 <li><code>L_h(s) = 0, for all h</code></li>
 </ul>
 </li>
@@ -756,13 +758,13 @@
 </li>
 <li>重复一直到没有改变</li>
 </ol>
-<p><img src="/picture/Bellman.png"></p>
+<p><img src="/picture/Bellman.png" alt=""></p>
 <h5 id="链路花费改变"><a href="#链路花费改变" class="headerlink" title="链路花费改变"></a>链路花费改变</h5><p>当链路代价改变时候：</p>
 <ul>
 <li>节点检测到本地链路代价改变了</li>
 <li>更新路由信息，重新计算距离向量</li>
 <li>如果<code>DV</code>，改变了，就通知周围邻居<ul>
-<li><img src="/picture/dv.png"></li>
+<li><img src="/picture/dv.png" alt=""></li>
 <li>t0:y检测到链路代价改变，更新dv，通知邻居</li>
 <li>t1:z收到来自y的更新，更新自己的表，计算到x的最小距离，发送给邻居</li>
 <li>t2:y收到z的更新，更新自己的表，没有改变，所以不用给z发送消息</li>
@@ -827,7 +829,7 @@
 <h3 id="RIP"><a href="#RIP" class="headerlink" title="RIP"></a>RIP</h3><p>使用距离向量算法。距离靠多少跳来度量，距离向量每三十秒跟邻居交换一次。如果180秒没收到信息，说明邻居没了。用UDP包。</p>
 <h3 id="OSPF"><a href="#OSPF" class="headerlink" title="OSPF"></a>OSPF</h3><p>开放最短路径优先，利用链路状态路由算法。每十秒更新一次，直接用IP承载，不用UDP。</p>
 <p>网络，主机和BGP路由器都是目的，每个路由器计算它到其他目的最短路径的SPF tree</p>
-<p><img src="/picture/SPF.png"></p>
+<p><img src="/picture/SPF.png" alt=""></p>
 <h4 id="OSPF高级的功能"><a href="#OSPF高级的功能" class="headerlink" title="OSPF高级的功能"></a>OSPF高级的功能</h4><ul>
 <li>安全性：所有的OSPF消息需要认证来组织恶意入侵</li>
 <li>可以允许多个相同路径</li>
@@ -847,7 +849,7 @@
 <li>在区域间的分布式路由信息</li>
 </ul>
 <p>好处：划分区域的好处是将洪泛交换链路状态信息的范围局限于每一个区域 而不是整个的自治系统。在一个区域内部的路由器只知道本区域的完整网络拓扑，而不知道其 他区域的网络拓扑的情况。主干区域用于连通其他下层区域</p>
-<p><img src="/picture/OSPFarea.png"></p>
+<p><img src="/picture/OSPFarea.png" alt=""></p>
 <h4 id="RIP-vs-OSPF"><a href="#RIP-vs-OSPF" class="headerlink" title="RIP vs OSPF"></a>RIP vs OSPF</h4><p>RIP</p>
 <ul>
 <li>配置简单，适用于小型网络（小于15跳）</li>
@@ -872,17 +874,17 @@
 <li>A是B的伙伴</li>
 </ul>
 <p>客户给供应商交钱。伙伴之间不需要交钱，大概网络程度类似</p>
-<p><img src="/picture/AS%E4%B8%9A%E5%8A%A1%E5%85%B3%E7%B3%BB.png"></p>
+<p><img src="/picture/AS业务关系.png" alt=""></p>
 <p>为什么要伙伴关系</p>
-<p><img src="/picture/peer.png"></p>
+<p><img src="/picture/peer.png" alt=""></p>
 <p>AS为他们的客户提供传输服务，但是不提供它的peers之间的传输服务</p>
-<p><img src="/picture/allow.png"></p>
+<p><img src="/picture/allow.png" alt=""></p>
 <p>总结来说，AS拓扑反映了AS之间的业务关系，AS之间的业务关系反映了什么样的路由选择是可接受的</p>
-<h4 id="基本想法"><a href="#基本想法" class="headerlink" title="基本想法"></a>基本想法</h4><p><img src="/picture/basic.png"></p>
+<h4 id="基本想法"><a href="#基本想法" class="headerlink" title="基本想法"></a>基本想法</h4><p><img src="/picture/basic.png" alt=""></p>
 <p>BGP是被DV算法所启发</p>
 <p>每个目的地址进行通知，没有全局共享拓扑信息，在路径上进行迭代和分布式收敛。不过有四种关键的不同之处</p>
 <h4 id="和BGP的不同之处"><a href="#和BGP的不同之处" class="headerlink" title="和BGP的不同之处"></a>和BGP的不同之处</h4><h5 id="1-不选择最短路径"><a href="#1-不选择最短路径" class="headerlink" title="1.不选择最短路径"></a>1.不选择最短路径</h5><p>BGP基于策略选择最好的路由，而不是最短的距离（比如最小的花费），如下图可能A可能选择ABC而不是AC</p>
-<p><img src="/picture/abc.png"></p>
+<p><img src="/picture/abc.png" alt=""></p>
 <h5 id="2-路径向量路由"><a href="#2-路径向量路由" class="headerlink" title="2.路径向量路由"></a>2.路径向量路由</h5><p>主要思想：message要记录整个路径</p>
 <ul>
 <li>DV：发送到目的的距离度量</li>
@@ -892,7 +894,7 @@
 <h5 id="3-选择性的路由通告"><a href="#3-选择性的路由通告" class="headerlink" title="3.选择性的路由通告"></a>3.选择性的路由通告</h5><p>出于策略上的原因，AS可以选择不发布到目的地的路由。因此，即使物理上相连，也不一定可达</p>
 <h5 id="4-BGP或许会合并路由"><a href="#4-BGP或许会合并路由" class="headerlink" title="4.BGP或许会合并路由"></a>4.BGP或许会合并路由</h5><p>为了稳定性，BGP或许会把不同前缀地址的路由进行合并</p>
 <h4 id="BGP的细节"><a href="#BGP的细节" class="headerlink" title="BGP的细节"></a>BGP的细节</h4><p>谁来运行BGP呢？自治系统中的边界路由器</p>
-<p><img src="/picture/border.png"></p>
+<p><img src="/picture/border.png" alt=""></p>
 <p>Speak BGP意味着什么？</p>
 <ul>
 <li>实现BGP协议标准</li>
@@ -914,13 +916,13 @@
 <p>撤回：移除不再存在的路由</p>
 <h5 id="路由属性"><a href="#路由属性" class="headerlink" title="路由属性"></a>路由属性</h5><p>路由用属性来描述，一些属性是本地的（在AS内部，不在通告中）；一些属性通过eBGP通告被传播出去</p>
 <h6 id="ASPATH"><a href="#ASPATH" class="headerlink" title="ASPATH"></a>ASPATH</h6><p>在路由通告里面被装载，列出了经过的所有AS的向量（反向列出）</p>
-<p><img src="/picture/AS.png"></p>
+<p><img src="/picture/AS.png" alt=""></p>
 <h6 id="Local-Pref"><a href="#Local-Pref" class="headerlink" title="Local Pref"></a>Local Pref</h6><p>本地偏好是用来在不同AS路径中做出选择，只在iBGP消息中，值越大越偏好</p>
-<p><img src="/picture/pref.png"></p>
+<p><img src="/picture/pref.png" alt=""></p>
 <h6 id="MED"><a href="#MED" class="headerlink" title="MED"></a>MED</h6><p>当AS通过2个或多个链路互连时，使用多出口识别器;它指定前缀离宣布它的链接有多近。越低越好</p>
-<p><img src="/picture/MED.png"></p>
+<p><img src="/picture/MED.png" alt=""></p>
 <p>下面是BGP更新的过程</p>
-<p><img src="/picture/BGP.png"></p>
+<p><img src="/picture/BGP.png" alt=""></p>
 <h4 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h4><ul>
 <li><p>主要用于表示路由的可达性，不一定走最短路径路由</p>
 </li>

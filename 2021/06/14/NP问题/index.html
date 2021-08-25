@@ -346,7 +346,7 @@
 <p>3.NP问题</p>
 <p>定义过P问题，我们进一步定义NP问题。NP的名称来自<code>Non-deterministic P</code>，含义是非确定性算法在多项式时间内可解，也可以理解为在多项式时间内可验证。具体如下：</p>
 <p>我们定义一个问题为NP问题，如果该问题的解在多项式时间内可验证。这里可验证的含义是首先我们先随便猜一个解，然后可以在多项式时间内可以检查这个解是不是该问题的正确的解。</p>
-<p>定理：**<code>CLIQUE∈NP</code>**</p>
+<p>定理：<strong><code>CLIQUE∈NP</code></strong></p>
 <p>证明：我们可以通过O(n)来猜想图中的任意k个顶点，然后来检查他们之间是否两两都有边，那么验证过程复杂度是O(k^2)=O(n^2)，所以我们可以在多项式时间内完成问题的验证！</p>
 <h2 id="二-问题的归约"><a href="#二-问题的归约" class="headerlink" title="二.问题的归约"></a>二.问题的归约</h2><h3 id="归约的定义"><a href="#归约的定义" class="headerlink" title="归约的定义"></a>归约的定义</h3><p>问题P可以规约到Q的含义是解决问题P可以间接通过解决问题Q来实现。下面是P到Q的归约的定义：</p>
 <p>判定问题P到Q的归约为一个转换函数<code>T(x)</code>满足：</p>
@@ -362,7 +362,7 @@
 <p><strong>多项式时间归约关系是一个传递关系，即对于问题P，Q，R，如果<code>P ≤p Q</code>，<code>Q ≤p R</code>，那么<code>P ≤p R</code>。</strong></p>
 <h2 id="三-NP完全问题"><a href="#三-NP完全问题" class="headerlink" title="三.NP完全问题"></a>三.NP完全问题</h2><p><strong>NP难问题定义：一个问题P是NP难问题，如果对于属于NP的任意问题Q，<code>Q ≤p P</code></strong></p>
 <p><strong>NP完全问题：一个问题P是NP完全问题，如果<code>P∈NP</code>，并且P是NP难问题</strong></p>
-<p>参考书：《算法设计与分析》第二版–黄宇</p>
+<p>参考书：《算法设计与分析》第二版—黄宇</p>
 
                 
             </div>
