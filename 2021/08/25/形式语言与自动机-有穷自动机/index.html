@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="形式语言与自动机 文法, yxz的博客">
+    <meta name="keywords" content="形式语言与自动机 有穷自动机, yxz的博客">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>形式语言与自动机 文法 | yxz的博客</title>
+    <title>形式语言与自动机 有穷自动机 | yxz的博客</title>
     <link rel="icon" type="image/jpeg" href="/logo.jpg">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -253,12 +253,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/8.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/4.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">形式语言与自动机 文法</h1>
+                    <h1 class="description center-align post-title">形式语言与自动机 有穷自动机</h1>
                 </div>
             </div>
         </div>
@@ -309,14 +309,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.1k
+                    1.4k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    4 分
+                    5 分
                 </div>
                 
 
@@ -331,80 +331,178 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="文法"><a href="#文法" class="headerlink" title="文法"></a>文法</h2><h3 id="为什么要文法"><a href="#为什么要文法" class="headerlink" title="为什么要文法"></a>为什么要文法</h3><p>对语言的研究主要包括三个方面：</p>
+                <h2 id="1-确定性有穷自动机"><a href="#1-确定性有穷自动机" class="headerlink" title="1 确定性有穷自动机"></a>1 确定性有穷自动机</h2><h3 id="1-1-模型"><a href="#1-1-模型" class="headerlink" title="1-1 模型"></a>1-1 模型</h3><p>有穷自动机的模型是由一个纸带，一个控制器组成，控制器有一个只读头指向纸带。控制器里面控制状态的转移和存储当前状态。有穷自动机的特点：</p>
 <ol>
-<li>表示（representation）-无穷语言的表示</li>
-<li>有穷描述（finite description）-研究的语言要么是有穷的，要么是可数无穷的，我们主要研究<strong>可数无穷语言的有穷表示</strong></li>
-<li>结构（structure）-语言的结构特征</li>
+<li>只有一条磁带，用于存放字符串</li>
+<li>带头只能读，不可以写</li>
+<li>带头只能往一个方向移动（从左往右）</li>
 </ol>
-<p>我们通过文法来解决描述语言的结构特征，并且可以产生语言的所有句子。文法就是用来定义语言的一个数学模型。</p>
-<p>表示语言的方法：</p>
+<h3 id="1-2-特点"><a href="#1-2-特点" class="headerlink" title="1-2 特点"></a>1-2 特点</h3><ul>
+<li>自动机的实质是：现在的状态+输入-&gt;下一状态</li>
+<li>只读，不写，没有内存，没有变量，没有数组，没有堆栈，没有推理，没有想象力</li>
+<li>只有寄存器能记住状态</li>
+</ul>
+<h3 id="1-3-有穷状态机的表示"><a href="#1-3-有穷状态机的表示" class="headerlink" title="1-3 有穷状态机的表示"></a>1-3 有穷状态机的表示</h3><h4 id="1-3-1-形式化定义"><a href="#1-3-1-形式化定义" class="headerlink" title="1-3-1 形式化定义"></a>1-3-1 形式化定义</h4><p>定义1. A deterministic finite automaton  (DFA) is defined by a 5-tuple (Q,S,$\delta$,$q_0$,F) </p>
 <ol>
-<li>如果语言L是有限集合，用枚举法。</li>
-<li>如果L是无限集合：<ol>
-<li>利用文法产生系统，由定义的文法规则产生出语言的每个句子。</li>
-<li>利用机器识别系统，当一个字符串能被一个语言的识别系统接收，那么这个字符串是该语言的一个句子，否则不属于该语言。</li>
+<li><code>Q</code>: finite set of states 有限状态集 </li>
+<li><code>S</code>: finite alphabet 有限字母表</li>
+<li>$\delta$: transition function $\delta: Q\times\Sigma\rightarrow Q$ 转移函数 （可以用矩阵表示）</li>
+<li>$q_0\in Q$: start state 起始状态 </li>
+<li>$F\subseteq Q$: set of accepting states 接受状态集合</li>
 </ol>
-</li>
-</ol>
-<h3 id="文法的定义"><a href="#文法的定义" class="headerlink" title="文法的定义"></a>文法的定义</h3><p>定义1. 一个文法G是一个四元组 <code>G = ( V, T, P, S )</code>， 其中</p>
+<p>下面是确定性有穷自动机的形式化定义，后面注意和非确定性地区别，<strong>主要区别就是转移函数</strong>：在DFA中，映射到单一状态；而在DFA中映射到状态集合的子集。</p>
+<h4 id="1-3-2状态转移图"><a href="#1-3-2状态转移图" class="headerlink" title="1-3-2状态转移图"></a>1-3-2状态转移图</h4><ul>
+<li>状态（states）：状态的集合</li>
+<li>始态（starting state）：起始的状态</li>
+<li>受态（accepting state）：在状态转移图里一般用双圈或者粗圈表示</li>
+<li>变换规则（transition rules）：从一个状态接收输入转移到另一个状态（非确定性可能是转移到一些状态）</li>
+</ul>
+<p>下面是一个DFA的例子</p>
+<p><img src="/picture/nfa.png" alt=""></p>
+<h3 id="1-4-对应的语言"><a href="#1-4-对应的语言" class="headerlink" title="1-4 对应的语言"></a>1-4 对应的语言</h3><p>定义2. A regular language is a language for  which there exists a recognizing finite automaton.</p>
+<h3 id="1-5-自动机等价"><a href="#1-5-自动机等价" class="headerlink" title="1-5 自动机等价"></a>1-5 自动机等价</h3><p>根据自动机接收的语言，我们定义自动机等价.</p>
+<p>定义3. 设$M_1,M_2$为<code>FA</code>。如果$L(M_1)=L(M_2)$，则称自动机 $M_1$与$M_2$相互等价。</p>
+<p>设计一个确定性有穷自动机：</p>
 <ol>
-<li>V（Variables）是<strong>变元的有限集</strong>。 </li>
-<li>T（Terminal symbols）是<strong>终结符的有限集</strong>。 </li>
-<li>P（Productions）是产生式的有限集，其中每个产生 式都是α→β的形式，其中α∈(V∪T)+，且其中至少有 一个V中的符号，β∈(V∪T)<em>。α称为产生式的<strong>左部</strong>，β 称为产生式的<em>*右部</em></em>。 </li>
-<li>S∈V，称为文法G的<strong>开始符号（Start variable）</strong>。</li>
+<li>首先设计状态，找出<strong>关键的信息</strong>，每个关键信息的值对应一个状态</li>
+<li>给出转移函数</li>
+<li>没有输入或者输入为$\epsilon$的状态指定为起始状态</li>
+<li>确定接受状态</li>
 </ol>
-<blockquote>
-<p>一些约定：</p>
+<h2 id="2-非确定性有穷自动机"><a href="#2-非确定性有穷自动机" class="headerlink" title="2 非确定性有穷自动机"></a>2 非确定性有穷自动机</h2><h3 id="2-1-NFA的表示"><a href="#2-1-NFA的表示" class="headerlink" title="2-1 NFA的表示"></a>2-1 NFA的表示</h3><h4 id="2-1-1-形式化定义"><a href="#2-1-1-形式化定义" class="headerlink" title="2-1-1 形式化定义"></a>2-1-1 形式化定义</h4><p>An <em>NFA</em> is represented formally by a <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/N-tuple">5-tuple</a>，$(Q, \Sigma, \Delta, q_0, F)$</p>
 <ul>
-<li>大写字母A,B,C,D,E和S等等表示变元，除非另做说明， S表示开始符号。 </li>
-<li>小写拉丁字母a,b,c,数字等等表示终结符。 </li>
-<li>小写拉丁字母u, v, w, x, y, z等等表示终结符串。 </li>
-<li>小写希腊字母α，β，γ等等表示变元和终结符共同组成的串</li>
+<li>a finite <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Set_(mathematics">set</a>) of states $Q$.</li>
+<li>a finite set of <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Input_symbol">input symbols</a> $\Sigma$.</li>
+<li>a transition function $\Delta: Q\times\Sigma_\epsilon \rightarrow \Rho (Q)$</li>
+<li>an <em>initial</em> (or <em>start</em>) state $q_0\in Q$</li>
+<li>a set of states $F$ distinguished as <strong>accepting</strong> (or <strong>final</strong>) <em>states</em> $F\subseteq Q$.</li>
 </ul>
-</blockquote>
-<h3 id="文法和形式语言"><a href="#文法和形式语言" class="headerlink" title="文法和形式语言"></a>文法和形式语言</h3><h4 id="推导，归约"><a href="#推导，归约" class="headerlink" title="推导，归约"></a>推导，归约</h4><p>定义2. </p>
+<p>其中，$\Rho (Q)$是$Q$的幂集，$\Sigma_\epsilon=\Sigma\cup{\epsilon}$。</p>
+<h4 id="2-1-2-状态转移图"><a href="#2-1-2-状态转移图" class="headerlink" title="2-1-2 状态转移图"></a>2-1-2 状态转移图</h4><p>下面是NFA的一个例子，可以看见转移的目标是一个集合。</p>
+<p><img src="/picture/nfa.png" alt=""></p>
+<h3 id="2-2-和DFA的区别"><a href="#2-2-和DFA的区别" class="headerlink" title="2-2 和DFA的区别"></a>2-2 和DFA的区别</h3><p>说说和确定性的区别：</p>
 <ul>
-<li>给出文法 <code>G = ( V, T, P, S )</code>，我们定义两个字符串之间的一个关系“ $\underset {G}{\Rightarrow}$”：若 $α= α_1α_2α_3$, $γ=α_1βα_3$, 并且 $α_2→β$是P中的一个产生式，则有 α$\underset {G}{\Rightarrow}$γ，此时称<strong>由α直接推导(derives)出γ</strong>。根据第一章关于集合上关系的闭包的 定义，我们也可把$\underset {G}{\Rightarrow}$扩充为$\overset { * }{\underset {G}{\Rightarrow}}$ ，将α$\overset {*}{\underset {G}{\Rightarrow}}$γ称为<strong>由α推导出γ</strong>。</li>
-<li>若有S$\overset {*}{\underset {G}{\Rightarrow}}$ γ，则称γ为句型(sentential form)，当γ∈Ｔ＊ ， 则称γ为句子(sentence)。</li>
-<li>对应于推导，还有一个重要的概念，称为“归约 ”(reduce)。定义是：如果α$\overset {*}{\underset {G}{\Rightarrow}}$γ是由α到γ的推导，则 反过来称γ归约到α，记作γ$\overset {*}{\underset {G}{\Leftarrow}}$α。</li>
+<li>NFA对于一个输入可能有多个后续状态。（前面也提到过，一个状态映射到多个状态）</li>
+<li>输入还可以有$\epsilon$（自动漂移）</li>
+<li>NFA可以看作并行计算或者树，而DFA属于线性计算</li>
+<li>事实上，DFA是NFA的一种特例</li>
 </ul>
-<h4 id="什么是语言"><a href="#什么是语言" class="headerlink" title="什么是语言"></a>什么是语言</h4><p>定义3. 给出文法 <code>G=(V, T, P, S)</code>，它所产生的语言记作<code>L(G)</code>，由下述集合定义： L(G)={$\omega$| $S\overset {*}{\underset {G}{\Rightarrow}}\omega$，并且 $\omega ∈Ｔ^*$ }。 换句话说，文法G产生的语言<code>L(G)</code>，就是由G中开始符号S推导出来的全体终结符号串所构成的集合，也就 是<strong>句子的集合</strong></p>
-<h3 id="文法等价"><a href="#文法等价" class="headerlink" title="文法等价"></a>文法等价</h3><p>定义2.4 对于两个不同的文法<code>G1 ＝(V1 ，T1 ，P1 ， S1）</code>，<code>G2＝(V2，T2，P2，S2)</code>，如果<code>Ｌ(G1)＝Ｌ(G2)</code>，则称 文法<code>G1</code>与<code>G2</code>等价。</p>
-<h3 id="文法的乔姆斯基体系"><a href="#文法的乔姆斯基体系" class="headerlink" title="文法的乔姆斯基体系"></a>文法的乔姆斯基体系</h3><p><img src="/picture/qmsj.png" alt=""></p>
-<p>定义5. 对于文法 <code>G＝（V，T，P，S）</code>按产生式分为四类： </p>
+<p>$\epsilon$可以用于漂移或者猜测</p>
+<h2 id="DFA和NFA的等价性"><a href="#DFA和NFA的等价性" class="headerlink" title="DFA和NFA的等价性"></a>DFA和NFA的等价性</h2><p>定理1. <strong>NFA和DFA等价</strong></p>
+<ul>
+<li><p>$DFA\Rightarrow NFA$：我们可以知道DFA是NFA的一种特例，构造也很简单，DFA转移函数的值是单一的状态，那么把这个值改成含有这个单一状态的集合即可。</p>
+</li>
+<li><p>$NFA\Rightarrow DFA$：我们可以知道，和NFA等价的DFA状态是NFA状态的幂集。我们先引入一个概念，0步集$E(R)$={q | q can be reached from R by traveling  along 0 or more ε arrows，$q\in R$，$R\subseteq Q$}。</p>
+<ul>
+<li><p>下面进行从NFA到DFA的构造：</p>
+<p>令$N=(Q,\Sigma,\delta,q_0,F)$作为一个NFA，识别的语言是A，那么我们现在构造一个识别A的DFA $M=(Q’,\Sigma,\delta’,q_0’,F’)$，其中</p>
 <ol>
-<li>若Ｐ中的产生式，不加另外的限制，则G称为0型文法，或<strong>短语结构文法（Phrase Structure Grammar, PSG）</strong>。 </li>
-<li>若Ｐ中每个产生式α→β都满足条件|α|≤∣β|，则G称为1型文法， 或<strong>上下文有关文法（ Context-Sensitive Grammar, CSG ）</strong>。 </li>
-<li>若Ｐ中每个产生式都具有如下形式： A→β，β∈(V∪T)<em>，A∈V，则称G为2型文法，或<em>*上下文无关文法（Context-Free Grammar, CFG ）</em></em>。 </li>
-<li>若Ｐ中每个产生式都具有如下形式： A→a或A→aB，a∈T∪{ε}，A，B∈V ， 则称G为3型文法，或正则文法（Regular Grammar, RG ）。</li>
+<li>$Q’=P(Q)$</li>
+<li>$\delta’(R,a)={q\in Q | q\in E(\delta(r,a)) \,for\,r\in R}$</li>
+<li>$q_0’=E({q_0})$</li>
+<li>$F’={R\in Q’| R\,contains\,an\,accept\,state\,of\,N}$</li>
 </ol>
-<p>从1到4，限制越来越严格，实际上功能最强大的是0型文法，对应图灵机。</p>
-<h4 id="线性文法"><a href="#线性文法" class="headerlink" title="线性文法"></a>线性文法</h4><ul>
-<li><p>设<code>G = (V, T, P, S)</code>，如果对于$\forall α\rightarrowβ∈P$，$α\rightarrowβ$均具有下面的形式：</p>
+<p>这时$L(M)=L(N)$，DFA和NFA可以识别相同的语言</p>
+</li>
+</ul>
+</li>
+<li><p>两者等价</p>
+</li>
+</ul>
+<h2 id="有穷自动机例子"><a href="#有穷自动机例子" class="headerlink" title="有穷自动机例子"></a>有穷自动机例子</h2><p>问题：给定一个单词，在web或者其他在线文本库中，如何查找包含一个单词的所有文档。</p>
+<p>解决办法：倒排索引（Inverted index），也被称为反向索引，置入档案或者反向档案，是⼀种索引⽅法，被⽤来存储在全⽂搜索下某个单词在⼀个⽂档或者⼀组⽂档中的存储位置的映射。现代搜索引擎的索引都是基于倒排索引。倒排索引是搜索引擎的主要工作机制。（数据结构课上老师提过，类似哈希表）</p>
+<p><img src="/picture/inin.png" alt=""></p>
+<p>缺点：</p>
 <ul>
-<li>$A\rightarrow w$</li>
-<li>$A\rightarrow wBx$</li>
-<li>其中A，B∈V，w，x∈T*</li>
+<li>不适用于文本库快速变化，比如在线新闻</li>
+<li>搜索的文档不能建立目录，比如商业销售网站</li>
 </ul>
-<p>那么称G是线性文法</p>
-</li>
-<li><p>线性语言（linear language）：L（G）</p>
-</li>
-</ul>
-<h4 id="右线性文法"><a href="#右线性文法" class="headerlink" title="右线性文法"></a>右线性文法</h4><ul>
-<li><p>设<code>G = (V, T, P, S)</code>，如果对于$\forall α\rightarrowβ∈P$，$α\rightarrowβ$均具有下面的形式：</p>
-<ul>
-<li>$A\rightarrow w$</li>
-<li>$A\rightarrow wB$</li>
-<li>其中A，B∈V，w∈T*</li>
-</ul>
-<p>那么称G是线性文法</p>
-</li>
-<li><p>右线性语言（linear language）：L（G）</p>
-</li>
-</ul>
-<p>左线性文法类似定义。左线性文法和右线性文法等价。</p>
+<p>建立倒排索引就要进行文本识别，在文档里面识别出一个单词。下面是一个具体的例子：</p>
+<p>例：设计一个识别单词<code>web</code>和<code>ebay</code>的<code>NFA</code></p>
+<p><img src="/picture/sbdc.png" alt=""></p>
+<p>我写了个<code>c++</code>代码来模拟这个NFA</p>
+<pre class=" language-lang-c++"><code class="language-lang-c++">#include<iostream>
+#include<string>
+#include<stdio.h>
+#include<unistd.h>
+#include <sys/types.h>
+#include<stdlib.h>
+
+void words_recg(std::string s){
+    int state = 1;
+    int idx;
+    pid_t pid;
+    for(idx = 0; idx < s.size(); idx++){
+        switch(state){
+        case 1:
+            if(s[idx] == 'w'){//识别到w
+                pid = fork();
+                if(pid == 0) state = 2;
+                else continue;
+            }
+            else if(s[idx] == 'e'){
+                pid = fork();
+                if(pid == 0) state = 5;
+                else continue;
+            }
+            else continue;
+        break;
+
+        case 2:
+            if(s[idx] == 'e') state = 3;
+            else goto End;
+        break;
+
+        case 3:
+            if(s[idx] == 'b') state = 4;
+            else goto End;
+        break;
+
+        case 4:
+            std::cout<<"Find web at "<<idx-3<<std::endl;
+            goto End;
+        break;
+
+        case 5:
+            if(s[idx] == 'b') state = 6;
+            else goto End;
+        break;
+
+        case 6:
+            if(s[idx] == 'a') state = 7;
+            else goto End;
+        break;
+
+        case 7:
+            if(s[idx] == 'y') state = 8;
+            else goto End;
+        break;
+
+        case 8:
+            std::cout<<"Find ebay at "<<idx-4<<std::endl;
+            goto End;
+        default: std::cout<<"error"<<std::endl;
+        break;
+        }
+    }
+End:;
+}
+
+
+int main(){
+    std::string s;
+    s = "I am looking for a picture on the web called ebay. This web is good.";
+    words_recg(s);
+
+}
+</code></pre>
+<p>下面是运行结果：</p>
+<p><img src="/picture/find.png" alt=""></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Deterministic_finite_automaton">Deterministic finite automaton - Wikipedia</a></li>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton">Nondeterministic finite automaton - Wikipedia</a></li>
+<li><a href="file:///C:/Users/86183/Desktop/Learning/形式语言与自动机/形式语言与自动机/第3章 有穷状态自动机 (1">第3章 有穷状态自动机 (1).pdf</a>.pdf)</li>
+</ol>
 
                 
             </div>
@@ -431,7 +529,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://changanyyy.github.io/2021/08/24/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%96%87%E6%B3%95/">http://changanyyy.github.io/2021/08/24/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%96%87%E6%B3%95/</a>
+                    <a href="http://changanyyy.github.io/2021/08/25/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%9C%89%E7%A9%B7%E8%87%AA%E5%8A%A8%E6%9C%BA/">http://changanyyy.github.io/2021/08/25/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%9C%89%E7%A9%B7%E8%87%AA%E5%8A%A8%E6%9C%BA/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -640,9 +738,10 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
                 <a href="/2021/08/25/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%9C%89%E7%A9%B7%E8%87%AA%E5%8A%A8%E6%9C%BA/">
                     <div class="card-image">
@@ -660,9 +759,9 @@
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2021-08-25
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-08-25
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -675,6 +774,7 @@
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
@@ -693,13 +793,13 @@
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2021/08/23/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E7%BB%AA%E8%AE%BA/">
+                <a href="/2021/08/24/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%96%87%E6%B3%95/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/6.jpg" class="responsive-img" alt="形式语言与自动机 绪论">
+                        <img src="/medias/featureimages/8.jpg" class="responsive-img" alt="形式语言与自动机 文法">
                         
-                        <span class="card-title">形式语言与自动机 绪论</span>
+                        <span class="card-title">形式语言与自动机 文法</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -710,7 +810,7 @@
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2021-08-23
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-08-24
                             </span>
                         <span class="publish-author">
                             
