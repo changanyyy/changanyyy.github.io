@@ -548,6 +548,38 @@ int main(){
 <p>其他状态依次类推。</p>
 <p>最后构造出来的DFA如下图所示（可以看出来DFA要比NFA复杂不少……代码就不写了）</p>
 <p><img src="/picture/cdfa.png" alt=""></p>
+<h2 id="7补充"><a href="#7补充" class="headerlink" title="7补充"></a>7补充</h2><h3 id="7-1-对于-epsilon-的理解："><a href="#7-1-对于-epsilon-的理解：" class="headerlink" title="7-1 对于$\epsilon$的理解："></a>7-1 对于$\epsilon$的理解：</h3><ul>
+<li>$\epsilon$是空字符串，$|\epsilon|=0$，$\epsilon$010=0$\epsilon$10=010，但是{$\epsilon$}!=$\emptyset$</li>
+<li>NFA接受空字符串，表示NFA啥也不读，但是可以自动进行状态转移</li>
+</ul>
+<h3 id="7-2-即时描述（instantaneous-description，ID）"><a href="#7-2-即时描述（instantaneous-description，ID）" class="headerlink" title="7-2 即时描述（instantaneous description，ID）"></a>7-2 即时描述（instantaneous description，ID）</h3><p>就是自动机某个时刻的一个快照，保存当前自动机所处状态，磁带内容，读写头位置（格局configuration），一般记作xqy，比如0011$q_3$01100…，其中$x,y\in \Sigma^*$，$q\in Q$，并且$\delta(q_0,x)=q$。</p>
+<h3 id="7-3-格局演化"><a href="#7-3-格局演化" class="headerlink" title="7-3 格局演化"></a>7-3 格局演化</h3><p>从一个格局到另一个格局的变化序列，称为格局演化，也是一个计算过程。记法如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>记法</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$C_1\Rightarrow C_2$</td>
+<td>一步演化（输入一个字符）</td>
+</tr>
+<tr>
+<td>$C_1\Rightarrow ^*C_2$</td>
+<td>多步演化（包含0步）</td>
+</tr>
+<tr>
+<td>$C_1\Rightarrow ^+C_2$</td>
+<td>多步演化（至少1步）</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>如果一个又穷的格局演化序列，最终处于接受格局，那么这个格局演化过程是可计算的。</p>
+<h3 id="7-4-陷阱状态"><a href="#7-4-陷阱状态" class="headerlink" title="7-4 陷阱状态"></a>7-4 陷阱状态</h3><p>我的理解就是当我输入一个字符串到达接受态，然后我再输入一个字符到达另一个状态，结果在这个状态输入啥都不会跳出这个状态，好像踩到了陷阱。</p>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
 <li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Deterministic_finite_automaton">Deterministic finite automaton - Wikipedia</a></li>
 <li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton">Nondeterministic finite automaton - Wikipedia</a></li>
