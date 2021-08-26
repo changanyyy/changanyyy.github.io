@@ -309,14 +309,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.4k
+                    1.7k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    5 分
+                    6 分
                 </div>
                 
 
@@ -358,7 +358,7 @@
 <li>变换规则（transition rules）：从一个状态接收输入转移到另一个状态（非确定性可能是转移到一些状态）</li>
 </ul>
 <p>下面是一个DFA的例子</p>
-<p><img src="/picture/nfa.png" alt=""></p>
+<p><img src="/picture/dfa.png" alt=""></p>
 <h3 id="1-4-对应的语言"><a href="#1-4-对应的语言" class="headerlink" title="1-4 对应的语言"></a>1-4 对应的语言</h3><p>定义2. A regular language is a language for  which there exists a recognizing finite automaton.</p>
 <h3 id="1-5-自动机等价"><a href="#1-5-自动机等价" class="headerlink" title="1-5 自动机等价"></a>1-5 自动机等价</h3><p>根据自动机接收的语言，我们定义自动机等价.</p>
 <p>定义3. 设$M_1,M_2$为<code>FA</code>。如果$L(M_1)=L(M_2)$，则称自动机 $M_1$与$M_2$相互等价。</p>
@@ -369,7 +369,7 @@
 <li>没有输入或者输入为$\epsilon$的状态指定为起始状态</li>
 <li>确定接受状态</li>
 </ol>
-<h2 id="2-非确定性有穷自动机"><a href="#2-非确定性有穷自动机" class="headerlink" title="2 非确定性有穷自动机"></a>2 非确定性有穷自动机</h2><h3 id="2-1-NFA的表示"><a href="#2-1-NFA的表示" class="headerlink" title="2-1 NFA的表示"></a>2-1 NFA的表示</h3><h4 id="2-1-1-形式化定义"><a href="#2-1-1-形式化定义" class="headerlink" title="2-1-1 形式化定义"></a>2-1-1 形式化定义</h4><p>An <em>NFA</em> is represented formally by a <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/N-tuple">5-tuple</a>，$(Q, \Sigma, \Delta, q_0, F)$</p>
+<h2 id="2-非确定性有穷自动机"><a href="#2-非确定性有穷自动机" class="headerlink" title="2 非确定性有穷自动机"></a>2 非确定性有穷自动机</h2><h3 id="2-1-NFA的表示"><a href="#2-1-NFA的表示" class="headerlink" title="2-1 NFA的表示"></a>2-1 NFA的表示</h3><h4 id="2-1-1-形式化定义"><a href="#2-1-1-形式化定义" class="headerlink" title="2-1-1 形式化定义"></a>2-1-1 形式化定义</h4><p>定义4. An <em>NFA</em> is represented formally by a <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/N-tuple">5-tuple</a>，$(Q, \Sigma, \Delta, q_0, F)$</p>
 <ul>
 <li>a finite <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Set_(mathematics">set</a>) of states $Q$.</li>
 <li>a finite set of <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Input_symbol">input symbols</a> $\Sigma$.</li>
@@ -388,7 +388,7 @@
 <li>事实上，DFA是NFA的一种特例</li>
 </ul>
 <p>$\epsilon$可以用于漂移或者猜测</p>
-<h2 id="DFA和NFA的等价性"><a href="#DFA和NFA的等价性" class="headerlink" title="DFA和NFA的等价性"></a>DFA和NFA的等价性</h2><p>定理1. <strong>NFA和DFA等价</strong></p>
+<h2 id="3-DFA和NFA的等价性"><a href="#3-DFA和NFA的等价性" class="headerlink" title="3 DFA和NFA的等价性"></a>3 DFA和NFA的等价性</h2><p>定理1. <strong>NFA和DFA等价</strong></p>
 <ul>
 <li><p>$DFA\Rightarrow NFA$：我们可以知道DFA是NFA的一种特例，构造也很简单，DFA转移函数的值是单一的状态，那么把这个值改成含有这个单一状态的集合即可。</p>
 </li>
@@ -409,7 +409,21 @@
 <li><p>两者等价</p>
 </li>
 </ul>
-<h2 id="有穷自动机例子"><a href="#有穷自动机例子" class="headerlink" title="有穷自动机例子"></a>有穷自动机例子</h2><p>问题：给定一个单词，在web或者其他在线文本库中，如何查找包含一个单词的所有文档。</p>
+<h2 id="4-带空转移的有穷自动机"><a href="#4-带空转移的有穷自动机" class="headerlink" title="4 带空转移的有穷自动机"></a>4 带空转移的有穷自动机</h2><p>定义5. 带空转移的不确定的有穷状态自动机（$\epsilon-NFA$），$M=(Q, \Sigma,\delta,q_0,F)$，其中</p>
+<ul>
+<li>$Q$，$\Sigma$，$q_0$，$F$的意义同DFA</li>
+<li>$\delta:Q\times(\Sigma\cup{\epsilon})\rightarrow 2^Q$</li>
+</ul>
+<p>带空转移的有穷自动机，实际上就是允许输入空字符$\epsilon$的非确定性有穷自动机，是一种特殊的NFA。语义：允许自动机在某一状态下，不读入字符只改变状态。作用：不改变，不扩大有穷自动机的语言类，仅仅提供表达上的便利（更简洁）。</p>
+<p>定义6. 空转移闭包：在一个具有$\epsilon$转移的有穷自动机中，对于状态q，它的$\epsilon-CLOSURE(q)$是按照下面规则递归定义的状态集合：</p>
+<ol>
+<li>q在$\epsilon-CLOSURE(q)$中</li>
+<li>如果p在$\epsilon-CLOSURE(q)$中，那么$\delta(p,\epsilon)$也在$\epsilon-CLOSURE(q)$中</li>
+<li>按照上面的递归合并状态到闭包中</li>
+</ol>
+<p>那么对于一个状态集合，它的空转移闭包是$\epsilon-CLOSURE(P)=\underset {q\in P}{\cup} \epsilon-CLOSURE(q)$</p>
+<p>其实$\epsilon-CLOSURE(q)$就是0步集。</p>
+<h2 id="5-有穷自动机例子"><a href="#5-有穷自动机例子" class="headerlink" title="5 有穷自动机例子"></a>5 有穷自动机例子</h2><p>问题：给定一个单词，在web或者其他在线文本库中，如何查找包含一个单词的所有文档。</p>
 <p>解决办法：倒排索引（Inverted index），也被称为反向索引，置入档案或者反向档案，是⼀种索引⽅法，被⽤来存储在全⽂搜索下某个单词在⼀个⽂档或者⼀组⽂档中的存储位置的映射。现代搜索引擎的索引都是基于倒排索引。倒排索引是搜索引擎的主要工作机制。（数据结构课上老师提过，类似哈希表）</p>
 <p><img src="/picture/inin.png" alt=""></p>
 <p>缺点：</p>
@@ -474,6 +488,8 @@
         case 8:
             printf(<<"Find ebay at %d\n",(idx-4));
             goto End;
+        break;
+
         default:
         break;
         }
@@ -491,6 +507,41 @@ int main(){
 </code></pre>
 <p>下面是运行结果：</p>
 <p><img src="/picture/web.png" alt=""></p>
+<p>那么下面可以把NFA转化成DFA，然后用程序模拟这个DFA</p>
+<p>转化成DFA有两种方法：</p>
+<ul>
+<li>一个是按照定理1证明NFA和DFA等价时候的构造方式</li>
+<li>另一种是<strong>利用子集法</strong>构造DFA</li>
+</ul>
+<blockquote>
+<p>用NFA构建DFA的子集构造法：</p>
+<p>先<strong>构造状态</strong>，</p>
+<ol>
+<li>如果$q_1$是NFA的初始状态，那么${q_1}$是DFA的一个状态；</li>
+<li>如果p是NFA的一个状态，从初始状态，沿着带$a_1a_2…a_m$符号的路径可达该p，则有一个DFA状态是由下面NFA状态组成的集合：<ul>
+<li>$q_1$</li>
+<li>p</li>
+<li>每一个从$q_1$出发，沿着$a_1a_2…a_m$<strong>后缀</strong>标记的路径可达的NFA状态</li>
+</ul>
+</li>
+</ol>
+<p>再<strong>计算状态转移</strong>，</p>
+<ol>
+<li>对于任一状态集合$Q(q_1,p_1,…,p_n)$，考察每个可能的输入x，如果在NFA中存在转移$q_i=\delta(p_i,x)$，那么在DFA中，构造转移${q_i}=\delta(Q,x)$；</li>
+<li>如果不存在从任何$p_i$出发的带x的转移，那么在DFA中，构造转移${q_1,\delta(q1,x)}=\delta(Q,x)$</li>
+</ol>
+</blockquote>
+<p>在这个例子中，首先$q_1$是NFA的初始状态，那么${q_1}$是DFA的状态；然后从其实状态q1出发，沿着带符号web的路径可以到达q4，web的后缀是eb和b，其中eb满足从$q_1$出发沿着eb标记的路径可以到达$q_6$，所以${q_1,q_4,q_6}$构成一个DFA状态。那么按照这个规则，可以推出后面的状态。</p>
+<p>那么下面构造转移，举例对于状态135。</p>
+<ul>
+<li>对于输入b，在NFA里面，状态1转移到状态1，状态3转移到状态4，状态5转移到状态6，所以135在输入b之后转移到146！</li>
+<li>对于输入e，在NFA里面状态35都没有对应的转移，但是有状态1到状态5的转移，所以135在输入e后转移到15。</li>
+<li>对于输入w，转移到12。</li>
+<li>对于其他输入，135在NFA中都没有其他转移，所以都转移到状态${q_1}$</li>
+</ul>
+<p>其他状态依次类推。</p>
+<p>最后构造出来的DFA如下图所示（可以看出来DFA要比NFA复杂不少……）</p>
+<p><img src="/picture/cdfa.png" alt=""></p>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
 <li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Deterministic_finite_automaton">Deterministic finite automaton - Wikipedia</a></li>
 <li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton">Nondeterministic finite automaton - Wikipedia</a></li>
