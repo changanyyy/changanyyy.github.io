@@ -309,14 +309,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.7k
+                    1.9k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    6 分
+                    7 分
                 </div>
                 
 
@@ -423,7 +423,13 @@
 </ol>
 <p>那么对于一个状态集合，它的空转移闭包是$\epsilon-CLOSURE(P)=\underset {q\in P}{\cup} \epsilon-CLOSURE(q)$</p>
 <p>其实$\epsilon-CLOSURE(q)$就是0步集。</p>
-<h2 id="5-有穷自动机例子"><a href="#5-有穷自动机例子" class="headerlink" title="5 有穷自动机例子"></a>5 有穷自动机例子</h2><p>问题：给定一个单词，在web或者其他在线文本库中，如何查找包含一个单词的所有文档。</p>
+<h2 id="5-带输出的有穷自动机"><a href="#5-带输出的有穷自动机" class="headerlink" title="5 带输出的有穷自动机"></a>5 带输出的有穷自动机</h2><p>带输出的有穷自动机就是如下的系统：</p>
+<pre><code>输入序列x -&gt; 有穷自动机 -&gt; 输出序列y
+</code></pre><p>定义7. 一个<strong>Moore机</strong>是一个六元组$M=(Q,\Sigma,\Delta,\delta,\lambda,q_0)$，其中$Q,\Sigma,\delta,q_0$地意义和DFA相同。$\Delta$是一个输出字母表，$\lambda$是从Q到$\Delta$的映射，称为输出函数。</p>
+<p>定义8. 一个<strong>Mealy机</strong>是一个一个六元组$M=(Q,\Sigma,\Delta,\delta,\lambda,q_0)$，这里除了$\lambda$是从$Q\times\Sigma$到$\Delta$的映射除外，其余和Moore机相同。$\lambda(q,a)$指出了当状态q遇到符号a的输出。</p>
+<p>可以看出它们的区别就是：Moore的输出和输入无关，<strong>只与状态有关</strong>；Mealy的输出<strong>与状态和输入都有关</strong>。当输入n个符号，Moore输出长度为<code>n+1</code>的序列，Mealy输出长度为<code>n</code>的序列。</p>
+<p>两种自动机等价</p>
+<h2 id="6-有穷自动机例子"><a href="#6-有穷自动机例子" class="headerlink" title="6 有穷自动机例子"></a>6 有穷自动机例子</h2><p>问题：给定一个单词，在web或者其他在线文本库中，如何查找包含一个单词的所有文档。</p>
 <p>解决办法：倒排索引（Inverted index），也被称为反向索引，置入档案或者反向档案，是⼀种索引⽅法，被⽤来存储在全⽂搜索下某个单词在⼀个⽂档或者⼀组⽂档中的存储位置的映射。现代搜索引擎的索引都是基于倒排索引。倒排索引是搜索引擎的主要工作机制。（数据结构课上老师提过，类似哈希表）</p>
 <p><img src="/picture/inin.png" alt=""></p>
 <p>缺点：</p>
@@ -540,7 +546,7 @@ int main(){
 <li>对于其他输入，135在NFA中都没有其他转移，所以都转移到状态${q_1}$</li>
 </ul>
 <p>其他状态依次类推。</p>
-<p>最后构造出来的DFA如下图所示（可以看出来DFA要比NFA复杂不少……）</p>
+<p>最后构造出来的DFA如下图所示（可以看出来DFA要比NFA复杂不少……代码就不写了）</p>
 <p><img src="/picture/cdfa.png" alt=""></p>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
 <li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Deterministic_finite_automaton">Deterministic finite automaton - Wikipedia</a></li>
