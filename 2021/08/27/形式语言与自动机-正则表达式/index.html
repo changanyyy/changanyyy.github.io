@@ -349,7 +349,7 @@
 </tr>
 <tr>
 <td>tools</td>
-<td>$+,\times$</td>
+<td>$+$, $\times$</td>
 <td>$U,*,^\circ$</td>
 </tr>
 </tbody>
@@ -379,16 +379,16 @@
 </li>
 <li><p>The accept state $F=F_1\cup F_2$</p>
 </li>
-<li><p>$\delta (q,a)=\left {<br>\begin{array}{c}<br>\delta_1(q,a),q\in Q_1 \<br>\delta_2(q,a),q\in Q_2 \<br>{q_1,q_2},q=q_0\,and\,a=\epsilon\ \emptyset, q=q_0\,and\,a\ne\epsilon \end{array}<br>\right.$</p>
-<p>其中$q\in Q$，$a\in\Sigma_\epsilon$</p>
+<li><script type="math/tex; mode=display">
+\delta (q,a)=\left \{ \begin{array}{c}\delta_1(q,a),q\in Q_1 \\ \delta_2(q,a),q\in Q_2 \\ \{q_1,q_2\},q=q_0\,and\,a=\epsilon\\ \emptyset,q=q_0\,and\,a\ne\epsilon \end{array}\right.</script><p>其中$q\in Q$，$a\in\Sigma_\epsilon$</p>
 </li>
 </ol>
 <p>状态转移图如下图，实际上就是构造一个NFA能同时识别$A_1$和$A_2$。</p>
 <p><img src="/picture/bing.png" alt=""></p>
 <h4 id="1-1-2-Concatenation"><a href="#1-1-2-Concatenation" class="headerlink" title="1-1-2 Concatenation"></a>1-1-2 Concatenation</h4><p>定理2. The class of RL is closed under concatenation operation.</p>
 <p>证明如下：</p>
-<p>Let $N_1=(Q_1,\Sigma,\delta_1,q1,F1)$ recognize $A_1$, $N_2=(Q_2,\Sigma,\delta_2,q2,F2)$  recognize $A_2$, $N_1$, $N_2$ is NFA.</p>
-<p>Construct $N=(Q,\Sigma, \delta, q1, F)$ to recognize $A_1\circ A_2$.</p>
+<p>Let $N_1=(Q_1,\Sigma,\delta_1,q_1,F_1)$ recognize $A_1$, $N_2=(Q_2,\Sigma,\delta_2,q_2,F_2)$  recognize $A_2$, $N_1$, $N_2$ is NFA.</p>
+<p>Construct $N=(Q,\Sigma, \delta, q_1, F)$ to recognize $A_1\circ A_2$.</p>
 <ol>
 <li><p>$Q=Q_1 \cup Q_2$</p>
 </li>
@@ -396,8 +396,13 @@
 </li>
 <li><p>The accept state $F=F_1\cup F_2$</p>
 </li>
-<li><p>$\delta (q,a)=\left {<br>\begin{array}{c}<br>\delta_1(q,a),q\in Q_1\,and\,q\notin F_1\<br>\delta_1(q,a),q\in F_1\,and\,q\ne\epsilon \<br>\delta_1(q,a)\cup{q_2},q\in F_1\,and\,q=\epsilon\ \delta_2(q,a), q\in Q_2 \end{array}<br>\right.$</p>
-<p>其中$q\in Q$，$a\in\Sigma_\epsilon$</p>
+<li><script type="math/tex; mode=display">
+\delta (q,a)=\left \{ 
+\begin{array}{c}
+\delta_1(q,a),q\in Q_1\,and\,q\notin F_1\\ 
+\delta_1(q,a),q\in F_1\,and\,q\ne\epsilon \\ 
+\delta_1(q,a)\cup\{q_2\},q\in F_1\,and\,q=\epsilon\\ \delta_2(q,a), q\in Q_2 \end{array}
+\right.</script><p>其中$q\in Q$，$a\in\Sigma_\epsilon$</p>
 </li>
 </ol>
 <p>实际上就是把两个NFA识别的串拼一下，先识别$A_1$再识别$A_2$，构造之前是A和B如下：</p>
@@ -407,7 +412,7 @@
 <h4 id="1-1-3-Star"><a href="#1-1-3-Star" class="headerlink" title="1-1-3 Star"></a>1-1-3 Star</h4><p>定理3. The class of RL is closed under star operation.</p>
 <p>证明如下：</p>
 <p>Let $N_1=(Q_1,\Sigma,\delta_1,q_1,F_1)$ recognize $A_1$.</p>
-<p>Construct $N=(Q,\Sigma, \delta, q0, F)$ to recognize $A_1^*$.</p>
+<p>Construct $N=(Q,\Sigma, \delta, q_0, F)$ to recognize $A_1^*$.</p>
 <ol>
 <li><p>$Q=Q_1 \cup {q_0}$</p>
 </li>
@@ -415,8 +420,13 @@
 </li>
 <li><p>The accept state $F=F_1\cup {q_0}$</p>
 </li>
-<li><p>$\delta (q,a)=\left {<br>\begin{array}{c}<br>\delta_1(q,a),q\in Q_1\,and\,q\notin F_1\<br>\delta_1(q,a),q\in F_1\,and\,q\ne\epsilon \<br>\delta_1(q,a)\cup{q_1},q\in F_1\,and\,q=\epsilon\ q_1, q=q_0\,and\,a=\epsilon \end{array}<br>\right.$</p>
-<p>其中$q\in Q$，$a\in\Sigma_\epsilon$</p>
+<li><script type="math/tex; mode=display">
+\delta (q,a)=\left \{ 
+\begin{array}{c}
+\delta_1(q,a),q\in Q_1\,and\,q\notin F_1\\ 
+\delta_1(q,a),q\in F_1\,and\,q\ne\epsilon \\ 
+\delta_1(q,a)\cup\{q_1\},q\in F_1\,and\,q=\epsilon\\ q_1, q=q_0\,and\,a=\epsilon \end{array}
+\right.</script><p>其中$q\in Q$，$a\in\Sigma_\epsilon$</p>
 </li>
 </ol>
 <p>实际上就是在接受状态通过空转移返回到开始状态。并且由于可以接收空串，所以起始状态也应该是接收状态，即接受$\epsilon$，但是单纯地把起始状态标记为接收状态会发生一些问题（如果不是从接受状态转移到起始状态的话，那么这时不可接受！），所以应该把接受$\epsilon$的起始状态单独提取出来。</p>
@@ -427,35 +437,32 @@
 <ol>
 <li>$R=a$, with $a\in \Sigma$ ; denoting the languages {a} . </li>
 <li>$R=\epsilon$ ; denoting the languages {ε } . </li>
-<li>$R=\empty$ ; denoting the languages $\empty$. </li>
+<li>$R=\emptyset$ ; denoting the languages $\emptyset$. </li>
 <li>$R=(R_1+R_2)$, with $R_1$ and $R_2$ regular expressions;denoting the languages $L(R_1)\cup L(R_2)$. </li>
 <li>$R = (R_1\circ R_2)$, with $R_1$ and $R_2$ regular expressions; denoting the languages $L(R_1)L(R_2)$. </li>
-<li>$R = (R_1^<em>)$, with $R_1$ a regular expression; denoting the  languages $L(R1)^</em>$.</li>
+<li>$R = (R_1^*)$, with $R_1$ a regular expression; denoting the  languages $L(R1)^*$.</li>
 </ol>
 <h4 id="1-2-1-定理"><a href="#1-2-1-定理" class="headerlink" title="1-2-1 定理"></a>1-2-1 定理</h4><p>定理4. A language is regular <strong>if and only if</strong> some regular expression describes it.</p>
 <p>想要证明这个定理，我们需要从两个方向入手，</p>
 <h5 id="1-2-1-1-证明1"><a href="#1-2-1-1-证明1" class="headerlink" title="1-2-1-1 证明1"></a>1-2-1-1 证明1</h5><p>先证明正则表达式表示的语言是正则语言，证明的要点就是把正则表达式表达的语言用相应的自动机来表示：</p>
 <ol>
-<li><p>对于$R=a$，$L(R)={a}$，可以用如下自动机来识别它</p>
+<li><p>对于$R=a$，$L(R)= \{ a \}$，可以用如下自动机来识别它</p>
 <p><img src="/picture/p1.png" alt=""></p>
-<p>形式化构造就是 </p>
-<p>N=( ${q_1, q_2 }$, $\Sigma$, $\delta$, $q_1$, ${ q_2 }$ )</p>
+<p>形式化构造就是 $N=( \{ q_1, q_2 \}, \Sigma, \delta, q_1, \{ q_2 \} )$</p>
 <ul>
 <li>状态转移方程是$\delta(q_1,a)={q_2}$，其余都是$\emptyset$</li>
 </ul>
 </li>
-<li><p>对于$R=\epsilon$，$L(R)={\epsilon}$，下面的自动机可以识别它</p>
+<li><p>对于$R=\epsilon$，$L(R)=\{\epsilon\}$，下面的自动机可以识别它</p>
 <p><img src="/picture/p2.png" alt=""></p>
-<p>形式化构造就是 </p>
-<p>$N=({q_1},\Sigma,\delta,q_1,{q_1})$</p>
+<p>形式化构造就是 $N=( \{q_1\},\Sigma,\delta,q_1,\{q_1\})$</p>
 <ul>
 <li>状态转移方程是对于所有r和b，$\delta(r,b)=\emptyset$</li>
 </ul>
 </li>
 <li><p>对于$R=\emptyset$，$L(R)=\emptyset$，下面的自动机识别它</p>
 <p><img src="/picture/p3.png" alt=""></p>
-<p>形式化构造就是 </p>
-<p>$N=({q_1},\Sigma,\delta,q_1,\emptyset)$</p>
+<p>形式化构造就是 $N=(\{q_1\},\Sigma,\delta,q_1,\emptyset)$</p>
 <ul>
 <li>状态转移方程是对于所有r和b，$\delta(r,b)=\emptyset$</li>
 </ul>
@@ -469,34 +476,57 @@
 <p>证明方法1（GNFA法）：</p>
 <p>Let M have k states $Q={q_1,…,q_k}$</p>
 <ol>
-<li>Add two states $q<em>{accept}$ and $q</em>{start}$（加首尾）<ul>
+<li><p>Add two states（加首尾）</p>
+<ul>
 <li>Connect $q_{start}$ to earlier $q_i$</li>
 <li>Connect old accepting states to $q_{accept}$</li>
 </ul>
 </li>
-<li>Complete missing transitions by $\emptyset$（补空边)</li>
-<li>Join multiple transitions（并标号）</li>
-<li>Rip the internal states, one by one<ol>
-<li>Removing state $q<em>{rip}\in Q-{q</em>{start}}-{q<em>{accept}}:\,Q’=Q-{q</em>{rip}}$（逐渐减少内态）</li>
-<li>Changing the transition function $\delta$ by $\delta’(q<em>i,q_j)=\delta(q_i,q_j)+\delta(q_i,q</em>{rip})(\delta(q<em>{rip},q</em>{rip}))^*\delta(q<em>{rip},q_j)$ for every $q_i\in Q’-{q</em>{accept}}$ and $q<em>j\in Q’-{q</em>{start}}$</li>
+<li><p>Complete missing transitions by $\emptyset$（补空边)</p>
+</li>
+<li><p>Join multiple transitions（并标号）</p>
+</li>
+<li><p>Rip the internal states, one by one</p>
+<ol>
+<li><p>Removing state </p>
+<script type="math/tex; mode=display">
+q_{rip} \in Q-\{q_{start}\}-\{q_{accept}\}\,Q'=Q-\{q_{rip}\}</script><p>（逐渐减少内态）</p>
+</li>
+<li><p>Changing the transition function $\delta$ by </p>
+<script type="math/tex; mode=display">
+\delta'(q_i,q_j)=\delta(q_i,q_j)+\delta(q_i,q_{rip})(\delta(q_{rip},q_{rip}))^*\delta(q_{rip},q_j)</script><p>for every </p>
+<script type="math/tex; mode=display">
+q_i\in Q'-\{q_{accept}\}</script><p>and </p>
+<script type="math/tex; mode=display">
+q_j\in Q'-\{q_{start}\}</script></li>
 </ol>
 </li>
-<li>if k&gt;2 goto 4, else return R</li>
+<li><p>if k&gt;2 goto 4, else return R</p>
+</li>
 </ol>
 <p>证明方法2：</p>
-<p>设DFA $M({q<em>1,q_2,…,q_n},\Sigma,\delta,q_1,F)$接受语言L，对M的状态进行编号。在此基础上，引入记号$R</em>{ij}^k$，它是字符串的集合，定义如下：$R_{ij}^k={x|\delta(q_i,x)=q_j,且中间不经过编号大于k的状态，但i,j可以大于k,x\in \Sigma^<em>}$注意：x是字符串。k的意义是：对于x的一切<em>*非空真前缀</em></em>y，$\delta(q_i,y)=q_m$，其中$m\le k$。</p>
-<p>基本思想：引入$R<em>{ij}$的递归定义，即$R</em>{ij}^k=R<em>{ij}^{k-1}+R</em>{ik}^{k-1}(R<em>{kk}^{k-1})^*R</em>{kj}^{k-1}$，感觉有点像动态规划哈哈哈哈。</p>
+<p>设DFA </p>
+<script type="math/tex; mode=display">
+M(\{q_1,q_2,...,q_n\},\Sigma,\delta,q_1,F)​</script><p>接受语言L，对M的状态进行编号。在此基础上，引入记号$R_{ij}^k$，它是字符串的集合，定义如下：</p>
+<script type="math/tex; mode=display">
+R_{ij}^k=\{x|\delta(q_i,x)=q_j,且中间不经过编号大于k的状态，但i,j可以大于k,x\in \Sigma^*\}</script><p>注意：x是字符串。k的意义是：对于x的一切<strong>非空真前缀</strong>y，$\delta(q_i,y)=q_m$，其中$m\le k$。</p>
+<p>基本思想：引入$R_{ij}$的递归定义，即</p>
+<script type="math/tex; mode=display">
+R_{ij}^k=R_{ij}^{k-1}+R_{ik}^{k-1}(R_{kk}^{k-1})^*R_{kj}^{k-1}</script><p>，感觉有点像动态规划哈哈哈哈。</p>
 <p>$R_{ij}^k$的递归定义如下：</p>
 <ol>
-<li>$R_{ij}^0={a|a\in \Sigma, 且\delta(q_i,a)=q_j}, (i\ne j)$</li>
-<li>$R_{ij}^0={a|a\in \Sigma, 且\delta(q_i,a)=q_j}\cup{\epsilon}, (i=j)$</li>
-<li>$R<em>{ij}^k=R</em>{ij}^{k-1}+R<em>{ik}^{k-1}(R</em>{kk}^{k-1})^*R_{kj}^{k-1},(k=1,2,…,n)$</li>
+<li><script type="math/tex; mode=display">
+R_{ij}^0=\{a|a\in \Sigma, 且\delta(q_i,a)=q_j\}, (i\ne j)</script></li>
+<li><script type="math/tex; mode=display">
+R_{ij}^0=\{a|a\in \Sigma, 且\delta(q_i,a)=q_j\}\cup\{\epsilon\}, (i=j)</script></li>
+<li><script type="math/tex; mode=display">
+R_{ij}^k=R_{ij}^{k-1}+R_{ik}^{k-1}(R_{kk}^{k-1})^*R_{kj}^{k-1},(k=1,2,...,n)</script></li>
 </ol>
 <p>下面可以开始真正的证明了</p>
 <script type="math/tex; mode=display">
 L(M)=\underset{q_f\in F}{\cup}R_{1f}^n</script><p>其中$L(M)$就是DFA M识别的语言，下面的问题就是如何把$L(M)$用正则表达式表示呢？</p>
-<p>现在证明，对于任何$R<em>{ij}^k$，存在正则表达式$r</em>{ij}^k$代表$R_{ij}^k$。</p>
-<p>归纳基础：k=0。$R<em>{ij}^0$是一个有穷集合，其中每个元素是$\Sigma$中的符号或空串，因此$r</em>{ij}^0$可以写成$a_1+a_2+…+a_p(i\ne j)$或者$a_1+a_2+…+a_p+\epsilon(i=j)$的形式。这里，${a_1,a_2,…,a_p}$是让$\delta(q_i,a)=q_j$的一切符号a的集合。</p>
+<p>现在证明，对于任何 $R<em>{ij}^k$ ，存在正则表达式 $r</em>{ij}^k$ 可以代表 $R_{ij}^k$ 。</p>
+<p>归纳基础：k=0。 $R<em>{ij}^0$ 是一个有穷集合，其中每个元素是 $\Sigma$ 中的符号或空串，因此 $r</em>{ij}^0$ 可以写成 $a_1+a_2+…+a_p（i \ne j）$ 或者 $a_1+a_2+…+a_p+\epsilon(i=j)$ 的形式。这里， ${a_1,a_2,…,a_p}$ 是让 $\delta(q_i,a)=q_j$ 的一切符号a的集合。</p>
 <p>归纳步骤：设对$m&lt;k$的一切m，都已经求出正则表达式$r<em>{ij}^m$代表$R</em>{ij}^m$，现在考虑m=k。根据$R<em>{ij}^k$递归定义，存在正则表达式$R</em>{ij}^k=R<em>{ij}^{k-1}+R</em>{ik}^{k-1}(R<em>{kk}^{k-1})^*R</em>{kj}^{k-1},(k=1,2,…,n)$代表$R_{ij}^k$。</p>
 <p>证毕。</p>
 <h2 id="2-正则表达式的代数定律"><a href="#2-正则表达式的代数定律" class="headerlink" title="2 正则表达式的代数定律"></a>2 正则表达式的代数定律</h2><h3 id="2-1-交换律和结合律"><a href="#2-1-交换律和结合律" class="headerlink" title="2-1 交换律和结合律"></a>2-1 交换律和结合律</h3><p>设L，M和N是正则表达式，则：</p>
@@ -523,10 +553,10 @@ L(M)=\underset{q_f\in F}{\cup}R_{1f}^n</script><p>其中$L(M)$就是DFA M识别�
 <li>$L+L=L$，并的幂等律</li>
 </ol>
 <h3 id="2-5-和闭包有关的定律"><a href="#2-5-和闭包有关的定律" class="headerlink" title="2-5 和闭包有关的定律"></a>2-5 和闭包有关的定律</h3><ol>
-<li>$(L^<em>)^</em>=L^*$</li>
-<li>$L(\emptyset^<em>)=L(\epsilon)={\epsilon}$，<em>*空表达式的闭包和$\epsilon$等价</em></em>，注意不要弄混正则表达式和语言，正则表达式是一个串，而语言是一个集合</li>
+<li>$(L^*)^*=L^*$</li>
+<li>$L(\emptyset^*)=L(\epsilon)={\epsilon}$，<strong>空表达式的闭包和$\epsilon$等价</strong>，注意不要弄混正则表达式和语言，正则表达式是一个串，而语言是一个集合</li>
 <li>$\epsilon^*=\epsilon$，多个空串连接还是空串，这里注意和上面2的区别</li>
-<li>$L^+=LL^<em>=L^</em>L$，$L^+$表示1个或多个$L$</li>
+<li>$L^+=LL^*=L^*L$，$L^+$表示1个或多个$L$</li>
 <li>$L^*=L^++\epsilon$</li>
 </ol>
 <h2 id="3-正则表达式的应用"><a href="#3-正则表达式的应用" class="headerlink" title="3 正则表达式的应用"></a>3 正则表达式的应用</h2><ol>
@@ -538,21 +568,32 @@ L(M)=\underset{q_f\in F}{\cup}R_{1f}^n</script><p>其中$L(M)$就是DFA M识别�
 <h2 id="4-知识补充"><a href="#4-知识补充" class="headerlink" title="4 知识补充"></a>4 知识补充</h2><h3 id="4-1-GNFA"><a href="#4-1-GNFA" class="headerlink" title="4-1 GNFA"></a>4-1 GNFA</h3><p>广义非确定性有穷自动机定义如下：</p>
 <p>定义3. A Generalized nondeterministic finite automaton(GNFA) is a 5-tuple $(Q,\Sigma,\delta,q<em>{start},F</em>{accept})$, where</p>
 <ol>
-<li>Q is the finite state set</li>
-<li>$\Sigma$ is the input alphabet.</li>
-<li>$q_{start}$ is the start state.</li>
-<li>$q_{accept}$ is the accept state.</li>
-<li>$\delta:(Q-{q<em>{accept}})\times (Q-{q</em>{start}})\rightarrow R$</li>
+<li><p>Q is the finite state set</p>
+</li>
+<li><p>$\Sigma$ is the input alphabet.</p>
+</li>
+<li><p>$q_{start}$ is the start state.</p>
+</li>
+<li><p>$q_{accept}$ is the accept state.</p>
+</li>
+<li><script type="math/tex; mode=display">
+\delta:(Q-\{q_{accept}\})\times (Q-\{q_{start}\})\rightarrow R</script></li>
 </ol>
 <p>$R$ is the set of <strong>regular expressions</strong> over $\Sigma$</p>
 <p>$\delta(q_i,q_j)=R\Leftrightarrow$ from $q_i$ to $q_j$ has the RE R as the label, R$\in R$</p>
 <p>GNFA的特点：</p>
 <ol>
-<li>The interior $Q-{q<em>{accept},q</em>{start}}$ is fully connected by $\delta$.（全连接）</li>
-<li>From $q_{start}$ only “out going transitions”（只出不回）</li>
-<li>To $q_{accept}$ only “ingoing transitions”（只回不出）</li>
-<li>Impossible $q_i\rightarrow q_j$ transitions are “$\delta(q_i,q_j)=\emptyset$”</li>
-<li>$q<em>{accept}\ne q</em>{start}$</li>
+<li><p>The interior Q-${q<em>{accept}$ , $q</em>{start}}$ </p>
+<p>is fully connected by  $\delta$ .（全连接）</p>
+</li>
+<li><p>From $q_{start}$ only “out going transitions”（只出不回）</p>
+</li>
+<li><p>To $q_{accept}$ only “ingoing transitions”（只回不出）</p>
+</li>
+<li><p>Impossible $q_i\rightarrow q_j$ transitions are “$\delta(q_i,q_j)=\emptyset$”</p>
+</li>
+<li><p>$q<em>{accept} \ne q</em>{start} $</p>
+</li>
 </ol>
 <p>GNFA和一般NFA的唯一区别：GNFA的边推广为RE（子自动机），而不是单个字母或者空转移。</p>
 <p>对GNFA化简，最后化简成只剩下起始状态和接收状态，这个对应的边就是对应的正则表达式。</p>
