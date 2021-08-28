@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="形式语言与自动机 有穷自动机, yxz的博客">
+    <meta name="keywords" content="形式语言与自动机-正则表达式, yxz的博客">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>形式语言与自动机 有穷自动机 | yxz的博客</title>
+    <title>形式语言与自动机-正则表达式 | yxz的博客</title>
     <link rel="icon" type="image/jpeg" href="/logo.jpg">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -258,7 +258,7 @@
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">形式语言与自动机 有穷自动机</h1>
+                    <h1 class="description center-align post-title">形式语言与自动机-正则表达式</h1>
                 </div>
             </div>
         </div>
@@ -309,14 +309,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.9k
+                    2.4k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    7 分
+                    11 分
                 </div>
                 
 
@@ -331,259 +331,234 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="1-确定性有穷自动机"><a href="#1-确定性有穷自动机" class="headerlink" title="1 确定性有穷自动机"></a>1 确定性有穷自动机</h2><h3 id="1-1-模型"><a href="#1-1-模型" class="headerlink" title="1-1 模型"></a>1-1 模型</h3><p>有穷自动机的模型是由一个纸带，一个控制器组成，控制器有一个只读头指向纸带。控制器里面控制状态的转移和存储当前状态。有穷自动机的特点：</p>
-<ol>
-<li>只有一条磁带，用于存放字符串</li>
-<li>带头只能读，不可以写</li>
-<li>带头只能往一个方向移动（从左往右）</li>
-</ol>
-<h3 id="1-2-特点"><a href="#1-2-特点" class="headerlink" title="1-2 特点"></a>1-2 特点</h3><ul>
-<li>自动机的实质是：现在的状态+输入-&gt;下一状态</li>
-<li>只读，不写，没有内存，没有变量，没有数组，没有堆栈，没有推理，没有想象力</li>
-<li>只有寄存器能记住状态</li>
-</ul>
-<h3 id="1-3-有穷状态机的表示"><a href="#1-3-有穷状态机的表示" class="headerlink" title="1-3 有穷状态机的表示"></a>1-3 有穷状态机的表示</h3><h4 id="1-3-1-形式化定义"><a href="#1-3-1-形式化定义" class="headerlink" title="1-3-1 形式化定义"></a>1-3-1 形式化定义</h4><p>定义1. A deterministic finite automaton  (DFA) is defined by a 5-tuple (Q,S,$\delta$,$q_0$,F) </p>
-<ol>
-<li><code>Q</code>: finite set of states 有限状态集 </li>
-<li><code>S</code>: finite alphabet 有限字母表</li>
-<li>$\delta$: transition function $\delta: Q\times\Sigma\rightarrow Q$ 转移函数 （可以用矩阵表示）</li>
-<li>$q_0\in Q$: start state 起始状态 </li>
-<li>$F\subseteq Q$: set of accepting states 接受状态集合</li>
-</ol>
-<p>下面是确定性有穷自动机的形式化定义，后面注意和非确定性地区别，<strong>主要区别就是转移函数</strong>：在DFA中，映射到单一状态；而在DFA中映射到状态集合的子集。</p>
-<h4 id="1-3-2状态转移图"><a href="#1-3-2状态转移图" class="headerlink" title="1-3-2状态转移图"></a>1-3-2状态转移图</h4><ul>
-<li>状态（states）：状态的集合</li>
-<li>始态（starting state）：起始的状态</li>
-<li>受态（accepting state）：在状态转移图里一般用双圈或者粗圈表示</li>
-<li>变换规则（transition rules）：从一个状态接收输入转移到另一个状态（非确定性可能是转移到一些状态）</li>
-</ul>
-<p>下面是一个DFA的例子</p>
-<p><img src="/picture/dfa.png" alt=""></p>
-<h3 id="1-4-对应的语言"><a href="#1-4-对应的语言" class="headerlink" title="1-4 对应的语言"></a>1-4 对应的语言</h3><p>定义2. A regular language is a language for  which there exists a recognizing finite automaton.</p>
-<h3 id="1-5-自动机等价"><a href="#1-5-自动机等价" class="headerlink" title="1-5 自动机等价"></a>1-5 自动机等价</h3><p>根据自动机接收的语言，我们定义自动机等价.</p>
-<p>定义3. 设$M_1,M_2$为<code>FA</code>。如果$L(M_1)=L(M_2)$，则称自动机 $M_1$与$M_2$相互等价。</p>
-<p>设计一个确定性有穷自动机：</p>
-<ol>
-<li>首先设计状态，找出<strong>关键的信息</strong>，每个关键信息的值对应一个状态</li>
-<li>给出转移函数</li>
-<li>没有输入或者输入为$\epsilon$的状态指定为起始状态</li>
-<li>确定接受状态</li>
-</ol>
-<h2 id="2-非确定性有穷自动机"><a href="#2-非确定性有穷自动机" class="headerlink" title="2 非确定性有穷自动机"></a>2 非确定性有穷自动机</h2><h3 id="2-1-NFA的表示"><a href="#2-1-NFA的表示" class="headerlink" title="2-1 NFA的表示"></a>2-1 NFA的表示</h3><h4 id="2-1-1-形式化定义"><a href="#2-1-1-形式化定义" class="headerlink" title="2-1-1 形式化定义"></a>2-1-1 形式化定义</h4><p>定义4. An <em>NFA</em> is represented formally by a <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/N-tuple">5-tuple</a>，$(Q, \Sigma, \Delta, q_0, F)$</p>
-<ul>
-<li>a finite <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Set_(mathematics">set</a>) of states $Q$.</li>
-<li>a finite set of <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Input_symbol">input symbols</a> $\Sigma$.</li>
-<li>a transition function $\Delta: Q\times\Sigma_\epsilon \rightarrow P(Q)$</li>
-<li>an <em>initial</em> (or <em>start</em>) state $q_0\in Q$</li>
-<li>a set of states $F$ distinguished as <strong>accepting</strong> (or <strong>final</strong>) <em>states</em> $F\subseteq Q$.</li>
-</ul>
-<p>其中，$P(Q)$是$Q$的幂集，$\Sigma_\epsilon=\Sigma\cup{\epsilon}$。</p>
-<h4 id="2-1-2-状态转移图"><a href="#2-1-2-状态转移图" class="headerlink" title="2-1-2 状态转移图"></a>2-1-2 状态转移图</h4><p>下面是NFA的一个例子，可以看见转移的目标是一个集合。</p>
-<p><img src="/picture/nfa.png" alt=""></p>
-<h3 id="2-2-和DFA的区别"><a href="#2-2-和DFA的区别" class="headerlink" title="2-2 和DFA的区别"></a>2-2 和DFA的区别</h3><p>说说和确定性的区别：</p>
-<ul>
-<li>NFA对于一个输入可能有多个后续状态。（前面也提到过，一个状态映射到多个状态）</li>
-<li>输入还可以有$\epsilon$（自动漂移）</li>
-<li>NFA可以看作并行计算或者树，而DFA属于线性计算</li>
-<li>事实上，DFA是NFA的一种特例</li>
-</ul>
-<p>$\epsilon$可以用于漂移或者猜测</p>
-<h2 id="3-DFA和NFA的等价性"><a href="#3-DFA和NFA的等价性" class="headerlink" title="3 DFA和NFA的等价性"></a>3 DFA和NFA的等价性</h2><p>定理1. <strong>NFA和DFA等价</strong></p>
-<ul>
-<li><p>$DFA\Rightarrow NFA$：我们可以知道DFA是NFA的一种特例，构造也很简单，DFA转移函数的值是单一的状态，那么把这个值改成含有这个单一状态的集合即可。</p>
-</li>
-<li><p>$NFA\Rightarrow DFA$：我们可以知道，和NFA等价的DFA状态是NFA状态的幂集。我们先引入一个概念，0步集$E(R)$={q | q can be reached from R by traveling  along 0 or more ε arrows，$q\in R$，$R\subseteq Q$}。</p>
-<ul>
-<li><p>下面进行从NFA到DFA的构造：</p>
-<p>令$N=(Q,\Sigma,\delta,q_0,F)$作为一个NFA，识别的语言是A，那么我们现在构造一个识别A的DFA $M=(Q’,\Sigma,\delta’,q_0’,F’)$，其中</p>
-<ol>
-<li>$Q’=P(Q)$</li>
-<li>$\delta’(R,a)={q\in Q | q\in E(\delta(r,a)) \,for\,r\in R}$</li>
-<li>$q_0’=E({q_0})$</li>
-<li>$F’={R\in Q’| R\,contains\,an\,accept\,state\,of\,N}$</li>
-</ol>
-<p>这时$L(M)=L(N)$，DFA和NFA可以识别相同的语言</p>
-</li>
-</ul>
-</li>
-<li><p>两者等价</p>
-</li>
-</ul>
-<h2 id="4-带空转移的有穷自动机"><a href="#4-带空转移的有穷自动机" class="headerlink" title="4 带空转移的有穷自动机"></a>4 带空转移的有穷自动机</h2><p>定义5. 带空转移的不确定的有穷状态自动机（$\epsilon-NFA$），$M=(Q, \Sigma,\delta,q_0,F)$，其中</p>
-<ul>
-<li>$Q$，$\Sigma$，$q_0$，$F$的意义同DFA</li>
-<li>$\delta:Q\times(\Sigma\cup{\epsilon})\rightarrow 2^Q$</li>
-</ul>
-<p>带空转移的有穷自动机，实际上就是允许输入空字符$\epsilon$的非确定性有穷自动机，是一种特殊的NFA。语义：允许自动机在某一状态下，不读入字符只改变状态。作用：不改变，不扩大有穷自动机的语言类，仅仅提供表达上的便利（更简洁）。</p>
-<p>定义6. 空转移闭包：在一个具有$\epsilon$转移的有穷自动机中，对于状态q，它的$\epsilon-CLOSURE(q)$是按照下面规则递归定义的状态集合：</p>
-<ol>
-<li>q在$\epsilon-CLOSURE(q)$中</li>
-<li>如果p在$\epsilon-CLOSURE(q)$中，那么$\delta(p,\epsilon)$也在$\epsilon-CLOSURE(q)$中</li>
-<li>按照上面的递归合并状态到闭包中</li>
-</ol>
-<p>那么对于一个状态集合，它的空转移闭包是$\epsilon-CLOSURE(P)=\underset {q\in P}{\cup} \epsilon-CLOSURE(q)$</p>
-<p>其实$\epsilon-CLOSURE(q)$就是0步集。</p>
-<h2 id="5-带输出的有穷自动机"><a href="#5-带输出的有穷自动机" class="headerlink" title="5 带输出的有穷自动机"></a>5 带输出的有穷自动机</h2><p>带输出的有穷自动机就是如下的系统：</p>
-<pre><code>输入序列x -&gt; 有穷自动机 -&gt; 输出序列y
-</code></pre><p>定义7. 一个<strong>Moore机</strong>是一个六元组$M=(Q,\Sigma,\Delta,\delta,\lambda,q_0)$，其中$Q,\Sigma,\delta,q_0$地意义和DFA相同。$\Delta$是一个输出字母表，$\lambda$是从Q到$\Delta$的映射，称为输出函数。</p>
-<p>定义8. 一个<strong>Mealy机</strong>是一个一个六元组$M=(Q,\Sigma,\Delta,\delta,\lambda,q_0)$，这里除了$\lambda$是从$Q\times\Sigma$到$\Delta$的映射除外，其余和Moore机相同。$\lambda(q,a)$指出了当状态q遇到符号a的输出。</p>
-<p>可以看出它们的区别就是：Moore的输出和输入无关，<strong>只与状态有关</strong>；Mealy的输出<strong>与状态和输入都有关</strong>。当输入n个符号，Moore输出长度为<code>n+1</code>的序列，Mealy输出长度为<code>n</code>的序列。</p>
-<p>两种自动机等价</p>
-<h2 id="6-有穷自动机例子"><a href="#6-有穷自动机例子" class="headerlink" title="6 有穷自动机例子"></a>6 有穷自动机例子</h2><p>问题：给定一个单词，在web或者其他在线文本库中，如何查找包含一个单词的所有文档。</p>
-<p>解决办法：倒排索引（Inverted index），也被称为反向索引，置入档案或者反向档案，是⼀种索引⽅法，被⽤来存储在全⽂搜索下某个单词在⼀个⽂档或者⼀组⽂档中的存储位置的映射。现代搜索引擎的索引都是基于倒排索引。倒排索引是搜索引擎的主要工作机制。（数据结构课上老师提过，类似哈希表）</p>
-<p><img src="/picture/inin.png" alt=""></p>
-<p>缺点：</p>
-<ul>
-<li>不适用于文本库快速变化，比如在线新闻</li>
-<li>搜索的文档不能建立目录，比如商业销售网站</li>
-</ul>
-<p>建立倒排索引就要进行文本识别，在文档里面识别出一个单词。下面是一个具体的例子：</p>
-<p>例：设计一个识别单词<code>web</code>和<code>ebay</code>的<code>NFA</code></p>
-<p><img src="/picture/sbdc.png" alt=""></p>
-<p>我写了个<code>c++</code>代码来模拟这个NFA</p>
-<pre class=" language-lang-c++"><code class="language-lang-c++">void words_recg(std::string s){
-    int state = 1;
-    int idx;
-    pid_t pid;
-    for(idx = 0; idx < s.size(); idx++){
-        switch(state){
-        case 1:
-            if(s[idx] == 'w'){//识别到w
-                pid = fork();
-                if(pid == 0) state = 2;
-                else continue;
-            }
-            else if(s[idx] == 'e'){
-                pid = fork();
-                if(pid == 0) state = 5;
-                else continue;
-            }
-            else continue;
-        break;
-
-        case 2:
-            if(s[idx] == 'e') state = 3;
-            else goto End;
-        break;
-
-        case 3:
-            if(s[idx] == 'b') state = 4;
-            else goto End;
-        break;
-
-        case 4:
-            printf(<<"Find web at %d\n",(idx-3));
-            goto End;
-        break;
-
-        case 5:
-            if(s[idx] == 'b') state = 6;
-            else goto End;
-        break;
-
-        case 6:
-            if(s[idx] == 'a') state = 7;
-            else goto End;
-        break;
-
-        case 7:
-            if(s[idx] == 'y') state = 8;
-            else goto End;
-        break;
-
-        case 8:
-            printf(<<"Find ebay at %d\n",(idx-4));
-            goto End;
-        break;
-
-        default:
-        break;
-        }
-    }
-End:;
-}
-
-
-int main(){
-    std::string s;
-    s = "I am looking for a picture on the web called ebay. This web is good.";
-    words_recg(s);
-
-}
-</code></pre>
-<p>下面是运行结果：</p>
-<p><img src="/picture/web.png" alt=""></p>
-<p>那么下面可以把NFA转化成DFA，然后用程序模拟这个DFA</p>
-<p>转化成DFA有两种方法：</p>
-<ul>
-<li>一个是按照定理1证明NFA和DFA等价时候的构造方式</li>
-<li>另一种是<strong>利用子集法</strong>构造DFA</li>
-</ul>
-<blockquote>
-<p>用NFA构建DFA的子集构造法：</p>
-<p>先<strong>构造状态</strong>，</p>
-<ol>
-<li>如果$q_1$是NFA的初始状态，那么${q_1}$是DFA的一个状态；</li>
-<li>如果p是NFA的一个状态，从初始状态，沿着带$a_1a_2…a_m$符号的路径可达该p，则有一个DFA状态是由下面NFA状态组成的集合：<ul>
-<li>$q_1$</li>
-<li>p</li>
-<li>每一个从$q_1$出发，沿着$a_1a_2…a_m$<strong>后缀</strong>标记的路径可达的NFA状态</li>
-</ul>
-</li>
-</ol>
-<p>再<strong>计算状态转移</strong>，</p>
-<ol>
-<li>对于任一状态集合$Q(q_1,p_1,…,p_n)$，考察每个可能的输入x，如果在NFA中存在转移$q_i=\delta(p_i,x)$，那么在DFA中，构造转移${q_i}=\delta(Q,x)$；</li>
-<li>如果不存在从任何$p_i$出发的带x的转移，那么在DFA中，构造转移${q_1,\delta(q1,x)}=\delta(Q,x)$</li>
-</ol>
-</blockquote>
-<p>在这个例子中，首先$q_1$是NFA的初始状态，那么${q_1}$是DFA的状态；然后从其实状态q1出发，沿着带符号web的路径可以到达q4，web的后缀是eb和b，其中eb满足从$q_1$出发沿着eb标记的路径可以到达$q_6$，所以${q_1,q_4,q_6}$构成一个DFA状态。那么按照这个规则，可以推出后面的状态。</p>
-<p>那么下面构造转移，举例对于状态135。</p>
-<ul>
-<li>对于输入b，在NFA里面，状态1转移到状态1，状态3转移到状态4，状态5转移到状态6，所以135在输入b之后转移到146！</li>
-<li>对于输入e，在NFA里面状态35都没有对应的转移，但是有状态1到状态5的转移，所以135在输入e后转移到15。</li>
-<li>对于输入w，转移到12。</li>
-<li>对于其他输入，135在NFA中都没有其他转移，所以都转移到状态${q_1}$</li>
-</ul>
-<p>其他状态依次类推。</p>
-<p>最后构造出来的DFA如下图所示（可以看出来DFA要比NFA复杂不少……代码就不写了）</p>
-<p><img src="/picture/cdfa.png" alt=""></p>
-<h2 id="7补充"><a href="#7补充" class="headerlink" title="7补充"></a>7补充</h2><h3 id="7-1-对于-epsilon-的理解："><a href="#7-1-对于-epsilon-的理解：" class="headerlink" title="7-1 对于$\epsilon$的理解："></a>7-1 对于$\epsilon$的理解：</h3><ul>
-<li>$\epsilon$是空字符串，$|\epsilon|=0$，$\epsilon$010=0$\epsilon$10=010，但是{$\epsilon$}!=$\emptyset$</li>
-<li>NFA接受空字符串，表示NFA啥也不读，但是可以自动进行状态转移</li>
-</ul>
-<h3 id="7-2-即时描述（instantaneous-description，ID）"><a href="#7-2-即时描述（instantaneous-description，ID）" class="headerlink" title="7-2 即时描述（instantaneous description，ID）"></a>7-2 即时描述（instantaneous description，ID）</h3><p>就是自动机某个时刻的一个快照，保存当前自动机所处状态，磁带内容，读写头位置（格局configuration），一般记作xqy，比如0011$q_3$01100…，其中$x,y\in \Sigma^*$，$q\in Q$，并且$\delta(q_0,x)=q$。</p>
-<h3 id="7-3-格局演化"><a href="#7-3-格局演化" class="headerlink" title="7-3 格局演化"></a>7-3 格局演化</h3><p>从一个格局到另一个格局的变化序列，称为格局演化，也是一个计算过程。记法如下：</p>
+                <h2 id="1-正则表达式，正则运算"><a href="#1-正则表达式，正则运算" class="headerlink" title="1 正则表达式，正则运算"></a>1 正则表达式，正则运算</h2><p>下面是算术和计算理论的区别</p>
 <div class="table-container">
 <table>
 <thead>
 <tr>
-<th>记法</th>
-<th>含义</th>
+<th></th>
+<th>arithmetic</th>
+<th>theory of computation</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>$C_1\Rightarrow C_2$</td>
-<td>一步演化（输入一个字符）</td>
+<td>objects</td>
+<td>numbers</td>
+<td>languages</td>
 </tr>
 <tr>
-<td>$C_1\Rightarrow ^*C_2$</td>
-<td>多步演化（包含0步）</td>
-</tr>
-<tr>
-<td>$C_1\Rightarrow ^+C_2$</td>
-<td>多步演化（至少1步）</td>
+<td>tools</td>
+<td>$+,\times$</td>
+<td>$U,*,^\circ$</td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>如果一个又穷的格局演化序列，最终处于接受格局，那么这个格局演化过程是可计算的。</p>
-<h3 id="7-4-陷阱状态"><a href="#7-4-陷阱状态" class="headerlink" title="7-4 陷阱状态"></a>7-4 陷阱状态</h3><p>我的理解就是当我输入一个字符串到达接受态，然后我再输入一个字符到达另一个状态，结果在这个状态输入啥都不会跳出这个状态，好像踩到了陷阱。</p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
-<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Deterministic_finite_automaton">Deterministic finite automaton - Wikipedia</a></li>
-<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton">Nondeterministic finite automaton - Wikipedia</a></li>
-<li><a href="file:///C:/Users/86183/Desktop/Learning/形式语言与自动机/形式语言与自动机/第3章 有穷状态自动机 (1">第3章 有穷状态自动机 (1).pdf</a>.pdf)</li>
+<p>正则运算被用来：</p>
+<ol>
+<li>设计识别特定语言的自动机</li>
+<li>证明特定的语言不是正则的</li>
+</ol>
+<h3 id="1-1-正则运算"><a href="#1-1-正则运算" class="headerlink" title="1-1 正则运算"></a>1-1 正则运算</h3><p>正则运算有三种，合并，连接，Star，详细见下面定义。</p>
+<p>定义1. Let A and B be languages. We define the regular operations <strong>union</strong>, <strong>concatenation</strong>, and <strong>star</strong> as follows: </p>
+<ul>
+<li>Union: $A∪B={x|x∈A or\,x∈B}$</li>
+<li>Concatenation: $A\circ B={xy|x\in A\,and\,y\in B}$</li>
+<li>Star: $A^*={x_1x_2…x_k|k\ge 0\,and\,each\,x_i\in A}$</li>
+</ul>
+<p>下面对三种运算，我们有三个定理说明正则运算是封闭的。</p>
+<h4 id="1-1-1-Union"><a href="#1-1-1-Union" class="headerlink" title="1-1-1 Union"></a>1-1-1 Union</h4><p>定理1. The class of RL is closed under <strong>union</strong> operation.</p>
+<p>下面证明一下：</p>
+<p>Let $N_1=(Q_1,\Sigma,\delta_1,q1,F1)$ recognize $A_1$, $N_2=(Q_2,\Sigma,\delta_2,q2,F2)$  recognize $A_2$, $N_1$, $N_2$ is NFA.</p>
+<p>Construct $N=(Q,\Sigma, \delta, q0, F)$ to recognize $A_1\cup A_2$.</p>
+<ol>
+<li><p>$Q={q_0}\cup Q_1 \cup Q_2$</p>
+</li>
+<li><p>The state $q_0$ is the start state of N</p>
+</li>
+<li><p>The accept state $F=F_1\cup F_2$</p>
+</li>
+<li><p>$\delta (q,a)=\left {<br>\begin{array}{c}<br>\delta_1(q,a),q\in Q_1 \<br>\delta_2(q,a),q\in Q_2 \<br>{q_1,q_2},q=q_0\,and\,a=\epsilon\ \emptyset, q=q_0\,and\,a\ne\epsilon \end{array}<br>\right.$</p>
+<p>其中$q\in Q$，$a\in\Sigma_\epsilon$</p>
+</li>
+</ol>
+<p>状态转移图如下图，实际上就是构造一个NFA能同时识别$A_1$和$A_2$。</p>
+<p><img src="/picture/bing.png" alt=""></p>
+<h4 id="1-1-2-Concatenation"><a href="#1-1-2-Concatenation" class="headerlink" title="1-1-2 Concatenation"></a>1-1-2 Concatenation</h4><p>定理2. The class of RL is closed under concatenation operation.</p>
+<p>证明如下：</p>
+<p>Let $N_1=(Q_1,\Sigma,\delta_1,q1,F1)$ recognize $A_1$, $N_2=(Q_2,\Sigma,\delta_2,q2,F2)$  recognize $A_2$, $N_1$, $N_2$ is NFA.</p>
+<p>Construct $N=(Q,\Sigma, \delta, q1, F)$ to recognize $A_1\circ A_2$.</p>
+<ol>
+<li><p>$Q=Q_1 \cup Q_2$</p>
+</li>
+<li><p>The state $q_1$ is the start state of N</p>
+</li>
+<li><p>The accept state $F=F_1\cup F_2$</p>
+</li>
+<li><p>$\delta (q,a)=\left {<br>\begin{array}{c}<br>\delta_1(q,a),q\in Q_1\,and\,q\notin F_1\<br>\delta_1(q,a),q\in F_1\,and\,q\ne\epsilon \<br>\delta_1(q,a)\cup{q_2},q\in F_1\,and\,q=\epsilon\ \delta_2(q,a), q\in Q_2 \end{array}<br>\right.$</p>
+<p>其中$q\in Q$，$a\in\Sigma_\epsilon$</p>
+</li>
+</ol>
+<p>实际上就是把两个NFA识别的串拼一下，先识别$A_1$再识别$A_2$，构造之前是A和B如下：</p>
+<p><img src="/picture/con1.png" alt=""></p>
+<p>构造之后$A\circ B$如下：</p>
+<p><img src="/picture/con2.png" alt=""></p>
+<h4 id="1-1-3-Star"><a href="#1-1-3-Star" class="headerlink" title="1-1-3 Star"></a>1-1-3 Star</h4><p>定理3. The class of RL is closed under star operation.</p>
+<p>证明如下：</p>
+<p>Let $N_1=(Q_1,\Sigma,\delta_1,q_1,F_1)$ recognize $A_1$.</p>
+<p>Construct $N=(Q,\Sigma, \delta, q0, F)$ to recognize $A_1^*$.</p>
+<ol>
+<li><p>$Q=Q_1 \cup {q_0}$</p>
+</li>
+<li><p>The state $q_0$ is the new start state of N</p>
+</li>
+<li><p>The accept state $F=F_1\cup {q_0}$</p>
+</li>
+<li><p>$\delta (q,a)=\left {<br>\begin{array}{c}<br>\delta_1(q,a),q\in Q_1\,and\,q\notin F_1\<br>\delta_1(q,a),q\in F_1\,and\,q\ne\epsilon \<br>\delta_1(q,a)\cup{q_1},q\in F_1\,and\,q=\epsilon\ q_1, q=q_0\,and\,a=\epsilon \end{array}<br>\right.$</p>
+<p>其中$q\in Q$，$a\in\Sigma_\epsilon$</p>
+</li>
+</ol>
+<p>实际上就是在接受状态通过空转移返回到开始状态。并且由于可以接收空串，所以起始状态也应该是接收状态，即接受$\epsilon$，但是单纯地把起始状态标记为接收状态会发生一些问题（如果不是从接受状态转移到起始状态的话，那么这时不可接受！），所以应该把接受$\epsilon$的起始状态单独提取出来。</p>
+<p>状态转移图如下，$N_1$是原始NFA；$N_2$是错误的构造，会产生错误的返回；而下面的N是正确的。</p>
+<p><img src="/picture/star.png" alt=""></p>
+<h3 id="1-2-正则表达式"><a href="#1-2-正则表达式" class="headerlink" title="1-2 正则表达式"></a>1-2 正则表达式</h3><p>下面是正则表达式定义：</p>
+<p>定义2. Given an alphabet $\Sigma$, R is a regular expression if </p>
+<ol>
+<li>$R=a$, with $a\in \Sigma$ ; denoting the languages {a} . </li>
+<li>$R=\epsilon$ ; denoting the languages {ε } . </li>
+<li>$R=\empty$ ; denoting the languages $\empty$. </li>
+<li>$R=(R_1+R_2)$, with $R_1$ and $R_2$ regular expressions;denoting the languages $L(R_1)\cup L(R_2)$. </li>
+<li>$R = (R_1\circ R_2)$, with $R_1$ and $R_2$ regular expressions; denoting the languages $L(R_1)L(R_2)$. </li>
+<li>$R = (R_1^<em>)$, with $R_1$ a regular expression; denoting the  languages $L(R1)^</em>$.</li>
+</ol>
+<h4 id="1-2-1-定理"><a href="#1-2-1-定理" class="headerlink" title="1-2-1 定理"></a>1-2-1 定理</h4><p>定理4. A language is regular <strong>if and only if</strong> some regular expression describes it.</p>
+<p>想要证明这个定理，我们需要从两个方向入手，</p>
+<h5 id="1-2-1-1-证明1"><a href="#1-2-1-1-证明1" class="headerlink" title="1-2-1-1 证明1"></a>1-2-1-1 证明1</h5><p>先证明正则表达式表示的语言是正则语言，证明的要点就是把正则表达式表达的语言用相应的自动机来表示：</p>
+<ol>
+<li><p>对于$R=a$，$L(R)={a}$，可以用如下自动机来识别它</p>
+<p><img src="/picture/p1.png" alt=""></p>
+<p>形式化构造就是 </p>
+<p>N=( ${q_1, q_2 }$, $\Sigma$, $\delta$, $q_1$, ${ q_2 }$ )</p>
+<ul>
+<li>状态转移方程是$\delta(q_1,a)={q_2}$，其余都是$\emptyset$</li>
+</ul>
+</li>
+<li><p>对于$R=\epsilon$，$L(R)={\epsilon}$，下面的自动机可以识别它</p>
+<p><img src="/picture/p2.png" alt=""></p>
+<p>形式化构造就是 </p>
+<p>$N=({q_1},\Sigma,\delta,q_1,{q_1})$</p>
+<ul>
+<li>状态转移方程是对于所有r和b，$\delta(r,b)=\emptyset$</li>
+</ul>
+</li>
+<li><p>对于$R=\emptyset$，$L(R)=\emptyset$，下面的自动机识别它</p>
+<p><img src="/picture/p3.png" alt=""></p>
+<p>形式化构造就是 </p>
+<p>$N=({q_1},\Sigma,\delta,q_1,\emptyset)$</p>
+<ul>
+<li>状态转移方程是对于所有r和b，$\delta(r,b)=\emptyset$</li>
+</ul>
+</li>
+<li><p>对于$R=(R_1+R_2)$，$R = (R_1\circ R_2)$和$R = (R_1^*)$，证明已经在定理1,2,3中给出。</p>
+</li>
+<li><p>（还有一种证明方法是归纳证明，进行递归地证明即可，跟这个类似。）</p>
+</li>
+</ol>
+<h5 id="1-2-1-2-证明2"><a href="#1-2-1-2-证明2" class="headerlink" title="1-2-1-2 证明2"></a>1-2-1-2 证明2</h5><p>下面证明正则语言可以被正则表达式描述</p>
+<p>证明方法1（GNFA法）：</p>
+<p>Let M have k states $Q={q_1,…,q_k}$</p>
+<ol>
+<li>Add two states $q<em>{accept}$ and $q</em>{start}$（加首尾）<ul>
+<li>Connect $q_{start}$ to earlier $q_i$</li>
+<li>Connect old accepting states to $q_{accept}$</li>
+</ul>
+</li>
+<li>Complete missing transitions by $\emptyset$（补空边)</li>
+<li>Join multiple transitions（并标号）</li>
+<li>Rip the internal states, one by one<ol>
+<li>Removing state $q<em>{rip}\in Q-{q</em>{start}}-{q<em>{accept}}:\,Q’=Q-{q</em>{rip}}$（逐渐减少内态）</li>
+<li>Changing the transition function $\delta$ by $\delta’(q<em>i,q_j)=\delta(q_i,q_j)+\delta(q_i,q</em>{rip})(\delta(q<em>{rip},q</em>{rip}))^*\delta(q<em>{rip},q_j)$ for every $q_i\in Q’-{q</em>{accept}}$ and $q<em>j\in Q’-{q</em>{start}}$</li>
+</ol>
+</li>
+<li>if k&gt;2 goto 4, else return R</li>
+</ol>
+<p>证明方法2：</p>
+<p>设DFA $M({q<em>1,q_2,…,q_n},\Sigma,\delta,q_1,F)$接受语言L，对M的状态进行编号。在此基础上，引入记号$R</em>{ij}^k$，它是字符串的集合，定义如下：$R_{ij}^k={x|\delta(q_i,x)=q_j,且中间不经过编号大于k的状态，但i,j可以大于k,x\in \Sigma^<em>}$注意：x是字符串。k的意义是：对于x的一切<em>*非空真前缀</em></em>y，$\delta(q_i,y)=q_m$，其中$m\le k$。</p>
+<p>基本思想：引入$R<em>{ij}$的递归定义，即$R</em>{ij}^k=R<em>{ij}^{k-1}+R</em>{ik}^{k-1}(R<em>{kk}^{k-1})^*R</em>{kj}^{k-1}$，感觉有点像动态规划哈哈哈哈。</p>
+<p>$R_{ij}^k$的递归定义如下：</p>
+<ol>
+<li>$R_{ij}^0={a|a\in \Sigma, 且\delta(q_i,a)=q_j}, (i\ne j)$</li>
+<li>$R_{ij}^0={a|a\in \Sigma, 且\delta(q_i,a)=q_j}\cup{\epsilon}, (i=j)$</li>
+<li>$R<em>{ij}^k=R</em>{ij}^{k-1}+R<em>{ik}^{k-1}(R</em>{kk}^{k-1})^*R_{kj}^{k-1},(k=1,2,…,n)$</li>
+</ol>
+<p>下面可以开始真正的证明了</p>
+<script type="math/tex; mode=display">
+L(M)=\underset{q_f\in F}{\cup}R_{1f}^n</script><p>其中$L(M)$就是DFA M识别的语言，下面的问题就是如何把$L(M)$用正则表达式表示呢？</p>
+<p>现在证明，对于任何$R<em>{ij}^k$，存在正则表达式$r</em>{ij}^k$代表$R_{ij}^k$。</p>
+<p>归纳基础：k=0。$R<em>{ij}^0$是一个有穷集合，其中每个元素是$\Sigma$中的符号或空串，因此$r</em>{ij}^0$可以写成$a_1+a_2+…+a_p(i\ne j)$或者$a_1+a_2+…+a_p+\epsilon(i=j)$的形式。这里，${a_1,a_2,…,a_p}$是让$\delta(q_i,a)=q_j$的一切符号a的集合。</p>
+<p>归纳步骤：设对$m&lt;k$的一切m，都已经求出正则表达式$r<em>{ij}^m$代表$R</em>{ij}^m$，现在考虑m=k。根据$R<em>{ij}^k$递归定义，存在正则表达式$R</em>{ij}^k=R<em>{ij}^{k-1}+R</em>{ik}^{k-1}(R<em>{kk}^{k-1})^*R</em>{kj}^{k-1},(k=1,2,…,n)$代表$R_{ij}^k$。</p>
+<p>证毕。</p>
+<h2 id="2-正则表达式的代数定律"><a href="#2-正则表达式的代数定律" class="headerlink" title="2 正则表达式的代数定律"></a>2 正则表达式的代数定律</h2><h3 id="2-1-交换律和结合律"><a href="#2-1-交换律和结合律" class="headerlink" title="2-1 交换律和结合律"></a>2-1 交换律和结合律</h3><p>设L，M和N是正则表达式，则：</p>
+<ol>
+<li>$L+M=M+L$，并的交换律</li>
+<li>$(L+M)+N=L+(M+N)$，并的结合律</li>
+<li>$(LM)N=L(MN)$，连接的结合律</li>
+<li>连接自然没有交换律…</li>
+</ol>
+<h3 id="2-2-单位元和零元"><a href="#2-2-单位元和零元" class="headerlink" title="2-2 单位元和零元"></a>2-2 单位元和零元</h3><p>单位元：当运算符作用于单位元和某个其它值时，结果等于其他值。</p>
+<p>零 元：当运算符作用到零元和其它值时，结果是零元。</p>
+<ol>
+<li>$\emptyset+L=L+\emptyset=L$，所以$\emptyset$是并运算的单位元</li>
+<li>$\epsilon L=L\epsilon=L$，所以$\epsilon$是连接运算的单位元</li>
+<li>并运算没有零元</li>
+<li>$\emptyset L=L\emptyset=\emptyset$，所以$\emptyset$是连接运算的零元</li>
+</ol>
+<h3 id="2-3-分配率"><a href="#2-3-分配率" class="headerlink" title="2-3 分配率"></a>2-3 分配率</h3><ol>
+<li>$L(M+N)=LM+LN$，连接对于并的左分配律</li>
+<li>$(M+N)L=ML+NL$，连接对于并的右分配律</li>
+</ol>
+<h3 id="2-4-幂等律"><a href="#2-4-幂等律" class="headerlink" title="2-4 幂等律"></a>2-4 幂等律</h3><p>幂等：一个运算符作用到两个相同的参数值， 结果还是那个值</p>
+<ol>
+<li>$L+L=L$，并的幂等律</li>
+</ol>
+<h3 id="2-5-和闭包有关的定律"><a href="#2-5-和闭包有关的定律" class="headerlink" title="2-5 和闭包有关的定律"></a>2-5 和闭包有关的定律</h3><ol>
+<li>$(L^<em>)^</em>=L^*$</li>
+<li>$L(\emptyset^<em>)=L(\epsilon)={\epsilon}$，<em>*空表达式的闭包和$\epsilon$等价</em></em>，注意不要弄混正则表达式和语言，正则表达式是一个串，而语言是一个集合</li>
+<li>$\epsilon^*=\epsilon$，多个空串连接还是空串，这里注意和上面2的区别</li>
+<li>$L^+=LL^<em>=L^</em>L$，$L^+$表示1个或多个$L$</li>
+<li>$L^*=L^++\epsilon$</li>
+</ol>
+<h2 id="3-正则表达式的应用"><a href="#3-正则表达式的应用" class="headerlink" title="3 正则表达式的应用"></a>3 正则表达式的应用</h2><ol>
+<li>UNIX的正则表达式</li>
+<li>词法分析</li>
+<li>查找文本中的模式</li>
+<li>……</li>
+</ol>
+<h2 id="4-知识补充"><a href="#4-知识补充" class="headerlink" title="4 知识补充"></a>4 知识补充</h2><h3 id="4-1-GNFA"><a href="#4-1-GNFA" class="headerlink" title="4-1 GNFA"></a>4-1 GNFA</h3><p>广义非确定性有穷自动机定义如下：</p>
+<p>定义3. A Generalized nondeterministic finite automaton(GNFA) is a 5-tuple $(Q,\Sigma,\delta,q<em>{start},F</em>{accept})$, where</p>
+<ol>
+<li>Q is the finite state set</li>
+<li>$\Sigma$ is the input alphabet.</li>
+<li>$q_{start}$ is the start state.</li>
+<li>$q_{accept}$ is the accept state.</li>
+<li>$\delta:(Q-{q<em>{accept}})\times (Q-{q</em>{start}})\rightarrow R$</li>
+</ol>
+<p>$R$ is the set of <strong>regular expressions</strong> over $\Sigma$</p>
+<p>$\delta(q_i,q_j)=R\Leftrightarrow$ from $q_i$ to $q_j$ has the RE R as the label, R$\in R$</p>
+<p>GNFA的特点：</p>
+<ol>
+<li>The interior $Q-{q<em>{accept},q</em>{start}}$ is fully connected by $\delta$.（全连接）</li>
+<li>From $q_{start}$ only “out going transitions”（只出不回）</li>
+<li>To $q_{accept}$ only “ingoing transitions”（只回不出）</li>
+<li>Impossible $q_i\rightarrow q_j$ transitions are “$\delta(q_i,q_j)=\emptyset$”</li>
+<li>$q<em>{accept}\ne q</em>{start}$</li>
+</ol>
+<p>GNFA和一般NFA的唯一区别：GNFA的边推广为RE（子自动机），而不是单个字母或者空转移。</p>
+<p>对GNFA化简，最后化简成只剩下起始状态和接收状态，这个对应的边就是对应的正则表达式。</p>
+<h2 id="5-reference"><a href="#5-reference" class="headerlink" title="5 reference"></a>5 reference</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/shulianghan/article/details/106157619">【计算理论】正则语言 ( 正则语言运算 | 正则语言封闭性 )<em>让 学习 成为一种 习惯 ( 韩曙亮 の 技术博客 )-CSDN博客</em>正则语言</a></li>
+<li><a href="file:///C:/Users/86183/Desktop/Learning/形式语言与自动机/形式语言与自动机/第4章 正则表达式-更新版.pdf">第4章 正则表达式-更新版.pdf</a></li>
 </ol>
 
                 
@@ -611,7 +586,7 @@ int main(){
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://changanyyy.github.io/2021/08/25/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%9C%89%E7%A9%B7%E8%87%AA%E5%8A%A8%E6%9C%BA/">http://changanyyy.github.io/2021/08/25/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%9C%89%E7%A9%B7%E8%87%AA%E5%8A%A8%E6%9C%BA/</a>
+                    <a href="http://changanyyy.github.io/2021/08/27/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/">http://changanyyy.github.io/2021/08/27/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -820,9 +795,10 @@ int main(){
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
                 <a href="/2021/08/27/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/">
                     <div class="card-image">
@@ -840,9 +816,9 @@ int main(){
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2021-08-27
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-08-27
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -855,6 +831,7 @@ int main(){
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
@@ -873,13 +850,13 @@ int main(){
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2021/08/24/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%96%87%E6%B3%95/">
+                <a href="/2021/08/25/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%9C%89%E7%A9%B7%E8%87%AA%E5%8A%A8%E6%9C%BA/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/8.jpg" class="responsive-img" alt="形式语言与自动机 文法">
+                        <img src="/medias/featureimages/4.jpg" class="responsive-img" alt="形式语言与自动机 有穷自动机">
                         
-                        <span class="card-title">形式语言与自动机 文法</span>
+                        <span class="card-title">形式语言与自动机 有穷自动机</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -890,7 +867,7 @@ int main(){
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2021-08-24
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-08-25
                             </span>
                         <span class="publish-author">
                             
