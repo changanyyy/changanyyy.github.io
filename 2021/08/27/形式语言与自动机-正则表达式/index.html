@@ -363,7 +363,7 @@
 <p>正则运算有三种，合并，连接，Star，详细见下面定义。</p>
 <p>定义1. Let A and B be languages. We define the regular operations <strong>union</strong>, <strong>concatenation</strong>, and <strong>star</strong> as follows:</p>
 <ul>
-<li>Union: <span class="math inline">\(A∪B=\{x|x∈A or\,x∈B\}\)</span></li>
+<li>Union: <span class="math inline">\(A∪B=\{x|x∈A\,or\,x∈B\}\)</span></li>
 <li>Concatenation: <span class="math inline">\(A\circ B=\{xy|x\in A\,and\,y\in B\}\)</span></li>
 <li>Star: <span class="math inline">\(A^*=\{x_1x_2...x_k|k\ge 0\,and\,each\,x_i\in A\}\)</span></li>
 </ul>
@@ -438,7 +438,7 @@
 <li><span class="math inline">\(R=\emptyset\)</span> ; denoting the languages <span class="math inline">\(\emptyset\)</span>.</li>
 <li><span class="math inline">\(R=(R_1+R_2)\)</span>, with <span class="math inline">\(R_1\)</span> and <span class="math inline">\(R_2\)</span> regular expressions;denoting the languages <span class="math inline">\(L(R_1)\cup L(R_2)\)</span>.</li>
 <li><span class="math inline">\(R = (R_1\circ R_2)\)</span>, with <span class="math inline">\(R_1\)</span> and <span class="math inline">\(R_2\)</span> regular expressions; denoting the languages <span class="math inline">\(L(R_1)L(R_2)\)</span>.</li>
-<li><span class="math inline">\(R = (R_1^\*)\)</span>, with <span class="math inline">\(R_1\)</span> a regular expression; denoting the languages <span class="math inline">\(L(R1)^*\)</span>.</li>
+<li><span class="math inline">\(R = (R_1^*)\)</span>, with <span class="math inline">\(R_1\)</span> a regular expression; denoting the languages <span class="math inline">\(L(R1)^*\)</span>.</li>
 </ol>
 <h4 id="定理">1-2-1 定理</h4>
 <p>定理4. A language is regular <strong>if and only if</strong> some regular expression describes it.</p>
@@ -446,21 +446,21 @@
 <h5 id="证明1">1-2-1-1 证明1</h5>
 <p>先证明正则表达式表示的语言是正则语言，证明的要点就是把正则表达式表达的语言用相应的自动机来表示：</p>
 <ol type="1">
-<li><p>对于<span class="math inline">\(R=a\)</span>，<span class="math inline">\(L\(R\)= \\{ a \\}\)</span>，可以用如下自动机来识别它</p>
+<li><p>对于<span class="math inline">\(R=a\)</span>，<span class="math inline">\(L(R)= \{ a \}\)</span>，可以用如下自动机来识别它</p>
 <p><img src="/picture/p1.png"></p>
-<p>形式化构造就是 <span class="math inline">\(N=\( \\{ q_1, q_2 \\}, \Sigma, \delta, q_1, \\{ q_2 \\} \)\)</span></p>
+<p>形式化构造就是 <span class="math inline">\(N=( \{ q_1, q_2 \}, \Sigma, \delta, q_1, \{ q_2 \} )\)</span></p>
 <ul>
 <li>状态转移方程是<span class="math inline">\(\delta(q_1,a)=\{q_2\}\)</span>，其余都是<span class="math inline">\(\emptyset\)</span></li>
 </ul></li>
-<li><p>对于<span class="math inline">\(R=\epsilon\)</span>，<span class="math inline">\(L(R)=\\{\epsilon\\}\)</span>，下面的自动机可以识别它</p>
+<li><p>对于<span class="math inline">\(R=\epsilon\)</span>，<span class="math inline">\(L(R)=\{\epsilon\}\)</span>，下面的自动机可以识别它</p>
 <p><img src="/picture/p2.png"></p>
-<p>形式化构造就是 <span class="math inline">\(N=( \\{q_1\\},\Sigma,\delta,q_1,\\{q_1\\})\)</span></p>
+<p>形式化构造就是 <span class="math inline">\(N=( \{q_1\},\Sigma,\delta,q_1,\{q_1\})\)</span></p>
 <ul>
 <li>状态转移方程是对于所有r和b，<span class="math inline">\(\delta(r,b)=\emptyset\)</span></li>
 </ul></li>
 <li><p>对于<span class="math inline">\(R=\emptyset\)</span>，<span class="math inline">\(L(R)=\emptyset\)</span>，下面的自动机识别它</p>
 <p><img src="/picture/p3.png"></p>
-<p>形式化构造就是 <span class="math inline">\(N=(\\{q_1\\},\Sigma,\delta,q_1,\emptyset)\)</span></p>
+<p>形式化构造就是 <span class="math inline">\(N=(\{q_1\},\Sigma,\delta,q_1,\emptyset)\)</span></p>
 <ul>
 <li>状态转移方程是对于所有r和b，<span class="math inline">\(\delta(r,b)=\emptyset\)</span></li>
 </ul></li>
@@ -486,18 +486,12 @@ q_{rip} \in Q-\{q_{start}\}-\{q_{accept}\}\,Q'=Q-\{q_{rip}\}
 \]</span> （逐渐减少内态）</p></li>
 <li><p>Changing the transition function <span class="math inline">\(\delta\)</span> by <span class="math display">\[
 \delta'(q_i,q_j)=\delta(q_i,q_j)+\delta(q_i,q_{rip})(\delta(q_{rip},q_{rip}))^*\delta(q_{rip},q_j)
-\]</span> for every <span class="math display">\[
-q_i\in Q'-\{q_{accept}\}
-\]</span> and <span class="math display">\[
-q_j\in Q'-\{q_{start}\}
-\]</span></p></li>
+\]</span> for every <span class="math inline">\(q_i\in Q'-\{q_{accept}\}\)</span> and <span class="math inline">\(q_j\in Q'-\{q_{start}\}\)</span></p></li>
 </ol></li>
 <li><p>if k&gt;2 goto 4, else return R</p></li>
 </ol>
 <p>证明方法2：</p>
-<p>设DFA <span class="math display">\[
-M(\{q_1,q_2,...,q_n\},\Sigma,\delta,q_1,F)​
-\]</span> 接受语言L，对M的状态进行编号。在此基础上，引入记号<span class="math inline">\(R_{ij}^k\)</span>，它是字符串的集合，定义如下： <span class="math display">\[
+<p>设DFA <span class="math inline">\(M(\{q_1,q_2,...,q_n\},\Sigma,\delta,q_1,F)\)</span>接受语言L，对M的状态进行编号。在此基础上，引入记号<span class="math inline">\(R_{ij}^k\)</span>，它是字符串的集合，定义如下： <span class="math display">\[
 R_{ij}^k=\{x|\delta(q_i,x)=q_j,且中间不经过编号大于k的状态，但i,j可以大于k,x\in \Sigma^*\}
 \]</span> 注意：x是字符串。k的意义是：对于x的一切<strong>非空真前缀</strong>y，<span class="math inline">\(\delta(q_i,y)=q_m\)</span>，其中<span class="math inline">\(m\le k\)</span>。</p>
 <p>基本思想：引入<span class="math inline">\(R_{ij}\)</span>的递归定义，即 <span class="math display">\[
@@ -520,7 +514,7 @@ L(M)=\underset{q_f\in F}{\cup}R_{1f}^n
 \]</span> 其中<span class="math inline">\(L(M)\)</span>就是DFA M识别的语言，下面的问题就是如何把$L(M)$用正则表达式表示呢？</p>
 <p>现在证明，对于任何 <span class="math inline">\(R_{ij}^k\)</span> ，存在正则表达式 <span class="math inline">\(r_{ij}^k\)</span> 可以代表 $R_{ij}^k $ 。</p>
 <p>归纳基础：k=0。 <span class="math inline">\(R_{ij}^0\)</span> 是一个有穷集合，其中每个元素是 <span class="math inline">\(\Sigma\)</span> 中的符号或空串，因此 <span class="math inline">\(r_{ij}^0\)</span> 可以写成 <span class="math inline">\(a_1+a_2+...+a_p（i \ne j）\)</span> 或者 <span class="math inline">\(a_1+a_2+...+a_p+\epsilon(i=j)\)</span> 的形式。这里， <span class="math inline">\(\{a_1,a_2,...,a_p\}\)</span> 是让 <span class="math inline">\(\delta(q_i,a)=q_j\)</span> 的一切符号a的集合。</p>
-<p>归纳步骤：设对<span class="math inline">\(m&lt;k\)</span>的一切m，都已经求出正则表达式<span class="math inline">\(r_{ij}^m\)</span>代表<span class="math inline">\(R_{ij}^m\)</span>，现在考虑m=k。根据<span class="math inline">\(R_{ij}^k\)</span>递归定义，存在正则表达式<span class="math inline">\(R_{ij}^k=R_{ij}^{k-1}+R_{ik}^{k-1}(R_{kk}^{k-1})^\*R_{kj}^{k-1},(k=1,2,...,n)\)</span>代表<span class="math inline">\(R_{ij}^k\)</span>。</p>
+<p>归纳步骤：设对<span class="math inline">\(m&lt;k\)</span>的一切m，都已经求出正则表达式<span class="math inline">\(r_{ij}^m\)</span>代表<span class="math inline">\(R_{ij}^m\)</span>，现在考虑m=k。根据<span class="math inline">\(R_{ij}^k\)</span>递归定义，存在正则表达式<span class="math inline">\(R_{ij}^k=R_{ij}^{k-1}+R_{ik}^{k-1}(R_{kk}^{k-1})^*R_{kj}^{k-1},(k=1,2,...,n)\)</span>代表<span class="math inline">\(R_{ij}^k\)</span>。</p>
 <p>证毕。</p>
 <h2 id="正则表达式的代数定律">2 正则表达式的代数定律</h2>
 <h3 id="交换律和结合律">2-1 交换律和结合律</h3>
@@ -552,11 +546,11 @@ L(M)=\underset{q_f\in F}{\cup}R_{1f}^n
 </ol>
 <h3 id="和闭包有关的定律">2-5 和闭包有关的定律</h3>
 <ol type="1">
-<li><span class="math inline">\((L^\*)^\*=L^\*\)</span></li>
-<li><span class="math inline">\(L(\emptyset^\*)=L(\epsilon)=\{\epsilon\}\)</span>，<strong>空表达式的闭包和<span class="math inline">\(\epsilon\)</span>等价</strong>，注意不要弄混正则表达式和语言，正则表达式是一个串，而语言是一个集合</li>
-<li><span class="math inline">\(\epsilon^\*=\epsilon\)</span>，多个空串连接还是空串，这里注意和上面2的区别</li>
-<li><span class="math inline">\(L^+=LL^\*=L^\*L\)</span>，<span class="math inline">\(L^+\)</span>表示1个或多个<span class="math inline">\(L\)</span></li>
-<li><span class="math inline">\(L^\*=L^++\epsilon\)</span></li>
+<li><span class="math inline">\((L^*)^*=L^*\)</span></li>
+<li><span class="math inline">\(L(\emptyset^*)=L(\epsilon)=\{\epsilon\}\)</span>，<strong>空表达式的闭包和<span class="math inline">\(\epsilon\)</span>等价</strong>，注意不要弄混正则表达式和语言，正则表达式是一个串，而语言是一个集合</li>
+<li><span class="math inline">\(\epsilon^*=\epsilon\)</span>，多个空串连接还是空串，这里注意和上面2的区别</li>
+<li><span class="math inline">\(L^+=LL^*=L^*L\)</span>，<span class="math inline">\(L^+\)</span>表示1个或多个<span class="math inline">\(L\)</span></li>
+<li><span class="math inline">\(L^*=L^++\epsilon\)</span></li>
 </ol>
 <h2 id="正则表达式的应用">3 正则表达式的应用</h2>
 <ol type="1">
@@ -570,24 +564,22 @@ L(M)=\underset{q_f\in F}{\cup}R_{1f}^n
 <p>广义非确定性有穷自动机定义如下：</p>
 <p>定义3. A Generalized nondeterministic finite automaton(GNFA) is a 5-tuple <span class="math inline">\((Q,\Sigma,\delta,q_{start},F_{accept})\)</span>, where</p>
 <ol type="1">
-<li><p>Q is the finite state set</p></li>
-<li><p><span class="math inline">\(\Sigma\)</span> is the input alphabet.</p></li>
-<li><p><span class="math inline">\(q_{start}\)</span> is the start state.</p></li>
-<li><p><span class="math inline">\(q_{accept}\)</span> is the accept state.</p></li>
-<li><p><span class="math display">\[
-\delta:(Q-\{q_{accept}\})\times (Q-\{q_{start}\})\rightarrow R
-\]</span></p></li>
+<li>Q is the finite state set</li>
+<li><span class="math inline">\(\Sigma\)</span> is the input alphabet.</li>
+<li><span class="math inline">\(q_{start}\)</span> is the start state.</li>
+<li><span class="math inline">\(q_{accept}\)</span> is the accept state.</li>
+<li><span class="math inline">\(\delta:(Q-\{q_{accept}\})\times (Q-\{q_{start}\})\rightarrow R\)</span></li>
 </ol>
 <p><span class="math inline">\(R\)</span> is the set of <strong>regular expressions</strong> over <span class="math inline">\(\Sigma\)</span></p>
 <p><span class="math inline">\(\delta(q_i,q_j)=R\Leftrightarrow\)</span> from <span class="math inline">\(q_i\)</span> to <span class="math inline">\(q_j\)</span> has the RE R as the label, R<span class="math inline">\(\in R\)</span></p>
 <p>GNFA的特点：</p>
 <ol type="1">
-<li><p>The interior Q-<span class="math inline">\(\{q_{accept} , q_{start}\}\)</span></p>
+<li><p>The interior <span class="math inline">\(Q-\{q_{accept} , q_{start}\}\)</span></p>
 <p>is fully connected by <span class="math inline">\(\delta\)</span> .（全连接）</p></li>
 <li><p>From <span class="math inline">\(q_{start}\)</span> only "out going transitions"（只出不回）</p></li>
 <li><p>To <span class="math inline">\(q_{accept}\)</span> only "ingoing transitions"（只回不出）</p></li>
 <li><p>Impossible <span class="math inline">\(q_i\rightarrow q_j\)</span> transitions are "<span class="math inline">\(\delta(q_i,q_j)=\emptyset\)</span>"</p></li>
-<li><p>$q_{accept} q_{start} $</p></li>
+<li><p><span class="math inline">\(q_{accept} \ne q_{start}\)</span></p></li>
 </ol>
 <p>GNFA和一般NFA的唯一区别：GNFA的边推广为RE（子自动机），而不是单个字母或者空转移。</p>
 <p>对GNFA化简，最后化简成只剩下起始状态和接收状态，这个对应的边就是对应的正则表达式。</p>
@@ -595,6 +587,7 @@ L(M)=\underset{q_f\in F}{\cup}R_{1f}^n
 <ol type="1">
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/shulianghan/article/details/106157619">【计算理论】正则语言 ( 正则语言运算 | 正则语言封闭性 )_让 学习 成为一种 习惯 ( 韩曙亮 の 技术博客 )-CSDN博客_正则语言</a></li>
 <li><a href="file:///C:/Users/86183/Desktop/Learning/形式语言与自动机/形式语言与自动机/第4章%20正则表达式-更新版.pdf">第4章 正则表达式-更新版.pdf</a></li>
+<li><a target="_blank" rel="noopener" href="https://adaning.github.io/posts/33457.html">MathJax常见问题 | DaNing的博客 (adaning.github.io)</a></li>
 </ol>
 
                 
