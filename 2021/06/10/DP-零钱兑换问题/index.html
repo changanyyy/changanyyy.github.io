@@ -305,14 +305,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    444
+                    930
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    1 分
+                    3 分
                 </div>
                 
 
@@ -327,7 +327,10 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="零钱兑换系列问题"><a href="#零钱兑换系列问题" class="headerlink" title="零钱兑换系列问题"></a>零钱兑换系列问题</h1><h2 id="1-零钱兑换1"><a href="#1-零钱兑换1" class="headerlink" title="1.零钱兑换1"></a>1.零钱兑换1</h2><h3 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h3><p>这道题目是力扣上面的题目，最近正好在学DP就做了个题解</p>
+                <h1 id="零钱兑换系列问题">零钱兑换系列问题</h1>
+<h2 id="零钱兑换1">1.零钱兑换1</h2>
+<h3 id="题目">题目</h3>
+<p>这道题目是力扣上面的题目，最近正好在学DP就做了个题解</p>
 <p>给定不同面额的硬币 <code>coins</code> 和一个总金额 <code>amount</code>。编写一个函数来计算可以凑成总金额所需的最少的硬币个数。如果没有任何一种硬币组合能组成总金额，返回 -1。</p>
 <p>你可以认为每种硬币的数量是无限的。</p>
 <p>提示</p>
@@ -336,58 +339,66 @@
 <li><code>1 &lt;= coins[i] &lt;= 231 - 1</code></li>
 <li><code>0 &lt;= amount &lt;= 104</code></li>
 </ul>
-<h3 id="测试样例"><a href="#测试样例" class="headerlink" title="测试样例"></a>测试样例</h3><pre><code>输入：coins = [1, 2, 5], amount = 11
+<h3 id="测试样例">测试样例</h3>
+<pre><code>输入：coins = [1, 2, 5], amount = 11
 输出：3 
-解释：11 = 5 + 5 + 1
-</code></pre><h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>我们先从暴力方法入手，我们只需要<code>DFS</code>遍历所有可能的组合数量就可以从中找到一个最优解，但是这样暴力枚举的复杂度相当大，我们需要想一个更加优秀的算法。这种问题我们还是用递归更加恰当，试想我们想知道金额x最少需要多少，那么我只需要知道金额<code>x-coin_i(i&gt;=0 &amp;&amp; i&lt;size)</code>最少需要多少枚硬币，然后找到它们最小那个加一就行了，这样利用了动态规划的思想，站在前人的成果之上来解题，就方便了很多，所以我们只需要从1开始计算到amount分别最少需要多少钱就可以了</p>
+解释：11 = 5 + 5 + 1</code></pre>
+<h3 id="思路">思路</h3>
+<p>我们先从暴力方法入手，我们只需要<code>DFS</code>遍历所有可能的组合数量就可以从中找到一个最优解，但是这样暴力枚举的复杂度相当大，我们需要想一个更加优秀的算法。这种问题我们还是用递归更加恰当，试想我们想知道金额x最少需要多少，那么我只需要知道金额<code>x-coin_i(i&gt;=0 &amp;&amp; i&lt;size)</code>最少需要多少枚硬币，然后找到它们最小那个加一就行了，这样利用了动态规划的思想，站在前人的成果之上来解题，就方便了很多，所以我们只需要从1开始计算到amount分别最少需要多少钱就可以了</p>
 <p>状态转移方程：<code>dp[i]=min(dp[i-coin_j]+1) (j&gt;=0 &amp;&amp; j&lt;coins.size)</code></p>
-<h3 id="复杂度分析"><a href="#复杂度分析" class="headerlink" title="复杂度分析"></a>复杂度分析</h3><p>时间复杂度<code>O(amount * size)</code></p>
+<h3 id="复杂度分析">复杂度分析</h3>
+<p>时间复杂度<code>O(amount * size)</code></p>
 <p>空间复杂度<code>O(amount)</code></p>
-<h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><pre class=" language-lang-c++"><code class="language-lang-c++">class Solution {
-public:
-    int coinChange(vector<int>& coins, int amount) {
-        vector<int> dp(amount+1,INT_MAX-1);
-        dp[0]=0;
-        for(int i=1;i<=amount;i++){
-            for(auto coin:coins){
-                if(i-coin>=0){
-                    dp[i]=min(dp[i],dp[i-coin]+1);
-                }
-            }
-        }
-
-        return dp[amount]<INT_MAX-1?dp[amount]:-1;
-    }
-};
-</code></pre>
-<h2 id="2-零钱兑换2"><a href="#2-零钱兑换2" class="headerlink" title="2.零钱兑换2"></a>2.零钱兑换2</h2><h3 id="题目-1"><a href="#题目-1" class="headerlink" title="题目"></a>题目</h3><p>给定不同面额的硬币和一个总金额。写出函数来计算可以凑成总金额的硬币组合数。假设每一种面额的硬币有无限个。 </p>
-<h3 id="测试样例-1"><a href="#测试样例-1" class="headerlink" title="测试样例"></a>测试样例</h3><pre><code>输入: amount = 5, coins = [1, 2, 5]
+<h3 id="代码">代码</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Solution <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> coinChange<span class="op">(</span>vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;&amp;</span> coins<span class="op">,</span> <span class="dt">int</span> amount<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> dp<span class="op">(</span>amount<span class="op">+</span><span class="dv">1</span><span class="op">,</span>INT_MAX<span class="op">-</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        dp<span class="op">[</span><span class="dv">0</span><span class="op">]=</span><span class="dv">0</span><span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i<span class="op">=</span><span class="dv">1</span><span class="op">;</span>i<span class="op">&lt;=</span>amount<span class="op">;</span>i<span class="op">++){</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span><span class="op">(</span><span class="kw">auto</span> coin<span class="op">:</span>coins<span class="op">){</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span><span class="op">(</span>i<span class="op">-</span>coin<span class="op">&gt;=</span><span class="dv">0</span><span class="op">){</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>                    dp<span class="op">[</span>i<span class="op">]=</span>min<span class="op">(</span>dp<span class="op">[</span>i<span class="op">],</span>dp<span class="op">[</span>i<span class="op">-</span>coin<span class="op">]+</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                <span class="op">}</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> dp<span class="op">[</span>amount<span class="op">]&lt;</span>INT_MAX<span class="op">-</span><span class="dv">1</span><span class="op">?</span>dp<span class="op">[</span>amount<span class="op">]:-</span><span class="dv">1</span><span class="op">;</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<h2 id="零钱兑换2">2.零钱兑换2</h2>
+<h3 id="题目-1">题目</h3>
+<p>给定不同面额的硬币和一个总金额。写出函数来计算可以凑成总金额的硬币组合数。假设每一种面额的硬币有无限个。</p>
+<h3 id="测试样例-1">测试样例</h3>
+<pre><code>输入: amount = 5, coins = [1, 2, 5]
 输出: 4
 解释: 有四种方式可以凑成总金额:
 5=5
 5=2+2+1
 5=2+1+1+1
-5=1+1+1+1+1
-</code></pre><h3 id="思路-1"><a href="#思路-1" class="headerlink" title="思路"></a>思路</h3><p>这道题跟</p>
+5=1+1+1+1+1</code></pre>
+<h3 id="思路-1">思路</h3>
+<p>这道题跟</p>
 <p>类似，但是他们要求解的东西不一样，那道题要求凑成总金额需要最少的硬币数，这道题要求有多少种可以凑成总金额的组合</p>
-<p>对于某一个金额x，我们可以查看<code>x-coin_i</code>的组合数，加到一起即可，等等…我是不是忘了什么，这样很可能出现重复的组合，比如说<code>amount=5</code>，<code>coins=[1,2,5]</code>，那么1+2可以组合成3，那么3+2可以组合成5；2+2可以组合成4，那么4+1可以组合成5，所以<code>1+2+2=5</code>这个组合至少用了两次！！！所以这种做法需要被<code>pass</code>掉！！！</p>
+<p>对于某一个金额x，我们可以查看<code>x-coin_i</code>的组合数，加到一起即可，等等...我是不是忘了什么，这样很可能出现重复的组合，比如说<code>amount=5</code>，<code>coins=[1,2,5]</code>，那么1+2可以组合成3，那么3+2可以组合成5；2+2可以组合成4，那么4+1可以组合成5，所以<code>1+2+2=5</code>这个组合至少用了两次！！！所以这种做法需要被<code>pass</code>掉！！！</p>
 <p>那么正确的做法应该是什么呢？我们可以在外层对硬币金额进行遍历，内层更新每一个金额。这样每层循环解释起来就是，我用前k种硬币，凑成每一种金额有多少组合。那么我进行每一次遍历的时候，我之前积累起来的是用前k种硬币有多少种，那么加上第k+1种硬币能够有多少种。</p>
-<h3 id="复杂度分析-1"><a href="#复杂度分析-1" class="headerlink" title="复杂度分析"></a>复杂度分析</h3><p>时间复杂度<code>O(amount * size)</code></p>
+<h3 id="复杂度分析-1">复杂度分析</h3>
+<p>时间复杂度<code>O(amount * size)</code></p>
 <p>空间复杂度<code>O(amount)</code></p>
-<h3 id="代码-1"><a href="#代码-1" class="headerlink" title="代码"></a>代码</h3><pre class=" language-lang-c++"><code class="language-lang-c++">class Solution {
-public:
-    int change(int amount, vector<int>& coins) {
-        vector<int> dp(amount+1,0);
-        dp[0]=1;
-        for(auto coin:coins){
-            for(int i=coin;i<=amount;i++){
-                dp[i]+=dp[i-coin];
-            }
-        }
-        return dp[amount];
-    }
-};
-</code></pre>
+<h3 id="代码-1">代码</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Solution <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> change<span class="op">(</span><span class="dt">int</span> amount<span class="op">,</span> vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;&amp;</span> coins<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> dp<span class="op">(</span>amount<span class="op">+</span><span class="dv">1</span><span class="op">,</span><span class="dv">0</span><span class="op">);</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        dp<span class="op">[</span><span class="dv">0</span><span class="op">]=</span><span class="dv">1</span><span class="op">;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span><span class="op">(</span><span class="kw">auto</span> coin<span class="op">:</span>coins<span class="op">){</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i<span class="op">=</span>coin<span class="op">;</span>i<span class="op">&lt;=</span>amount<span class="op">;</span>i<span class="op">++){</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                dp<span class="op">[</span>i<span class="op">]+=</span>dp<span class="op">[</span>i<span class="op">-</span>coin<span class="op">];</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> dp<span class="op">[</span>amount<span class="op">];</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
 
                 
             </div>
@@ -777,7 +788,7 @@ public:
 <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 <script>
     MathJax.Hub.Config({
-        tex2jax: {inlineMath: [['$', '$'], ['\(', '\)']]}
+        tex2jax: {inlineMath: [['$', '$'],['\\(', '\\)']]}
     });
 </script>
 

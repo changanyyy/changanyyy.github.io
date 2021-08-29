@@ -309,14 +309,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.9k
+                    2.8k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    7 分
+                    11 分
                 </div>
                 
 
@@ -331,107 +331,120 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="1-确定性有穷自动机"><a href="#1-确定性有穷自动机" class="headerlink" title="1 确定性有穷自动机"></a>1 确定性有穷自动机</h2><h3 id="1-1-模型"><a href="#1-1-模型" class="headerlink" title="1-1 模型"></a>1-1 模型</h3><p>有穷自动机的模型是由一个纸带，一个控制器组成，控制器有一个只读头指向纸带。控制器里面控制状态的转移和存储当前状态。有穷自动机的特点：</p>
-<ol>
+                <h2 id="确定性有穷自动机">1 确定性有穷自动机</h2>
+<h3 id="模型">1-1 模型</h3>
+<p>有穷自动机的模型是由一个纸带，一个控制器组成，控制器有一个只读头指向纸带。控制器里面控制状态的转移和存储当前状态。有穷自动机的特点：</p>
+<ol type="1">
 <li>只有一条磁带，用于存放字符串</li>
 <li>带头只能读，不可以写</li>
 <li>带头只能往一个方向移动（从左往右）</li>
 </ol>
-<h3 id="1-2-特点"><a href="#1-2-特点" class="headerlink" title="1-2 特点"></a>1-2 特点</h3><ul>
+<h3 id="特点">1-2 特点</h3>
+<ul>
 <li>自动机的实质是：现在的状态+输入-&gt;下一状态</li>
 <li>只读，不写，没有内存，没有变量，没有数组，没有堆栈，没有推理，没有想象力</li>
 <li>只有寄存器能记住状态</li>
 </ul>
-<h3 id="1-3-有穷状态机的表示"><a href="#1-3-有穷状态机的表示" class="headerlink" title="1-3 有穷状态机的表示"></a>1-3 有穷状态机的表示</h3><h4 id="1-3-1-形式化定义"><a href="#1-3-1-形式化定义" class="headerlink" title="1-3-1 形式化定义"></a>1-3-1 形式化定义</h4><p>定义1. A deterministic finite automaton  (DFA) is defined by a 5-tuple (Q,S,$\delta$,$q_0$,F) </p>
-<ol>
-<li><code>Q</code>: finite set of states 有限状态集 </li>
+<h3 id="有穷状态机的表示">1-3 有穷状态机的表示</h3>
+<h4 id="形式化定义">1-3-1 形式化定义</h4>
+<p>定义1. A deterministic finite automaton (DFA) is defined by a 5-tuple (Q,S,<span class="math inline">\(\delta\)</span>,<span class="math inline">\(q_0\)</span>,F)</p>
+<ol type="1">
+<li><code>Q</code>: finite set of states 有限状态集</li>
 <li><code>S</code>: finite alphabet 有限字母表</li>
-<li>$\delta$: transition function $\delta: Q\times\Sigma\rightarrow Q$ 转移函数 （可以用矩阵表示）</li>
-<li>$q_0\in Q$: start state 起始状态 </li>
-<li>$F\subseteq Q$: set of accepting states 接受状态集合</li>
+<li><span class="math inline">\(\delta\)</span>: transition function <span class="math inline">\(\delta: Q\times\Sigma\rightarrow Q\)</span> 转移函数 （可以用矩阵表示）</li>
+<li><span class="math inline">\(q_0\in Q\)</span>: start state 起始状态</li>
+<li><span class="math inline">\(F\subseteq Q\)</span>: set of accepting states 接受状态集合</li>
 </ol>
 <p>下面是确定性有穷自动机的形式化定义，后面注意和非确定性地区别，<strong>主要区别就是转移函数</strong>：在DFA中，映射到单一状态；而在DFA中映射到状态集合的子集。</p>
-<h4 id="1-3-2状态转移图"><a href="#1-3-2状态转移图" class="headerlink" title="1-3-2状态转移图"></a>1-3-2状态转移图</h4><ul>
+<h4 id="状态转移图">1-3-2状态转移图</h4>
+<ul>
 <li>状态（states）：状态的集合</li>
 <li>始态（starting state）：起始的状态</li>
 <li>受态（accepting state）：在状态转移图里一般用双圈或者粗圈表示</li>
 <li>变换规则（transition rules）：从一个状态接收输入转移到另一个状态（非确定性可能是转移到一些状态）</li>
 </ul>
 <p>下面是一个DFA的例子</p>
-<p><img src="/picture/dfa.png" alt=""></p>
-<h3 id="1-4-对应的语言"><a href="#1-4-对应的语言" class="headerlink" title="1-4 对应的语言"></a>1-4 对应的语言</h3><p>定义2. A regular language is a language for  which there exists a recognizing finite automaton.</p>
-<h3 id="1-5-自动机等价"><a href="#1-5-自动机等价" class="headerlink" title="1-5 自动机等价"></a>1-5 自动机等价</h3><p>根据自动机接收的语言，我们定义自动机等价.</p>
-<p>定义3. 设$M_1,M_2$为<code>FA</code>。如果$L(M_1)=L(M_2)$，则称自动机 $M_1$与$M_2$相互等价。</p>
+<p><img src="/picture/dfa.png"></p>
+<h3 id="对应的语言">1-4 对应的语言</h3>
+<p>定义2. A regular language is a language for which there exists a recognizing finite automaton.</p>
+<h3 id="自动机等价">1-5 自动机等价</h3>
+<p>根据自动机接收的语言，我们定义自动机等价.</p>
+<p>定义3. 设<span class="math inline">\(M_1,M_2\)</span>为<code>FA</code>。如果<span class="math inline">\(L(M_1)=L(M_2)\)</span>，则称自动机 <span class="math inline">\(M_1\)</span>与<span class="math inline">\(M_2\)</span>相互等价。</p>
 <p>设计一个确定性有穷自动机：</p>
-<ol>
+<ol type="1">
 <li>首先设计状态，找出<strong>关键的信息</strong>，每个关键信息的值对应一个状态</li>
 <li>给出转移函数</li>
-<li>没有输入或者输入为$\epsilon$的状态指定为起始状态</li>
+<li>没有输入或者输入为<span class="math inline">\(\epsilon\)</span>的状态指定为起始状态</li>
 <li>确定接受状态</li>
 </ol>
-<h2 id="2-非确定性有穷自动机"><a href="#2-非确定性有穷自动机" class="headerlink" title="2 非确定性有穷自动机"></a>2 非确定性有穷自动机</h2><h3 id="2-1-NFA的表示"><a href="#2-1-NFA的表示" class="headerlink" title="2-1 NFA的表示"></a>2-1 NFA的表示</h3><h4 id="2-1-1-形式化定义"><a href="#2-1-1-形式化定义" class="headerlink" title="2-1-1 形式化定义"></a>2-1-1 形式化定义</h4><p>定义4. An <em>NFA</em> is represented formally by a <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/N-tuple">5-tuple</a>，$(Q, \Sigma, \Delta, q_0, F)$</p>
+<h2 id="非确定性有穷自动机">2 非确定性有穷自动机</h2>
+<h3 id="nfa的表示">2-1 NFA的表示</h3>
+<h4 id="形式化定义-1">2-1-1 形式化定义</h4>
+<p>定义4. An <em>NFA</em> is represented formally by a <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/N-tuple">5-tuple</a>，<span class="math inline">\((Q, \Sigma, \Delta, q_0, F)\)</span></p>
 <ul>
-<li>a finite <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Set_(mathematics">set</a>) of states $Q$.</li>
-<li>a finite set of <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Input_symbol">input symbols</a> $\Sigma$.</li>
-<li>a transition function $\Delta: Q\times\Sigma_\epsilon \rightarrow P(Q)$</li>
-<li>an <em>initial</em> (or <em>start</em>) state $q_0\in Q$</li>
-<li>a set of states $F$ distinguished as <strong>accepting</strong> (or <strong>final</strong>) <em>states</em> $F\subseteq Q$.</li>
+<li>a finite <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Set_(mathematics)">set</a> of states <span class="math inline">\(Q\)</span>.</li>
+<li>a finite set of <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Input_symbol">input symbols</a> <span class="math inline">\(\Sigma\)</span>.</li>
+<li>a transition function <span class="math inline">\(\Delta: Q\times\Sigma_\epsilon \rightarrow P(Q)\)</span></li>
+<li>an <em>initial</em> (or <em>start</em>) state <span class="math inline">\(q_0\in Q\)</span></li>
+<li>a set of states <span class="math inline">\(F\)</span> distinguished as <strong>accepting</strong> (or <strong>final</strong>) <em>states</em> <span class="math inline">\(F\subseteq Q\)</span>.</li>
 </ul>
-<p>其中，$P(Q)$是$Q$的幂集，$\Sigma_\epsilon=\Sigma\cup{\epsilon}$。</p>
-<h4 id="2-1-2-状态转移图"><a href="#2-1-2-状态转移图" class="headerlink" title="2-1-2 状态转移图"></a>2-1-2 状态转移图</h4><p>下面是NFA的一个例子，可以看见转移的目标是一个集合。</p>
-<p><img src="/picture/nfa.png" alt=""></p>
-<h3 id="2-2-和DFA的区别"><a href="#2-2-和DFA的区别" class="headerlink" title="2-2 和DFA的区别"></a>2-2 和DFA的区别</h3><p>说说和确定性的区别：</p>
+<p>其中，<span class="math inline">\(P(Q)\)</span>是<span class="math inline">\(Q\)</span>的幂集，<span class="math inline">\(\Sigma_\epsilon=\Sigma\cup\{\epsilon\}\)</span>。</p>
+<h4 id="状态转移图-1">2-1-2 状态转移图</h4>
+<p>下面是NFA的一个例子，可以看见转移的目标是一个集合。</p>
+<p><img src="/picture/nfa.png"></p>
+<h3 id="和dfa的区别">2-2 和DFA的区别</h3>
+<p>说说和确定性的区别：</p>
 <ul>
 <li>NFA对于一个输入可能有多个后续状态。（前面也提到过，一个状态映射到多个状态）</li>
-<li>输入还可以有$\epsilon$（自动漂移）</li>
+<li>输入还可以有<span class="math inline">\(\epsilon\)</span>（自动漂移）</li>
 <li>NFA可以看作并行计算或者树，而DFA属于线性计算</li>
 <li>事实上，DFA是NFA的一种特例</li>
 </ul>
-<p>$\epsilon$可以用于漂移或者猜测</p>
-<h2 id="3-DFA和NFA的等价性"><a href="#3-DFA和NFA的等价性" class="headerlink" title="3 DFA和NFA的等价性"></a>3 DFA和NFA的等价性</h2><p>定理1. <strong>NFA和DFA等价</strong></p>
+<p><span class="math inline">\(\epsilon\)</span>可以用于漂移或者猜测</p>
+<h2 id="dfa和nfa的等价性">3 DFA和NFA的等价性</h2>
+<p>定理1. <strong>NFA和DFA等价</strong></p>
 <ul>
-<li><p>$DFA\Rightarrow NFA$：我们可以知道DFA是NFA的一种特例，构造也很简单，DFA转移函数的值是单一的状态，那么把这个值改成含有这个单一状态的集合即可。</p>
-</li>
-<li><p>$NFA\Rightarrow DFA$：我们可以知道，和NFA等价的DFA状态是NFA状态的幂集。我们先引入一个概念，0步集$E(R)$={q | q can be reached from R by traveling  along 0 or more ε arrows，$q\in R$，$R\subseteq Q$}。</p>
+<li><p><span class="math inline">\(DFA\Rightarrow NFA\)</span>：我们可以知道DFA是NFA的一种特例，构造也很简单，DFA转移函数的值是单一的状态，那么把这个值改成含有这个单一状态的集合即可。</p></li>
+<li><p><span class="math inline">\(NFA\Rightarrow DFA\)</span>：我们可以知道，和NFA等价的DFA状态是NFA状态的幂集。我们先引入一个概念，0步集<span class="math inline">\(E(R)\)</span>={q | q can be reached from R by traveling along 0 or more ε arrows，<span class="math inline">\(q\in R\)</span>，<span class="math inline">\(R\subseteq Q\)</span>}。</p>
 <ul>
 <li><p>下面进行从NFA到DFA的构造：</p>
-<p>令$N=(Q,\Sigma,\delta,q_0,F)$作为一个NFA，识别的语言是A，那么我们现在构造一个识别A的DFA $M=(Q’,\Sigma,\delta’,q_0’,F’)$，其中</p>
-<ol>
-<li>$Q’=P(Q)$</li>
-<li>$\delta’(R,a)={q\in Q | q\in E(\delta(r,a)) \,for\,r\in R}$</li>
-<li>$q_0’=E({q_0})$</li>
-<li>$F’={R\in Q’| R\,contains\,an\,accept\,state\,of\,N}$</li>
+<p>令<span class="math inline">\(N=(Q,\Sigma,\delta,q_0,F)\)</span>作为一个NFA，识别的语言是A，那么我们现在构造一个识别A的DFA <span class="math inline">\(M=(Q',\Sigma,\delta',q_0',F')\)</span>，其中</p>
+<ol type="1">
+<li><span class="math inline">\(Q'=P(Q)\)</span></li>
+<li><span class="math inline">\(\delta'(R,a)=\{q\in Q | q\in E(\delta(r,a)) \,for\,r\in R\}\)</span></li>
+<li><span class="math inline">\(q_0'=E({q_0})\)</span></li>
+<li><span class="math inline">\(F'=\{R\in Q'| R\,contains\,an\,accept\,state\,of\,N\}\)</span></li>
 </ol>
-<p>这时$L(M)=L(N)$，DFA和NFA可以识别相同的语言</p>
-</li>
+<p>这时<span class="math inline">\(L(M)=L(N)\)</span>，DFA和NFA可以识别相同的语言</p></li>
+</ul></li>
+<li><p>两者等价</p></li>
 </ul>
-</li>
-<li><p>两者等价</p>
-</li>
-</ul>
-<h2 id="4-带空转移的有穷自动机"><a href="#4-带空转移的有穷自动机" class="headerlink" title="4 带空转移的有穷自动机"></a>4 带空转移的有穷自动机</h2><p>定义5. 带空转移的不确定的有穷状态自动机（$\epsilon-NFA$），$M=(Q, \Sigma,\delta,q_0,F)$，其中</p>
+<h2 id="带空转移的有穷自动机">4 带空转移的有穷自动机</h2>
+<p>定义5. 带空转移的不确定的有穷状态自动机（<span class="math inline">\(\epsilon-NFA\)</span>），<span class="math inline">\(M=(Q, \Sigma,\delta,q_0,F)\)</span>，其中</p>
 <ul>
-<li>$Q$，$\Sigma$，$q_0$，$F$的意义同DFA</li>
-<li>$\delta:Q\times(\Sigma\cup{\epsilon})\rightarrow 2^Q$</li>
+<li><span class="math inline">\(Q\)</span>，<span class="math inline">\(\Sigma\)</span>，<span class="math inline">\(q_0\)</span>，<span class="math inline">\(F\)</span>的意义同DFA</li>
+<li><span class="math inline">\(\delta:Q\times(\Sigma\cup\{\epsilon\})\rightarrow 2^Q\)</span></li>
 </ul>
-<p>带空转移的有穷自动机，实际上就是允许输入空字符$\epsilon$的非确定性有穷自动机，是一种特殊的NFA。语义：允许自动机在某一状态下，不读入字符只改变状态。作用：不改变，不扩大有穷自动机的语言类，仅仅提供表达上的便利（更简洁）。</p>
-<p>定义6. 空转移闭包：在一个具有$\epsilon$转移的有穷自动机中，对于状态q，它的$\epsilon-CLOSURE(q)$是按照下面规则递归定义的状态集合：</p>
-<ol>
-<li>q在$\epsilon-CLOSURE(q)$中</li>
-<li>如果p在$\epsilon-CLOSURE(q)$中，那么$\delta(p,\epsilon)$也在$\epsilon-CLOSURE(q)$中</li>
+<p>带空转移的有穷自动机，实际上就是允许输入空字符<span class="math inline">\(\epsilon\)</span>的非确定性有穷自动机，是一种特殊的NFA。语义：允许自动机在某一状态下，不读入字符只改变状态。作用：不改变，不扩大有穷自动机的语言类，仅仅提供表达上的便利（更简洁）。</p>
+<p>定义6. 空转移闭包：在一个具有<span class="math inline">\(\epsilon\)</span>转移的有穷自动机中，对于状态q，它的<span class="math inline">\(\epsilon-CLOSURE(q)\)</span>是按照下面规则递归定义的状态集合：</p>
+<ol type="1">
+<li>q在<span class="math inline">\(\epsilon-CLOSURE(q)\)</span>中</li>
+<li>如果p在<span class="math inline">\(\epsilon-CLOSURE(q)\)</span>中，那么<span class="math inline">\(\delta(p,\epsilon)\)</span>也在<span class="math inline">\(\epsilon-CLOSURE(q)\)</span>中</li>
 <li>按照上面的递归合并状态到闭包中</li>
 </ol>
-<p>那么对于一个状态集合，它的空转移闭包是$\epsilon-CLOSURE(P)=\underset {q\in P}{\cup} \epsilon-CLOSURE(q)$</p>
-<p>其实$\epsilon-CLOSURE(q)$就是0步集。</p>
-<h2 id="5-带输出的有穷自动机"><a href="#5-带输出的有穷自动机" class="headerlink" title="5 带输出的有穷自动机"></a>5 带输出的有穷自动机</h2><p>带输出的有穷自动机就是如下的系统：</p>
-<pre><code>输入序列x -&gt; 有穷自动机 -&gt; 输出序列y
-</code></pre><p>定义7. 一个<strong>Moore机</strong>是一个六元组$M=(Q,\Sigma,\Delta,\delta,\lambda,q_0)$，其中$Q,\Sigma,\delta,q_0$地意义和DFA相同。$\Delta$是一个输出字母表，$\lambda$是从Q到$\Delta$的映射，称为输出函数。</p>
-<p>定义8. 一个<strong>Mealy机</strong>是一个一个六元组$M=(Q,\Sigma,\Delta,\delta,\lambda,q_0)$，这里除了$\lambda$是从$Q\times\Sigma$到$\Delta$的映射除外，其余和Moore机相同。$\lambda(q,a)$指出了当状态q遇到符号a的输出。</p>
+<p>那么对于一个状态集合，它的空转移闭包是<span class="math inline">\(\epsilon-CLOSURE(P)=\underset {q\in P}{\cup} \epsilon-CLOSURE(q)\)</span></p>
+<p>其实<span class="math inline">\(\epsilon-CLOSURE(q)\)</span>就是0步集。</p>
+<h2 id="带输出的有穷自动机">5 带输出的有穷自动机</h2>
+<p>带输出的有穷自动机就是如下的系统：</p>
+<pre><code>输入序列x -&gt; 有穷自动机 -&gt; 输出序列y</code></pre>
+<p>定义7. 一个<strong>Moore机</strong>是一个六元组<span class="math inline">\(M=(Q,\Sigma,\Delta,\delta,\lambda,q_0)\)</span>，其中<span class="math inline">\(Q,\Sigma,\delta,q_0\)</span>地意义和DFA相同。<span class="math inline">\(\Delta\)</span>是一个输出字母表，<span class="math inline">\(\lambda\)</span>是从Q到<span class="math inline">\(\Delta\)</span>的映射，称为输出函数。</p>
+<p>定义8. 一个<strong>Mealy机</strong>是一个一个六元组<span class="math inline">\(M=(Q,\Sigma,\Delta,\delta,\lambda,q_0)\)</span>，这里除了<span class="math inline">\(\lambda\)</span>是从<span class="math inline">\(Q\times\Sigma\)</span>到<span class="math inline">\(\Delta\)</span>的映射除外，其余和Moore机相同。<span class="math inline">\(\lambda(q,a)\)</span>指出了当状态q遇到符号a的输出。</p>
 <p>可以看出它们的区别就是：Moore的输出和输入无关，<strong>只与状态有关</strong>；Mealy的输出<strong>与状态和输入都有关</strong>。当输入n个符号，Moore输出长度为<code>n+1</code>的序列，Mealy输出长度为<code>n</code>的序列。</p>
 <p>两种自动机等价</p>
-<h2 id="6-有穷自动机例子"><a href="#6-有穷自动机例子" class="headerlink" title="6 有穷自动机例子"></a>6 有穷自动机例子</h2><p>问题：给定一个单词，在web或者其他在线文本库中，如何查找包含一个单词的所有文档。</p>
+<h2 id="有穷自动机例子">6 有穷自动机例子</h2>
+<p>问题：给定一个单词，在web或者其他在线文本库中，如何查找包含一个单词的所有文档。</p>
 <p>解决办法：倒排索引（Inverted index），也被称为反向索引，置入档案或者反向档案，是⼀种索引⽅法，被⽤来存储在全⽂搜索下某个单词在⼀个⽂档或者⼀组⽂档中的存储位置的映射。现代搜索引擎的索引都是基于倒排索引。倒排索引是搜索引擎的主要工作机制。（数据结构课上老师提过，类似哈希表）</p>
-<p><img src="/picture/inin.png" alt=""></p>
+<p><img src="/picture/inin.png"></p>
 <p>缺点：</p>
 <ul>
 <li>不适用于文本库快速变化，比如在线新闻</li>
@@ -439,80 +452,79 @@
 </ul>
 <p>建立倒排索引就要进行文本识别，在文档里面识别出一个单词。下面是一个具体的例子：</p>
 <p>例：设计一个识别单词<code>web</code>和<code>ebay</code>的<code>NFA</code></p>
-<p><img src="/picture/sbdc.png" alt=""></p>
+<p><img src="/picture/sbdc.png"></p>
 <p>我写了个<code>c++</code>代码来模拟这个NFA</p>
-<pre class=" language-lang-c++"><code class="language-lang-c++">void words_recg(std::string s){
-    int state = 1;
-    int idx;
-    pid_t pid;
-    for(idx = 0; idx < s.size(); idx++){
-        switch(state){
-        case 1:
-            if(s[idx] == 'w'){//识别到w
-                pid = fork();
-                if(pid == 0) state = 2;
-                else continue;
-            }
-            else if(s[idx] == 'e'){
-                pid = fork();
-                if(pid == 0) state = 5;
-                else continue;
-            }
-            else continue;
-        break;
-
-        case 2:
-            if(s[idx] == 'e') state = 3;
-            else goto End;
-        break;
-
-        case 3:
-            if(s[idx] == 'b') state = 4;
-            else goto End;
-        break;
-
-        case 4:
-            printf(<<"Find web at %d\n",(idx-3));
-            goto End;
-        break;
-
-        case 5:
-            if(s[idx] == 'b') state = 6;
-            else goto End;
-        break;
-
-        case 6:
-            if(s[idx] == 'a') state = 7;
-            else goto End;
-        break;
-
-        case 7:
-            if(s[idx] == 'y') state = 8;
-            else goto End;
-        break;
-
-        case 8:
-            printf(<<"Find ebay at %d\n",(idx-4));
-            goto End;
-        break;
-
-        default:
-        break;
-        }
-    }
-End:;
-}
-
-
-int main(){
-    std::string s;
-    s = "I am looking for a picture on the web called ebay. This web is good.";
-    words_recg(s);
-
-}
-</code></pre>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> words_recg<span class="op">(</span><span class="bu">std::</span>string<span class="op"> </span>s<span class="op">){</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> state <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> idx<span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">pid_t</span> pid<span class="op">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span><span class="op">(</span>idx <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> idx <span class="op">&lt;</span> s<span class="op">.</span>size<span class="op">();</span> idx<span class="op">++){</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">switch</span><span class="op">(</span>state<span class="op">){</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">1</span><span class="op">:</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span><span class="op">(</span>s<span class="op">[</span>idx<span class="op">]</span> <span class="op">==</span> <span class="ch">'w'</span><span class="op">){</span><span class="co">//识别到w</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>                pid <span class="op">=</span> fork<span class="op">();</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span><span class="op">(</span>pid <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> state <span class="op">=</span> <span class="dv">2</span><span class="op">;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span> <span class="cf">continue</span><span class="op">;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span> <span class="cf">if</span><span class="op">(</span>s<span class="op">[</span>idx<span class="op">]</span> <span class="op">==</span> <span class="ch">'e'</span><span class="op">){</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>                pid <span class="op">=</span> fork<span class="op">();</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span><span class="op">(</span>pid <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> state <span class="op">=</span> <span class="dv">5</span><span class="op">;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span> <span class="cf">continue</span><span class="op">;</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span> <span class="cf">continue</span><span class="op">;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">2</span><span class="op">:</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span><span class="op">(</span>s<span class="op">[</span>idx<span class="op">]</span> <span class="op">==</span> <span class="ch">'e'</span><span class="op">)</span> state <span class="op">=</span> <span class="dv">3</span><span class="op">;</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span> <span class="cf">goto</span> End<span class="op">;</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">3</span><span class="op">:</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span><span class="op">(</span>s<span class="op">[</span>idx<span class="op">]</span> <span class="op">==</span> <span class="ch">'b'</span><span class="op">)</span> state <span class="op">=</span> <span class="dv">4</span><span class="op">;</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span> <span class="cf">goto</span> End<span class="op">;</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">4</span><span class="op">:</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>            printf<span class="op">(&lt;&lt;</span><span class="st">"Find web at </span><span class="sc">%d\n</span><span class="st">"</span><span class="op">,(</span>idx<span class="op">-</span><span class="dv">3</span><span class="op">));</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>            <span class="cf">goto</span> End<span class="op">;</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">5</span><span class="op">:</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span><span class="op">(</span>s<span class="op">[</span>idx<span class="op">]</span> <span class="op">==</span> <span class="ch">'b'</span><span class="op">)</span> state <span class="op">=</span> <span class="dv">6</span><span class="op">;</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span> <span class="cf">goto</span> End<span class="op">;</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">6</span><span class="op">:</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span><span class="op">(</span>s<span class="op">[</span>idx<span class="op">]</span> <span class="op">==</span> <span class="ch">'a'</span><span class="op">)</span> state <span class="op">=</span> <span class="dv">7</span><span class="op">;</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span> <span class="cf">goto</span> End<span class="op">;</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">7</span><span class="op">:</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span><span class="op">(</span>s<span class="op">[</span>idx<span class="op">]</span> <span class="op">==</span> <span class="ch">'y'</span><span class="op">)</span> state <span class="op">=</span> <span class="dv">8</span><span class="op">;</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span> <span class="cf">goto</span> End<span class="op">;</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">8</span><span class="op">:</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>            printf<span class="op">(&lt;&lt;</span><span class="st">"Find ebay at </span><span class="sc">%d\n</span><span class="st">"</span><span class="op">,(</span>idx<span class="op">-</span><span class="dv">4</span><span class="op">));</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>            <span class="cf">goto</span> End<span class="op">;</span></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>        <span class="cf">default</span><span class="op">:</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>End<span class="op">:;</span></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(){</span></span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>string<span class="op"> </span>s<span class="op">;</span></span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> <span class="st">"I am looking for a picture on the web called ebay. This web is good."</span><span class="op">;</span></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>    words_recg<span class="op">(</span>s<span class="op">);</span></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>下面是运行结果：</p>
-<p><img src="/picture/web.png" alt=""></p>
+<p><img src="/picture/web.png"></p>
 <p>那么下面可以把NFA转化成DFA，然后用程序模拟这个DFA</p>
 <p>转化成DFA有两种方法：</p>
 <ul>
@@ -522,68 +534,72 @@ int main(){
 <blockquote>
 <p>用NFA构建DFA的子集构造法：</p>
 <p>先<strong>构造状态</strong>，</p>
-<ol>
-<li>如果$q_1$是NFA的初始状态，那么${q_1}$是DFA的一个状态；</li>
-<li>如果p是NFA的一个状态，从初始状态，沿着带$a_1a_2…a_m$符号的路径可达该p，则有一个DFA状态是由下面NFA状态组成的集合：<ul>
-<li>$q_1$</li>
+<ol type="1">
+<li>如果<span class="math inline">\(q_1\)</span>是NFA的初始状态，那么<span class="math inline">\(\{q_1\}\)</span>是DFA的一个状态；</li>
+<li>如果p是NFA的一个状态，从初始状态，沿着带<span class="math inline">\(a_1a_2...a_m\)</span>符号的路径可达该p，则有一个DFA状态是由下面NFA状态组成的集合：
+<ul>
+<li><span class="math inline">\(q_1\)</span></li>
 <li>p</li>
-<li>每一个从$q_1$出发，沿着$a_1a_2…a_m$<strong>后缀</strong>标记的路径可达的NFA状态</li>
-</ul>
-</li>
+<li>每一个从<span class="math inline">\(q_1\)</span>出发，沿着<span class="math inline">\(a_1a_2...a_m\)</span><strong>后缀</strong>标记的路径可达的NFA状态</li>
+</ul></li>
 </ol>
 <p>再<strong>计算状态转移</strong>，</p>
-<ol>
-<li>对于任一状态集合$Q(q_1,p_1,…,p_n)$，考察每个可能的输入x，如果在NFA中存在转移$q_i=\delta(p_i,x)$，那么在DFA中，构造转移${q_i}=\delta(Q,x)$；</li>
-<li>如果不存在从任何$p_i$出发的带x的转移，那么在DFA中，构造转移${q_1,\delta(q1,x)}=\delta(Q,x)$</li>
+<ol type="1">
+<li>对于任一状态集合<span class="math inline">\(Q(q_1,p_1,...,p_n)\)</span>，考察每个可能的输入x，如果在NFA中存在转移<span class="math inline">\(q_i=\delta(p_i,x)\)</span>，那么在DFA中，构造转移<span class="math inline">\(\{q_i\}=\delta(Q,x)\)</span>；</li>
+<li>如果不存在从任何<span class="math inline">\(p_i\)</span>出发的带x的转移，那么在DFA中，构造转移<span class="math inline">\(\{q_1,\delta(q1,x)\}=\delta(Q,x)\)</span></li>
 </ol>
 </blockquote>
-<p>在这个例子中，首先$q_1$是NFA的初始状态，那么${q_1}$是DFA的状态；然后从其实状态q1出发，沿着带符号web的路径可以到达q4，web的后缀是eb和b，其中eb满足从$q_1$出发沿着eb标记的路径可以到达$q_6$，所以${q_1,q_4,q_6}$构成一个DFA状态。那么按照这个规则，可以推出后面的状态。</p>
+<p>在这个例子中，首先<span class="math inline">\(q_1\)</span>是NFA的初始状态，那么<span class="math inline">\(\{q_1\}\)</span>是DFA的状态；然后从其实状态q1出发，沿着带符号web的路径可以到达q4，web的后缀是eb和b，其中eb满足从<span class="math inline">\(q_1\)</span>出发沿着eb标记的路径可以到达<span class="math inline">\(q_6\)</span>，所以<span class="math inline">\(\{q_1,q_4,q_6\}\)</span>构成一个DFA状态。那么按照这个规则，可以推出后面的状态。</p>
 <p>那么下面构造转移，举例对于状态135。</p>
 <ul>
 <li>对于输入b，在NFA里面，状态1转移到状态1，状态3转移到状态4，状态5转移到状态6，所以135在输入b之后转移到146！</li>
 <li>对于输入e，在NFA里面状态35都没有对应的转移，但是有状态1到状态5的转移，所以135在输入e后转移到15。</li>
 <li>对于输入w，转移到12。</li>
-<li>对于其他输入，135在NFA中都没有其他转移，所以都转移到状态${q_1}$</li>
+<li>对于其他输入，135在NFA中都没有其他转移，所以都转移到状态<span class="math inline">\({q_1}\)</span></li>
 </ul>
 <p>其他状态依次类推。</p>
-<p>最后构造出来的DFA如下图所示（可以看出来DFA要比NFA复杂不少……代码就不写了）</p>
-<p><img src="/picture/cdfa.png" alt=""></p>
-<h2 id="7补充"><a href="#7补充" class="headerlink" title="7补充"></a>7补充</h2><h3 id="7-1-对于-epsilon-的理解："><a href="#7-1-对于-epsilon-的理解：" class="headerlink" title="7-1 对于$\epsilon$的理解："></a>7-1 对于$\epsilon$的理解：</h3><ul>
-<li>$\epsilon$是空字符串，$|\epsilon|=0$，$\epsilon$010=0$\epsilon$10=010，但是{$\epsilon$}!=$\emptyset$</li>
+<p>最后构造出来的DFA如下图所示（可以看出来DFA要比NFA复杂不少......代码就不写了）</p>
+<p><img src="/picture/cdfa.png"></p>
+<h2 id="补充">7补充</h2>
+<h3 id="对于epsilon的理解">7-1 对于<span class="math inline">\(\epsilon\)</span>的理解：</h3>
+<ul>
+<li><span class="math inline">\(\epsilon\)</span>是空字符串，<span class="math inline">\(|\epsilon|=0\)</span>，$<span class="math inline">\(010=0\)</span><span class="math inline">\(10=010，但是{\)</span><span class="math inline">\(}!=\)</span>$</li>
 <li>NFA接受空字符串，表示NFA啥也不读，但是可以自动进行状态转移</li>
 </ul>
-<h3 id="7-2-即时描述（instantaneous-description，ID）"><a href="#7-2-即时描述（instantaneous-description，ID）" class="headerlink" title="7-2 即时描述（instantaneous description，ID）"></a>7-2 即时描述（instantaneous description，ID）</h3><p>就是自动机某个时刻的一个快照，保存当前自动机所处状态，磁带内容，读写头位置（格局configuration），一般记作xqy，比如0011$q_3$01100…，其中$x,y\in \Sigma^*$，$q\in Q$，并且$\delta(q_0,x)=q$。</p>
-<h3 id="7-3-格局演化"><a href="#7-3-格局演化" class="headerlink" title="7-3 格局演化"></a>7-3 格局演化</h3><p>从一个格局到另一个格局的变化序列，称为格局演化，也是一个计算过程。记法如下：</p>
-<div class="table-container">
+<h3 id="即时描述instantaneous-descriptionid">7-2 即时描述（instantaneous description，ID）</h3>
+<p>就是自动机某个时刻的一个快照，保存当前自动机所处状态，磁带内容，读写头位置（格局configuration），一般记作xqy，比如0011$q_3<span class="math inline">\(01100...，其中\)</span>x,y^*<span class="math inline">\(，\)</span>qQ<span class="math inline">\(，并且\)</span>(q_0,x)=q$。</p>
+<h3 id="格局演化">7-3 格局演化</h3>
+<p>从一个格局到另一个格局的变化序列，称为格局演化，也是一个计算过程。记法如下：</p>
 <table>
 <thead>
-<tr>
+<tr class="header">
 <th>记法</th>
 <th>含义</th>
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>$C_1\Rightarrow C_2$</td>
+<tr class="odd">
+<td><span class="math inline">\(C_1\Rightarrow C_2\)</span></td>
 <td>一步演化（输入一个字符）</td>
 </tr>
-<tr>
-<td>$C_1\Rightarrow ^*C_2$</td>
+<tr class="even">
+<td><span class="math inline">\(C_1\Rightarrow ^*C_2\)</span></td>
 <td>多步演化（包含0步）</td>
 </tr>
-<tr>
-<td>$C_1\Rightarrow ^+C_2$</td>
+<tr class="odd">
+<td><span class="math inline">\(C_1\Rightarrow ^+C_2\)</span></td>
 <td>多步演化（至少1步）</td>
 </tr>
 </tbody>
 </table>
-</div>
 <p>如果一个又穷的格局演化序列，最终处于接受格局，那么这个格局演化过程是可计算的。</p>
-<h3 id="7-4-陷阱状态"><a href="#7-4-陷阱状态" class="headerlink" title="7-4 陷阱状态"></a>7-4 陷阱状态</h3><p>我的理解就是当我输入一个字符串到达接受态，然后我再输入一个字符到达另一个状态，结果在这个状态输入啥都不会跳出这个状态，好像踩到了陷阱。</p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<h3 id="陷阱状态">7-4 陷阱状态</h3>
+<p>我的理解就是当我输入一个字符串到达接受态，然后我再输入一个字符到达另一个状态，结果在这个状态输入啥都不会跳出这个状态，好像踩到了陷阱。</p>
+<h2 id="参考">参考</h2>
+<ol type="1">
 <li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Deterministic_finite_automaton">Deterministic finite automaton - Wikipedia</a></li>
 <li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton">Nondeterministic finite automaton - Wikipedia</a></li>
-<li><a href="file:///C:/Users/86183/Desktop/Learning/形式语言与自动机/形式语言与自动机/第3章 有穷状态自动机 (1">第3章 有穷状态自动机 (1).pdf</a>.pdf)</li>
+<li><a href="file:///C:/Users/86183/Desktop/Learning/形式语言与自动机/形式语言与自动机/第3章%20有穷状态自动机%20(1).pdf">第3章 有穷状态自动机 (1).pdf</a></li>
 </ol>
 
                 
@@ -986,7 +1002,7 @@ int main(){
 <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 <script>
     MathJax.Hub.Config({
-        tex2jax: {inlineMath: [['$', '$'], ['\(', '\)']]}
+        tex2jax: {inlineMath: [['$', '$'],['\\(', '\\)']]}
     });
 </script>
 

@@ -309,7 +309,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    578
+                    577
                 </div>
                 
 
@@ -331,39 +331,79 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="计算理论主要研究内容"><a href="#计算理论主要研究内容" class="headerlink" title="计算理论主要研究内容"></a>计算理论主要研究内容</h2><ul>
+                <h2 id="计算理论主要研究内容">计算理论主要研究内容</h2>
+<ul>
 <li>自动机和语言（Automata Theory）</li>
 <li>可计算性（Computability Theory）</li>
 <li>计算复杂性（Complexity Theory）</li>
 </ul>
-<h2 id="自动机理论模型"><a href="#自动机理论模型" class="headerlink" title="自动机理论模型"></a>自动机理论模型</h2><ul>
-<li><p>| 英文名                        | 中文名         | 语言                  | 几型 |<br>| ——————————————- | ——————— | ——————————- | —— |<br>| FA(Finite Automaton)          | 有穷自动机     | 正则语言（RL）        | 3型  |<br>| PDA(Push Down Automaton)      | 下推自动机     | 前后文无关语言(CFL)   | 2型  |<br>| LBA(linear bounded automaton) | 线性有界自动机 | 前后文有关语言（CSL） | 1型  |<br>| TM(Turing Machine)            | 图灵机         | 递归可枚举语言        | 0型  |</p>
-<p>FA (finite automata):有穷自动机，正则语言，3种语言</p>
-</li>
+<h2 id="自动机理论模型">自动机理论模型</h2>
+<ul>
+<li><table>
+<thead>
+<tr class="header">
+<th>英文名</th>
+<th>中文名</th>
+<th>语言</th>
+<th>几型</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>FA(Finite Automaton)</td>
+<td>有穷自动机</td>
+<td>正则语言（RL）</td>
+<td>3型</td>
+</tr>
+<tr class="even">
+<td>PDA(Push Down Automaton)</td>
+<td>下推自动机</td>
+<td>前后文无关语言(CFL)</td>
+<td>2型</td>
+</tr>
+<tr class="odd">
+<td>LBA(linear bounded automaton)</td>
+<td>线性有界自动机</td>
+<td>前后文有关语言（CSL）</td>
+<td>1型</td>
+</tr>
+<tr class="even">
+<td>TM(Turing Machine)</td>
+<td>图灵机</td>
+<td>递归可枚举语言</td>
+<td>0型</td>
+</tr>
+</tbody>
+</table>
+FA (finite automata):有穷自动机，正则语言，3种语言</li>
 </ul>
-<h2 id="发展历史"><a href="#发展历史" class="headerlink" title="发展历史"></a>发展历史</h2><p>形式语言（Formal Language）：研究语言语法的数学和计算机科学分支叫做形式语言理论，它不致力于语言的语义研究。</p>
+<h2 id="发展历史">发展历史</h2>
+<p>形式语言（Formal Language）：研究语言语法的数学和计算机科学分支叫做形式语言理论，它不致力于语言的语义研究。</p>
 <ul>
 <li>1956年，Chomsky从语言产生的角度，定义了语言与文法。</li>
 <li>1951-1956年，Kleene提出了有穷状态自动机（FA），从语言识别的角度，定义了语言</li>
 <li>1959年，Chomsky证明了语言与自动机的等价性，形式语言从此诞生！</li>
 </ul>
-<h2 id="数学基础"><a href="#数学基础" class="headerlink" title="数学基础"></a>数学基础</h2><h3 id="字符串和语言"><a href="#字符串和语言" class="headerlink" title="字符串和语言"></a>字符串和语言</h3><p>定义1. 字母表：符号的<strong>有穷非空</strong>集合，用<code>Σ</code>表示。例如：<code>Σ={a,b,c,d}</code>，<code>Σ={0,1}</code>。</p>
+<h2 id="数学基础">数学基础</h2>
+<h3 id="字符串和语言">字符串和语言</h3>
+<p>定义1. 字母表：符号的<strong>有穷非空</strong>集合，用<code>Σ</code>表示。例如：<code>Σ={a,b,c,d}</code>，<code>Σ={0,1}</code>。</p>
 <p>定义2. 字符串：从某个字母表中选择的符号的有穷序列。例如: 100110是从字母表<code>Σ={0,1}</code>中选出的字符串。空串为<code>ε</code>。</p>
 <p>定义3. 串的长度：串中符号的位数。串<code>ω</code>的长度是<code>|ω|</code>。例如：<code>|010|=3</code>，<code>|ε|=0</code>。</p>
-<p>定义4. 字母表的幂：如果<code>Σ</code>是一个字母表，则用指数记号来表示这个字母表某个长度的所有串的集合，即Σ^k^​。</p>
-<p>定义5. 克林闭包（Kleene Closure）：$Σ^<em>= \cup_{i=0}^\infty Σ^i$ ，约定 $\Sigma^0={\epsilon}$, $\Sigma^</em>=\Sigma^0\cup\Sigma^1\cup\Sigma^2\cup…$，即字母表$\Sigma$上所有串的集合。</p>
-<p>定义6. 正闭包（Postive Closure）：$\Sigma^+=\cup_{i=1}^\infty\Sigma^i$，显然$\Sigma^*=\Sigma^0\cup\Sigma^+$。</p>
-<p>定义7. 语言：如果$\Sigma$是一个字母表，$L\subset\Sigma^*$，那么L是$\Sigma$上的语言。（语言就是字符串的集合。）例如<code>L={x| x is a bit string with two zeros}</code></p>
+<p>定义4. 字母表的幂：如果<code>Σ</code>是一个字母表，则用指数记号来表示这个字母表某个长度的所有串的集合，即Σ<sup>k</sup>​。</p>
+<p>定义5. 克林闭包（Kleene Closure）：<span class="math inline">\(Σ^*= \cup_{i=0}^\infty Σ^i\)</span> ，约定 <span class="math inline">\(\Sigma^0=\{\epsilon\}\)</span>, <span class="math inline">\(\Sigma^*=\Sigma^0\cup\Sigma^1\cup\Sigma^2\cup...\)</span>，即字母表<span class="math inline">\(\Sigma\)</span>上所有串的集合。</p>
+<p>定义6. 正闭包（Postive Closure）：<span class="math inline">\(\Sigma^+=\cup_{i=1}^\infty\Sigma^i\)</span>，显然<span class="math inline">\(\Sigma^*=\Sigma^0\cup\Sigma^+\)</span>。</p>
+<p>定义7. 语言：如果<span class="math inline">\(\Sigma\)</span>是一个字母表，<span class="math inline">\(L\subset\Sigma^*\)</span>，那么L是<span class="math inline">\(\Sigma\)</span>上的语言。（语言就是字符串的集合。）例如<code>L={x| x is a bit string with two zeros}</code></p>
 <p>注意：<strong>语言的连接不等于笛卡尔积</strong>，语言的连接是一维的，笛卡尔积是二维的</p>
-<h3 id="证明的种类"><a href="#证明的种类" class="headerlink" title="证明的种类"></a>证明的种类</h3><ul>
+<h3 id="证明的种类">证明的种类</h3>
+<ul>
 <li>Proof by Construction（构造法）</li>
 <li>Proof by contradiction（反证法）</li>
-<li>Proof by Induction（归纳法）<ul>
+<li>Proof by Induction（归纳法）
+<ul>
 <li>Basis</li>
 <li>Induction Step</li>
 <li>Results</li>
-</ul>
-</li>
+</ul></li>
 </ul>
 
                 
@@ -766,7 +806,7 @@
 <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 <script>
     MathJax.Hub.Config({
-        tex2jax: {inlineMath: [['$', '$'], ['\(', '\)']]}
+        tex2jax: {inlineMath: [['$', '$'],['\\(', '\\)']]}
     });
 </script>
 

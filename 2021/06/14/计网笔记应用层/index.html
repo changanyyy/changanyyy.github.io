@@ -327,37 +327,43 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="一-多媒体网络应用"><a href="#一-多媒体网络应用" class="headerlink" title="一.多媒体网络应用"></a>一.多媒体网络应用</h2><h3 id="音频"><a href="#音频" class="headerlink" title="音频"></a>音频</h3><p>以恒定速率采样的模拟音频信号</p>
+                <h2 id="一.多媒体网络应用">一.多媒体网络应用</h2>
+<h3 id="音频">音频</h3>
+<p>以恒定速率采样的模拟音频信号</p>
 <ul>
 <li>telephone：8000样本每秒</li>
 <li>CD音乐：44100样本每秒</li>
 </ul>
 <p>每个样本被量化，例如四舍五入(比如2^8=256种可能的量化值)</p>
-<h3 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h3><p>以恒定速率播放的图片序列，比如24张图片每秒</p>
+<h3 id="视频">视频</h3>
+<p>以恒定速率播放的图片序列，比如24张图片每秒</p>
 <p>数字图片：像素的数组，每张图片通过比特来表示</p>
 <p>编码：利用图片之间的冗余（相同的地方）来编码可以节省空间</p>
 <ul>
 <li>空间上的冗余：比如同一排一样的颜色，只需要发送一个颜色和重复的次数即可</li>
 <li>时间上的冗余：相邻两帧只需要发送不一样的地方即可</li>
 </ul>
-<h3 id="三种应用类型"><a href="#三种应用类型" class="headerlink" title="三种应用类型"></a>三种应用类型</h3><h4 id="1-流媒体"><a href="#1-流媒体" class="headerlink" title="1.流媒体"></a>1.流媒体</h4><p>因为整个视频文件太大，所以变成”流“来存储音频和视频，在完全下载下来之前就可以播放。在服务器上面的存储：可以比音频或者视频传输地更快（意味着在客户机缓存）。</p>
+<h3 id="三种应用类型">三种应用类型</h3>
+<h4 id="流媒体">1.流媒体</h4>
+<p>因为整个视频文件太大，所以变成”流“来存储音频和视频，在完全下载下来之前就可以播放。在服务器上面的存储：可以比音频或者视频传输地更快（意味着在客户机缓存）。</p>
 <p>流媒体存储的视频：</p>
-<p><img src="/picture/streaming.png" alt=""></p>
+<p><img src="/picture/streaming.png"></p>
 <p>存在一些挑战：</p>
 <ul>
 <li>持续的播放约束，一旦客户播放开始，重放就要匹配得上原来的时间。但是网络延迟是可变的，所以我们需要客户机端的缓冲区来匹配播放需要</li>
-<li>客户机需要交互：暂停，快进，回退…</li>
+<li>客户机需要交互：暂停，快进，回退...</li>
 <li>视频包可能会丢失</li>
 </ul>
 <p>改进之后：（多了buffer）</p>
-<p><img src="/picture/s.png" alt=""></p>
-<h5 id="利用的协议"><a href="#利用的协议" class="headerlink" title="利用的协议"></a>利用的协议</h5><p>UDP</p>
+<p><img src="/picture/s.png"></p>
+<h5 id="利用的协议">利用的协议</h5>
+<p>UDP</p>
 <p>服务器以一个对于客户合适的速率发送</p>
 <p>要有一个比较短的播放延迟来对抗网络抖动</p>
 <p>UDP可能穿不过防火墙</p>
 <p>HTTP</p>
 <p>通过<code>HTTP GET</code>来获取多媒体文件。在TCP下以一个最小的可能速率发送</p>
-<p><img src="/picture/HTTPTCP.png" alt=""></p>
+<p><img src="/picture/HTTPTCP.png"></p>
 <p>填充速率波动取决于TCP拥塞控制，重传机制。需要更大的播放延时。HTTP/TCP可以轻松穿过防火墙</p>
 <p>DASH</p>
 <p>Dynamic，Adaptive Streaming over HTTP</p>
@@ -372,13 +378,15 @@
 <li>周期性测量服务器到客户的带宽</li>
 <li>询问清单，一次性请求一个块。选择给定当前带宽下可以忍受的最小的编码速率，可以在不同的时间点根据不同带宽选择不同的速率。</li>
 </ul>
-<h4 id="2-基于IP的会话视频或音频"><a href="#2-基于IP的会话视频或音频" class="headerlink" title="2.基于IP的会话视频或音频"></a>2.基于IP的会话视频或音频</h4><p>人和人交互式的场景限制了对延迟的容忍度</p>
+<h4 id="基于ip的会话视频或音频">2.基于IP的会话视频或音频</h4>
+<p>人和人交互式的场景限制了对延迟的容忍度</p>
 <p>VoIP</p>
 <p>VoIP端到端延迟要求：更高的延迟会明显影响交互性。小于150ms：好，大于400ms：坏。包括应用的等级（分组，播放），网络时延</p>
 <p>会话初始化：接电话的人如何通知它的IP地址，端口号，编码算法呢？</p>
 <p>增值业务：电话转移，筛选，记录</p>
 <p>紧急服务：911</p>
-<h4 id="3-流媒体直播视频或音频"><a href="#3-流媒体直播视频或音频" class="headerlink" title="3.流媒体直播视频或音频"></a>3.流媒体直播视频或音频</h4><p>比如，体育赛事</p>
+<h4 id="流媒体直播视频或音频">3.流媒体直播视频或音频</h4>
+<p>比如，体育赛事</p>
 <p>三.因特网QoS</p>
 
                 
@@ -769,7 +777,7 @@
 <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 <script>
     MathJax.Hub.Config({
-        tex2jax: {inlineMath: [['$', '$'], ['\(', '\)']]}
+        tex2jax: {inlineMath: [['$', '$'],['\\(', '\\)']]}
     });
 </script>
 

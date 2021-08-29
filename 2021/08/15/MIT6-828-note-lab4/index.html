@@ -309,14 +309,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    4.5k
+                    4.8k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    28 分
+                    30 分
                 </div>
                 
 
@@ -331,360 +331,346 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="Lab4-note"><a href="#Lab4-note" class="headerlink" title="Lab4 note"></a>Lab4 note</h1><h2 id="1-introduction"><a href="#1-introduction" class="headerlink" title="1 introduction"></a>1 introduction</h2><p>In this lab, we should implement the preemptive multitasking mechanism among multiple simultaneously active user-mode environment. The lab is divided into 3 parts, which in each part we have disparate tasks to complete. In part A, we will add multiprocessor support to our system, while we will implement a Unix-like <code>fork</code> in part B. Ultimately, we will add support for inter-process communication (<code>IPC</code>), allowing different user-mode environments to communicate and synchronize with each other explicitly.</p>
-<h2 id="2-preparation"><a href="#2-preparation" class="headerlink" title="2 preparation"></a>2 preparation</h2><p>Before starting, we are supposed to acquire some propaedeutics about multitask and multiprocessor. There are some word abbreviations about this aspect: BSP, AP, MP. Below is the explanation of them.</p>
-<h3 id="2-1-operating-system-boot-up"><a href="#2-1-operating-system-boot-up" class="headerlink" title="2-1  operating system boot-up"></a>2-1  operating system boot-up</h3><p>While all processors in an MP-compliant system are functionally identical, one of the processors will be designated as the boot processor (BSP) at system initialization by system hardware or by application processors (APs). <strong>The BSP is responsible for booting the operating system.</strong> Once the MP operating system is up and running, the BSP functions as an AP. Usually a processor is designed as the BSP because it is capable of controlling all system hardware, including AP start up and shut down. The operating system must determine and remember the APIC ID of the designated BSP, so it can keep the BSP operating as the last running processor during system shut down. The BSP is not necessarily the first processor, especially in fault-tolerant MP systems in which any available processor can be designated as the BSP. There are some AP states at the time that the first instruction of the operating system is executed, while our process are in halted condition with interrupts disabled. This means that the AP’s local APICs (<code>lapic</code>) are passively monitor the APIC bus and will react only to INIT or STARTUP inter-processor interrupts (IPIs).</p>
-<h3 id="2-2-AP-start-up"><a href="#2-2-AP-start-up" class="headerlink" title="2-2 AP start up"></a>2-2 AP start up</h3><p><img src="/picture/stup.png" alt=""></p>
-<h2 id="3-Part-A-Multiprocessor-Support-and-Cooperative-Multitasking"><a href="#3-Part-A-Multiprocessor-Support-and-Cooperative-Multitasking" class="headerlink" title="3 Part A: Multiprocessor Support and Cooperative Multitasking"></a>3 Part A: Multiprocessor Support and Cooperative Multitasking</h2><p>There are some new include files and source files at this stage. Let’s have a look at the crucial ones.</p>
-<h3 id="3-1-mmio-map-region"><a href="#3-1-mmio-map-region" class="headerlink" title="3-1 mmio_map_region"></a>3-1 <code>mmio_map_region</code></h3><p>In <code>kern/init.c</code>, we see a function called <code>lapic_init</code> and trace into it. It brings me to a source file named <code>lapic.c</code>. A variable called <code>lapicaddr</code> is initialized in <code>mpconfig.c</code>. There are three structures: <code>mp</code>, <code>mpconf</code>, <code>mpproc</code>. There are some functions related to multiprocessor:</p>
+                <h1 id="lab4-note">Lab4 note</h1>
+<h2 id="introduction">1 introduction</h2>
+<p>In this lab, we should implement the preemptive multitasking mechanism among multiple simultaneously active user-mode environment. The lab is divided into 3 parts, which in each part we have disparate tasks to complete. In part A, we will add multiprocessor support to our system, while we will implement a Unix-like <code>fork</code> in part B. Ultimately, we will add support for inter-process communication (<code>IPC</code>), allowing different user-mode environments to communicate and synchronize with each other explicitly.</p>
+<h2 id="preparation">2 preparation</h2>
+<p>Before starting, we are supposed to acquire some propaedeutics about multitask and multiprocessor. There are some word abbreviations about this aspect: BSP, AP, MP. Below is the explanation of them.</p>
+<h3 id="operating-system-boot-up">2-1 operating system boot-up</h3>
+<p>While all processors in an MP-compliant system are functionally identical, one of the processors will be designated as the boot processor (BSP) at system initialization by system hardware or by application processors (APs). <strong>The BSP is responsible for booting the operating system.</strong> Once the MP operating system is up and running, the BSP functions as an AP. Usually a processor is designed as the BSP because it is capable of controlling all system hardware, including AP start up and shut down. The operating system must determine and remember the APIC ID of the designated BSP, so it can keep the BSP operating as the last running processor during system shut down. The BSP is not necessarily the first processor, especially in fault-tolerant MP systems in which any available processor can be designated as the BSP. There are some AP states at the time that the first instruction of the operating system is executed, while our process are in halted condition with interrupts disabled. This means that the AP's local APICs (<code>lapic</code>) are passively monitor the APIC bus and will react only to INIT or STARTUP inter-processor interrupts (IPIs).</p>
+<h3 id="ap-start-up">2-2 AP start up</h3>
+<p><img src="/picture/stup.png"></p>
+<h2 id="part-a-multiprocessor-support-and-cooperative-multitasking">3 Part A: Multiprocessor Support and Cooperative Multitasking</h2>
+<p>There are some new include files and source files at this stage. Let's have a look at the crucial ones.</p>
+<h3 id="mmio_map_region">3-1 <code>mmio_map_region</code></h3>
+<p>In <code>kern/init.c</code>, we see a function called <code>lapic_init</code> and trace into it. It brings me to a source file named <code>lapic.c</code>. A variable called <code>lapicaddr</code> is initialized in <code>mpconfig.c</code>. There are three structures: <code>mp</code>, <code>mpconf</code>, <code>mpproc</code>. There are some functions related to multiprocessor:</p>
 <ul>
-<li><code>sum(addr, len)</code>: It’s used to check whether all the bytes memory located at the address the <code>mp</code> variable that we want to examine contains can be add up to 0.</li>
+<li><code>sum(addr, len)</code>: It's used to check whether all the bytes memory located at the address the <code>mp</code> variable that we want to examine contains can be add up to 0.</li>
 <li><code>mpsearch1(a, len)</code>: It looks for an <code>MP</code> structure in the <code>len</code> bytes at physical address <code>addr</code>.</li>
-<li><code>mpsearch(void)</code>: It searches for the <code>MP</code> Floating Pointer Structure, which according to <code>[MP 4]</code> is in one of the following three locations:<ol>
+<li><code>mpsearch(void)</code>: It searches for the <code>MP</code> Floating Pointer Structure, which according to <code>[MP 4]</code> is in one of the following three locations:
+<ol type="1">
 <li>in the first <code>KB</code> of <code>EBDA</code></li>
 <li>if there is no <code>EBDA</code>, in the first <code>KB</code> of system base memory</li>
 <li>in the BIOS ROM between <code>0xE0000</code> and <code>0xFFFFF</code></li>
-</ol>
-</li>
+</ol></li>
 <li><code>mpconfig(struct mp **pmp)</code>: It searches for an <code>MP</code> configuration table and return a pointer pointing at a <code>mpconf</code>.</li>
 </ul>
 <p>Above is some basic auxiliary functions. And the most significant procedure is <code>mp_init</code>. It looks for the <code>mpconfig</code> and assign the address of local APIC to <code>lapicaddr</code>. And then it initializes <code>cpus[]</code> with the aid of the configuration we read.</p>
 <p>so,we get the physical address of <code>LAPIC</code>. We can map the physical address in the virtual memory so that we can access it.</p>
-<pre class=" language-lang-c"><code class="language-lang-c">//
-// Reserve size bytes in the MMIO region and map [pa,pa+size) at this
-// location.  Return the base of the reserved region.  size does *not*
-// have to be multiple of PGSIZE.
-//
-void *
-mmio_map_region(physaddr_t pa, size_t size)
-{
-    // Your code here:
-    size = ROUNDUP(size, PGSIZE);
-    if(base + size >= MMIOLIM)
-        panic("mmio_map_region: out of memory\n");
-    boot_map_region(kern_pgdir, base, size, pa, PTE_PCD|PTE_PWT|PTE_W);
-    base += size;
-}
-</code></pre>
-<h3 id="3-2-modify-page-init"><a href="#3-2-modify-page-init" class="headerlink" title="3-2 modify page_init"></a>3-2 modify <code>page_init</code></h3><p><img src="/picture/3-2.png" alt=""></p>
-<h3 id="3-3-mem-init-mp"><a href="#3-3-mem-init-mp" class="headerlink" title="3-3 mem_init_mp"></a>3-3 <code>mem_init_mp</code></h3><p>When writing a multiprocessor OS, it is important to distinguish between per-CPU state that is private to each processor, and global state that the whole system shares. <code>kern/cpu.h</code> defines most of the per-CPU state, including <code>struct CpuInfo</code>, which stores per-CPU variables. <code>cpunum()</code> always returns the ID of the CPU that calls it, which can be used as an index into arrays like <code>cpus</code>. Alternatively, the macro <code>thiscpu</code> is shorthand for the current CPU’s <code>struct CpuInfo</code>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Reserve size bytes in the MMIO region and map [pa,pa+size) at this</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">// location.  Return the base of the reserved region.  size does *not*</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">// have to be multiple of PGSIZE.</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> <span class="op">*</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>mmio_map_region<span class="op">(</span>physaddr_t pa<span class="op">,</span> <span class="dt">size_t</span> size<span class="op">)</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Your code here:</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    size <span class="op">=</span> ROUNDUP<span class="op">(</span>size<span class="op">,</span> PGSIZE<span class="op">);</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>base <span class="op">+</span> size <span class="op">&gt;=</span> MMIOLIM<span class="op">)</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        panic<span class="op">(</span><span class="st">"mmio_map_region: out of memory</span><span class="sc">\n</span><span class="st">"</span><span class="op">);</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    boot_map_region<span class="op">(</span>kern_pgdir<span class="op">,</span> base<span class="op">,</span> size<span class="op">,</span> pa<span class="op">,</span> PTE_PCD<span class="op">|</span>PTE_PWT<span class="op">|</span>PTE_W<span class="op">);</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    base <span class="op">+=</span> size<span class="op">;</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="modify-page_init">3-2 modify <code>page_init</code></h3>
+<p><img src="/picture/3-2.png"></p>
+<h3 id="mem_init_mp">3-3 <code>mem_init_mp</code></h3>
+<p>When writing a multiprocessor OS, it is important to distinguish between per-CPU state that is private to each processor, and global state that the whole system shares. <code>kern/cpu.h</code> defines most of the per-CPU state, including <code>struct CpuInfo</code>, which stores per-CPU variables. <code>cpunum()</code> always returns the ID of the CPU that calls it, which can be used as an index into arrays like <code>cpus</code>. Alternatively, the macro <code>thiscpu</code> is shorthand for the current CPU's <code>struct CpuInfo</code>.</p>
 <p>Here is the per-CPU state you should be aware of:</p>
 <ul>
-<li><p><strong>Per-CPU kernel stack</strong>.<br>Because multiple CPUs can trap into the kernel simultaneously, we need a separate kernel stack for each processor to prevent them from interfering with each other’s execution. The array <code>percpu_kstacks[NCPU][KSTKSIZE]</code> reserves space for NCPU’s worth of kernel stacks.</p>
-<p>In Lab 2, you mapped the physical memory that <code>bootstack</code> refers to as the BSP’s kernel stack just below <code>KSTACKTOP</code>. Similarly, in this lab, you will map each CPU’s kernel stack into this region with guard pages acting as a buffer between them. CPU 0’s stack will still grow down from <code>KSTACKTOP</code>; CPU 1’s stack will start <code>KSTKGAP</code> bytes below the bottom of CPU 0’s stack, and so on. <code>inc/memlayout.h</code> shows the mapping layout.</p>
-</li>
-<li><p><strong>Per-CPU TSS and TSS descriptor</strong>.<br>A per-CPU task state segment (TSS) is also needed in order to specify where each CPU’s kernel stack lives. The TSS for CPU <em>i</em> is stored in <code>cpus[i].cpu_ts</code>, and the corresponding TSS descriptor is defined in the GDT entry <code>gdt[(GD_TSS0 &gt;&gt; 3) + i]</code>. The global <code>ts</code> variable defined in <code>kern/trap.c</code> will no longer be useful.</p>
-</li>
-<li><p><strong>Per-CPU current environment pointer</strong>.<br>Since each CPU can run different user process simultaneously, we redefined the symbol <code>curenv</code> to refer to <code>cpus[cpunum()].cpu_env</code> (or <code>thiscpu-&gt;cpu_env</code>), which points to the environment <em>currently</em> executing on the <em>current</em> CPU (the CPU on which the code is running).</p>
-</li>
-<li><p><strong>Per-CPU system registers</strong>.<br>All registers, including system registers, are private to a CPU. Therefore, instructions that initialize these registers, such as <code>lcr3()</code>, <code>ltr()</code>, <code>lgdt()</code>, <code>lidt()</code>, etc., must be executed once on each CPU. Functions <code>env_init_percpu()</code> and <code>trap_init_percpu()</code> are defined for this purpose.</p>
-</li>
-<li><p>In addition to this, if you have added any extra per-CPU state or performed any additional CPU-specific initialization (by say, setting new bits in the CPU registers) in your solutions to challenge problems in earlier labs, be sure to replicate them on each CPU here!</p>
-</li>
+<li><p><strong>Per-CPU kernel stack</strong>. Because multiple CPUs can trap into the kernel simultaneously, we need a separate kernel stack for each processor to prevent them from interfering with each other's execution. The array <code>percpu_kstacks[NCPU][KSTKSIZE]</code> reserves space for NCPU's worth of kernel stacks.</p>
+<p>In Lab 2, you mapped the physical memory that <code>bootstack</code> refers to as the BSP's kernel stack just below <code>KSTACKTOP</code>. Similarly, in this lab, you will map each CPU's kernel stack into this region with guard pages acting as a buffer between them. CPU 0's stack will still grow down from <code>KSTACKTOP</code>; CPU 1's stack will start <code>KSTKGAP</code> bytes below the bottom of CPU 0's stack, and so on. <code>inc/memlayout.h</code> shows the mapping layout.</p></li>
+<li><p><strong>Per-CPU TSS and TSS descriptor</strong>. A per-CPU task state segment (TSS) is also needed in order to specify where each CPU's kernel stack lives. The TSS for CPU <em>i</em> is stored in <code>cpus[i].cpu_ts</code>, and the corresponding TSS descriptor is defined in the GDT entry <code>gdt[(GD_TSS0 &gt;&gt; 3) + i]</code>. The global <code>ts</code> variable defined in <code>kern/trap.c</code> will no longer be useful.</p></li>
+<li><p><strong>Per-CPU current environment pointer</strong>. Since each CPU can run different user process simultaneously, we redefined the symbol <code>curenv</code> to refer to <code>cpus[cpunum()].cpu_env</code> (or <code>thiscpu-&gt;cpu_env</code>), which points to the environment <em>currently</em> executing on the <em>current</em> CPU (the CPU on which the code is running).</p></li>
+<li><p><strong>Per-CPU system registers</strong>. All registers, including system registers, are private to a CPU. Therefore, instructions that initialize these registers, such as <code>lcr3()</code>, <code>ltr()</code>, <code>lgdt()</code>, <code>lidt()</code>, etc., must be executed once on each CPU. Functions <code>env_init_percpu()</code> and <code>trap_init_percpu()</code> are defined for this purpose.</p></li>
+<li><p>In addition to this, if you have added any extra per-CPU state or performed any additional CPU-specific initialization (by say, setting new bits in the CPU registers) in your solutions to challenge problems in earlier labs, be sure to replicate them on each CPU here!</p></li>
 </ul>
-<p>We should accomplish the function <code>mem_init_mp</code>. The graph in <code>memlayout</code> illustrates the memory layout of different CPUs’ kernel stack in the virtual memory. The code is below:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">// Modify mappings in kern_pgdir to support SMP
-//   - Map the per-CPU stacks in the region [KSTACKTOP-PTSIZE, KSTACKTOP)
-//
-static void
-mem_init_mp(void)
-{
-    // LAB 4: Your code here:
-    uint32_t kstracktop_i;
-    for(int i = 0; i < NCPU; i++){
-        kstracktop_i = KSTACKTOP - i * (KSTKSIZE + KSTKGAP);
-        boot_map_region(kern_pgdir, kstracktop_i - KSTKSIZE, 
-            KSTKSIZE, PADDR(percpu_kstacks[i]), PTE_W|PTE_P);
-    }
-}
-</code></pre>
-<h3 id="3-4-trap-init-per-cpu"><a href="#3-4-trap-init-per-cpu" class="headerlink" title="3-4 trap_init_per_cpu"></a>3-4 <code>trap_init_per_cpu</code></h3><p>Task segment will store for each CPU, so we shouldn’t use <code>ts</code> anymore, and replace <code>ts</code> with <code>thiscpu</code> instead.</p>
-<pre class=" language-lang-c"><code class="language-lang-c">// Initialize and load the per-CPU TSS and IDT
-void
-trap_init_percpu(void)
-{
-    // LAB 4: Your code here:
-    // Setup a TSS so that we get the right stack
-    // when we trap to the kernel.
-    thiscpu->cpu_ts.ts_esp0 = KSTACKTOP - cpunum() * (KSTKSIZE + KSTKGAP);
-    thiscpu->cpu_ts.ts_ss0 = GD_KD;
-    thiscpu->cpu_ts.ts_iomb = sizeof(struct Taskstate);
-
-    // Initialize the TSS slot of the gdt.
-    gdt[(GD_TSS0 >> 3) + cpunum()] = SEG16(STS_T32A, (uint32_t) (&(thiscpu->cpu_ts)),
-                    sizeof(struct Taskstate) - 1, 0);
-    gdt[(GD_TSS0 >> 3) + cpunum()].sd_s = 0;        
-
-    // Load the TSS selector (like other segment selectors, the
-    // bottom three bits are special; we leave them 0)
-    ltr(GD_TSS0 + (cpunum() << 3));
-
-    // Load the IDT
-    lidt(&idt_pd);
-}
-</code></pre>
-<h3 id="3-5-scheduler"><a href="#3-5-scheduler" class="headerlink" title="3-5 scheduler"></a>3-5 <code>scheduler</code></h3><p>In the scheduler, we must choose a user environment to run and run it. The scheduler we will implement is a round-robin one. We scan the <code>envs</code> array from <code>curenv</code>. If <code>curenv</code> isn’t existing (That means there has not been a user environment yet.) ,The scanning will start from <code>envs[0]</code>. If some environment is runnable, run it!</p>
-<pre class=" language-lang-c"><code class="language-lang-c">// Choose a user environment to run and run it.
-void
-sched_yield(void)
-{
-    struct Env *idle;
-    // LAB 4: Your code here.
-    int curid = curenv ? ENVX(curenv->env_id) : -1;
-
-    for(int i = (curid + 1) % NENV; i != curid; i = (i + 1) % NENV){
-        if(envs[i].env_status == ENV_RUNNABLE){
-            env_run(&envs[i]);
-        }
-    }
-    if(curenv->env_status == ENV_RUNNING){
-        env_run(curenv);
-    }
-
-    // sched_halt never returns
-    sched_halt();
-}
-</code></pre>
-<h3 id="3-6-system-call"><a href="#3-6-system-call" class="headerlink" title="3-6 system call"></a>3-6 <code>system call</code></h3><p>We will provide a different, more primitive set of system calls for creating new user-mode environments. With these system calls we can implement a Unix-like <code>fork()</code> entirely in user space, in addition to other styles of environment creation. The new system calls  we need for JOS are as follows:</p>
+<p>We should accomplish the function <code>mem_init_mp</code>. The graph in <code>memlayout</code> illustrates the memory layout of different CPUs' kernel stack in the virtual memory. The code is below:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Modify mappings in kern_pgdir to support SMP</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">//   - Map the per-CPU stacks in the region [KSTACKTOP-PTSIZE, KSTACKTOP)</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">void</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>mem_init_mp<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 4: Your code here:</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> kstracktop_i<span class="op">;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> NCPU<span class="op">;</span> i<span class="op">++){</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        kstracktop_i <span class="op">=</span> KSTACKTOP <span class="op">-</span> i <span class="op">*</span> <span class="op">(</span>KSTKSIZE <span class="op">+</span> KSTKGAP<span class="op">);</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        boot_map_region<span class="op">(</span>kern_pgdir<span class="op">,</span> kstracktop_i <span class="op">-</span> KSTKSIZE<span class="op">,</span> </span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>            KSTKSIZE<span class="op">,</span> PADDR<span class="op">(</span>percpu_kstacks<span class="op">[</span>i<span class="op">]),</span> PTE_W<span class="op">|</span>PTE_P<span class="op">);</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="trap_init_per_cpu">3-4 <code>trap_init_per_cpu</code></h3>
+<p>Task segment will store for each CPU, so we shouldn't use <code>ts</code> anymore, and replace <code>ts</code> with <code>thiscpu</code> instead.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Initialize and load the per-CPU TSS and IDT</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>trap_init_percpu<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 4: Your code here:</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Setup a TSS so that we get the right stack</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// when we trap to the kernel.</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    thiscpu<span class="op">-&gt;</span>cpu_ts<span class="op">.</span>ts_esp0 <span class="op">=</span> KSTACKTOP <span class="op">-</span> cpunum<span class="op">()</span> <span class="op">*</span> <span class="op">(</span>KSTKSIZE <span class="op">+</span> KSTKGAP<span class="op">);</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    thiscpu<span class="op">-&gt;</span>cpu_ts<span class="op">.</span>ts_ss0 <span class="op">=</span> GD_KD<span class="op">;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    thiscpu<span class="op">-&gt;</span>cpu_ts<span class="op">.</span>ts_iomb <span class="op">=</span> <span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> Taskstate<span class="op">);</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Initialize the TSS slot of the gdt.</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    gdt<span class="op">[(</span>GD_TSS0 <span class="op">&gt;&gt;</span> <span class="dv">3</span><span class="op">)</span> <span class="op">+</span> cpunum<span class="op">()]</span> <span class="op">=</span> SEG16<span class="op">(</span>STS_T32A<span class="op">,</span> <span class="op">(</span><span class="dt">uint32_t</span><span class="op">)</span> <span class="op">(&amp;(</span>thiscpu<span class="op">-&gt;</span>cpu_ts<span class="op">)),</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>                    <span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> Taskstate<span class="op">)</span> <span class="op">-</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    gdt<span class="op">[(</span>GD_TSS0 <span class="op">&gt;&gt;</span> <span class="dv">3</span><span class="op">)</span> <span class="op">+</span> cpunum<span class="op">()].</span>sd_s <span class="op">=</span> <span class="dv">0</span><span class="op">;</span>        </span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Load the TSS selector (like other segment selectors, the</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">// bottom three bits are special; we leave them 0)</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    ltr<span class="op">(</span>GD_TSS0 <span class="op">+</span> <span class="op">(</span>cpunum<span class="op">()</span> <span class="op">&lt;&lt;</span> <span class="dv">3</span><span class="op">));</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Load the IDT</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    lidt<span class="op">(&amp;</span>idt_pd<span class="op">);</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="scheduler">3-5 <code>scheduler</code></h3>
+<p>In the scheduler, we must choose a user environment to run and run it. The scheduler we will implement is a round-robin one. We scan the <code>envs</code> array from <code>curenv</code>. If <code>curenv</code> isn't existing (That means there has not been a user environment yet.) ,The scanning will start from <code>envs[0]</code>. If some environment is runnable, run it!</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Choose a user environment to run and run it.</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>sched_yield<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> Env <span class="op">*</span>idle<span class="op">;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> curid <span class="op">=</span> curenv <span class="op">?</span> ENVX<span class="op">(</span>curenv<span class="op">-&gt;</span>env_id<span class="op">)</span> <span class="op">:</span> <span class="op">-</span><span class="dv">1</span><span class="op">;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="op">(</span>curid <span class="op">+</span> <span class="dv">1</span><span class="op">)</span> <span class="op">%</span> NENV<span class="op">;</span> i <span class="op">!=</span> curid<span class="op">;</span> i <span class="op">=</span> <span class="op">(</span>i <span class="op">+</span> <span class="dv">1</span><span class="op">)</span> <span class="op">%</span> NENV<span class="op">){</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(</span>envs<span class="op">[</span>i<span class="op">].</span>env_status <span class="op">==</span> ENV_RUNNABLE<span class="op">){</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>            env_run<span class="op">(&amp;</span>envs<span class="op">[</span>i<span class="op">]);</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>curenv<span class="op">-&gt;</span>env_status <span class="op">==</span> ENV_RUNNING<span class="op">){</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>        env_run<span class="op">(</span>curenv<span class="op">);</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">// sched_halt never returns</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    sched_halt<span class="op">();</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="system-call">3-6 <code>system call</code></h3>
+<p>We will provide a different, more primitive set of system calls for creating new user-mode environments. With these system calls we can implement a Unix-like <code>fork()</code> entirely in user space, in addition to other styles of environment creation. The new system calls we need for JOS are as follows:</p>
 <ul>
 <li><p><code>sys_exofork</code>:</p>
-<p>This system call creates a new environment with an almost blank slate: nothing is mapped in the user portion of its address space, and it is not runnable. The new environment will have the same register state as the parent environment at the time of the <code>sys_exofork</code> call. In the parent, <code>sys_exofork</code> will return the <code>envid_t</code> of the newly created environment (or a negative error code if the environment allocation failed). In the child, however, it will return 0.</p>
-</li>
+<p>This system call creates a new environment with an almost blank slate: nothing is mapped in the user portion of its address space, and it is not runnable. The new environment will have the same register state as the parent environment at the time of the <code>sys_exofork</code> call. In the parent, <code>sys_exofork</code> will return the <code>envid_t</code> of the newly created environment (or a negative error code if the environment allocation failed). In the child, however, it will return 0.</p></li>
 <li><p><code>sys_env_set_status</code>:</p>
-<p>Sets the status of a specified environment to <code>ENV_RUNNABLE</code> or <code>ENV_NOT_RUNNABLE</code>. This system call is typically used to mark a new environment ready to run, once its address space and register state has been fully initialized.</p>
-</li>
+<p>Sets the status of a specified environment to <code>ENV_RUNNABLE</code> or <code>ENV_NOT_RUNNABLE</code>. This system call is typically used to mark a new environment ready to run, once its address space and register state has been fully initialized.</p></li>
 <li><p><code>sys_page_alloc</code>:</p>
-<p>Allocates a page of physical memory and maps it at a given virtual address in a given environment’s address space.</p>
-</li>
+<p>Allocates a page of physical memory and maps it at a given virtual address in a given environment's address space.</p></li>
 <li><p><code>sys_page_map</code>:</p>
-<p>Copy a page mapping (<em>not</em> the contents of a page!) from one environment’s address space to another, leaving a memory sharing arrangement in place so that the new and the old mappings both refer to the same page of physical memory.</p>
-</li>
-<li><p><code>sys_page_unmap</code>: Unmap a page mapped at a given virtual address in a given environment.</p>
-</li>
+<p>Copy a page mapping (<em>not</em> the contents of a page!) from one environment's address space to another, leaving a memory sharing arrangement in place so that the new and the old mappings both refer to the same page of physical memory.</p></li>
+<li><p><code>sys_page_unmap</code>: Unmap a page mapped at a given virtual address in a given environment.</p></li>
 </ul>
 <p>The description on the comments is very detailed. So I omit the details how to implement these syscalls. Here is the code:</p>
 <ul>
 <li><p><code>sys_exofork</code>:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">static envid_t
-sys_exofork(void)
-{
-    // LAB 4: Your code here.
-    struct Env *e;
-    int res;
-    if((res = env_alloc(&e, curenv->env_id)) < 0)
-        return res;
-    e->env_status = ENV_NOT_RUNNABLE;
-    e->env_tf = curenv->env_tf;
-
-    e->env_tf.tf_regs.reg_eax = 0;
-    if(curenv->env_id != e->env_id)return e->env_id;
-    else return 0;
-    //panic("sys_exofork not implemented");
-}
-</code></pre>
-</li>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> envid_t</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>sys_exofork<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> Env <span class="op">*</span>e<span class="op">;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> res<span class="op">;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">((</span>res <span class="op">=</span> env_alloc<span class="op">(&amp;</span>e<span class="op">,</span> curenv<span class="op">-&gt;</span>env_id<span class="op">))</span> <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> res<span class="op">;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  e<span class="op">-&gt;</span>env_status <span class="op">=</span> ENV_NOT_RUNNABLE<span class="op">;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  e<span class="op">-&gt;</span>env_tf <span class="op">=</span> curenv<span class="op">-&gt;</span>env_tf<span class="op">;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  e<span class="op">-&gt;</span>env_tf<span class="op">.</span>tf_regs<span class="op">.</span>reg_eax <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">(</span>curenv<span class="op">-&gt;</span>env_id <span class="op">!=</span> e<span class="op">-&gt;</span>env_id<span class="op">)</span><span class="cf">return</span> e<span class="op">-&gt;</span>env_id<span class="op">;</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="co">//panic("sys_exofork not implemented");</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div></li>
 <li><p><code>sys_env_set_status</code>:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">//    -E_INVAL if status is not a valid status for an environment.
-static int
-sys_env_set_status(envid_t envid, int status)
-{
-    // LAB 4: Your code here.
-    struct Env *e;
-    int res;
-    if((res = envid2env(envid, &e, 1)) < 0)
-        return res;
-    if(    status != ENV_FREE &&
-        status != ENV_DYING &&
-        status != ENV_RUNNABLE &&
-        status != ENV_RUNNING &&
-        status != ENV_NOT_RUNNABLE
-    )
-    return -E_INVAL;
-
-    e->env_status = status;
-    return 0;
-    //panic("sys_env_set_status not implemented");
-}
-</code></pre>
-</li>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">//    -E_INVAL if status is not a valid status for an environment.</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>sys_env_set_status<span class="op">(</span>envid_t envid<span class="op">,</span> <span class="dt">int</span> status<span class="op">)</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> Env <span class="op">*</span>e<span class="op">;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> res<span class="op">;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">((</span>res <span class="op">=</span> envid2env<span class="op">(</span>envid<span class="op">,</span> <span class="op">&amp;</span>e<span class="op">,</span> <span class="dv">1</span><span class="op">))</span> <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> res<span class="op">;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">(</span> status <span class="op">!=</span> ENV_FREE <span class="op">&amp;&amp;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>      status <span class="op">!=</span> ENV_DYING <span class="op">&amp;&amp;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>      status <span class="op">!=</span> ENV_RUNNABLE <span class="op">&amp;&amp;</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>      status <span class="op">!=</span> ENV_RUNNING <span class="op">&amp;&amp;</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>      status <span class="op">!=</span> ENV_NOT_RUNNABLE</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="op">)</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="op">-</span>E_INVAL<span class="op">;</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  e<span class="op">-&gt;</span>env_status <span class="op">=</span> status<span class="op">;</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  <span class="co">//panic("sys_env_set_status not implemented");</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div></li>
 <li><p><code>sys_page_alloc</code>:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">static int
-sys_page_alloc(envid_t envid, void *va, int perm)
-{
-    // LAB 4: Your code here.
-    struct Env *e;
-    int res;
-    res = envid2env(envid, &e, 1);
-    if(res < 0) 
-        return -E_BAD_ENV;
-    if((uint32_t)va > UTOP || (uint32_t)va != ROUNDUP((uint32_t)va, PGSIZE))
-        return -E_INVAL;
-    struct PageInfo *pp = page_alloc(1);
-    if(pp == NULL) 
-        return -E_NO_MEM;
-    int corperm = PTE_P | PTE_U | PTE_W | PTE_AVAIL;
-    if((~corperm & perm) != 0)
-        return -E_INVAL;
-
-    res = page_insert(e->env_pgdir, pp, va, perm);
-    if(res < 0){
-        page_free(pp);
-        return res;
-    }
-    pp->pp_ref++;
-    return 0;
-    //panic("sys_page_alloc not implemented");
-}
-</code></pre>
-</li>
-</ul>
-<ul>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>sys_page_alloc<span class="op">(</span>envid_t envid<span class="op">,</span> <span class="dt">void</span> <span class="op">*</span>va<span class="op">,</span> <span class="dt">int</span> perm<span class="op">)</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> Env <span class="op">*</span>e<span class="op">;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> res<span class="op">;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  res <span class="op">=</span> envid2env<span class="op">(</span>envid<span class="op">,</span> <span class="op">&amp;</span>e<span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">(</span>res <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span> </span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="op">-</span>E_BAD_ENV<span class="op">;</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">((</span><span class="dt">uint32_t</span><span class="op">)</span>va <span class="op">&gt;</span> UTOP <span class="op">||</span> <span class="op">(</span><span class="dt">uint32_t</span><span class="op">)</span>va <span class="op">!=</span> ROUNDUP<span class="op">((</span><span class="dt">uint32_t</span><span class="op">)</span>va<span class="op">,</span> PGSIZE<span class="op">))</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="op">-</span>E_INVAL<span class="op">;</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> PageInfo <span class="op">*</span>pp <span class="op">=</span> page_alloc<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">(</span>pp <span class="op">==</span> NULL<span class="op">)</span> </span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="op">-</span>E_NO_MEM<span class="op">;</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> corperm <span class="op">=</span> PTE_P <span class="op">|</span> PTE_U <span class="op">|</span> PTE_W <span class="op">|</span> PTE_AVAIL<span class="op">;</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">((~</span>corperm <span class="op">&amp;</span> perm<span class="op">)</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="op">-</span>E_INVAL<span class="op">;</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  res <span class="op">=</span> page_insert<span class="op">(</span>e<span class="op">-&gt;</span>env_pgdir<span class="op">,</span> pp<span class="op">,</span> va<span class="op">,</span> perm<span class="op">);</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">(</span>res <span class="op">&lt;</span> <span class="dv">0</span><span class="op">){</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>      page_free<span class="op">(</span>pp<span class="op">);</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> res<span class="op">;</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>  pp<span class="op">-&gt;</span>pp_ref<span class="op">++;</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>  <span class="co">//panic("sys_page_alloc not implemented");</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div></li>
 <li><p><code>sys_page_map</code>:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">static int
-sys_page_map(envid_t srcenvid, void *srcva,
-         envid_t dstenvid, void *dstva, int perm)
-{
-    // LAB 4: Your code here.
-    struct Env *srcenv, *dstenv;
-    int res;
-    if( envid2env(srcenvid, &srcenv, 1) < 0 ||
-        envid2env(dstenvid, &dstenv, 1) < 0 )
-        return -E_BAD_ENV;
-    if((uint32_t)srcva > UTOP || (uint32_t)srcva != ROUNDUP((uint32_t)srcva, PGSIZE))
-        return -E_INVAL;
-    int corperm = PTE_P | PTE_U | PTE_W | PTE_AVAIL;
-    if((~corperm & perm) != 0)
-        return -E_INVAL;
-
-    pte_t *srcpte, *dstpte;
-    struct PageInfo *pp;
-    pp = page_lookup(srcenv->env_pgdir, srcva, &srcpte);
-    if((perm&PTE_W) && (*srcpte&PTE_W) == 0) 
-        return -E_INVAL;
-    if(!pp)
-        return -E_INVAL;
-    res = page_insert(dstenv->env_pgdir, pp, dstva, perm);
-    if(res < 0)return -E_NO_MEM;
-    return 0;
-    //panic("sys_page_map not implemented");
-}
-</code></pre>
-</li>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>sys_page_map<span class="op">(</span>envid_t srcenvid<span class="op">,</span> <span class="dt">void</span> <span class="op">*</span>srcva<span class="op">,</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>       envid_t dstenvid<span class="op">,</span> <span class="dt">void</span> <span class="op">*</span>dstva<span class="op">,</span> <span class="dt">int</span> perm<span class="op">)</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> Env <span class="op">*</span>srcenv<span class="op">,</span> <span class="op">*</span>dstenv<span class="op">;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> res<span class="op">;</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">(</span> envid2env<span class="op">(</span>srcenvid<span class="op">,</span> <span class="op">&amp;</span>srcenv<span class="op">,</span> <span class="dv">1</span><span class="op">)</span> <span class="op">&lt;</span> <span class="dv">0</span> <span class="op">||</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>      envid2env<span class="op">(</span>dstenvid<span class="op">,</span> <span class="op">&amp;</span>dstenv<span class="op">,</span> <span class="dv">1</span><span class="op">)</span> <span class="op">&lt;</span> <span class="dv">0</span> <span class="op">)</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="op">-</span>E_BAD_ENV<span class="op">;</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">((</span><span class="dt">uint32_t</span><span class="op">)</span>srcva <span class="op">&gt;</span> UTOP <span class="op">||</span> <span class="op">(</span><span class="dt">uint32_t</span><span class="op">)</span>srcva <span class="op">!=</span> ROUNDUP<span class="op">((</span><span class="dt">uint32_t</span><span class="op">)</span>srcva<span class="op">,</span> PGSIZE<span class="op">))</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="op">-</span>E_INVAL<span class="op">;</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> corperm <span class="op">=</span> PTE_P <span class="op">|</span> PTE_U <span class="op">|</span> PTE_W <span class="op">|</span> PTE_AVAIL<span class="op">;</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">((~</span>corperm <span class="op">&amp;</span> perm<span class="op">)</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="op">-</span>E_INVAL<span class="op">;</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  pte_t <span class="op">*</span>srcpte<span class="op">,</span> <span class="op">*</span>dstpte<span class="op">;</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> PageInfo <span class="op">*</span>pp<span class="op">;</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  pp <span class="op">=</span> page_lookup<span class="op">(</span>srcenv<span class="op">-&gt;</span>env_pgdir<span class="op">,</span> srcva<span class="op">,</span> <span class="op">&amp;</span>srcpte<span class="op">);</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">((</span>perm<span class="op">&amp;</span>PTE_W<span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">(*</span>srcpte<span class="op">&amp;</span>PTE_W<span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> </span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="op">-</span>E_INVAL<span class="op">;</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">(!</span>pp<span class="op">)</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="op">-</span>E_INVAL<span class="op">;</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>  res <span class="op">=</span> page_insert<span class="op">(</span>dstenv<span class="op">-&gt;</span>env_pgdir<span class="op">,</span> pp<span class="op">,</span> dstva<span class="op">,</span> perm<span class="op">);</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">(</span>res <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span><span class="cf">return</span> <span class="op">-</span>E_NO_MEM<span class="op">;</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>  <span class="co">//panic("sys_page_map not implemented");</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div></li>
+<li><p><code>sys_page_unmap</code>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>sys_page_unmap<span class="op">(</span>envid_t envid<span class="op">,</span> <span class="dt">void</span> <span class="op">*</span>va<span class="op">)</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> Env <span class="op">*</span>e<span class="op">;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> res<span class="op">;</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  res <span class="op">=</span> envid2env<span class="op">(</span>envid<span class="op">,</span> <span class="op">&amp;</span>e<span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">(</span>res <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span> </span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="op">-</span>E_BAD_ENV<span class="op">;</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">((</span><span class="dt">uint32_t</span><span class="op">)</span>va <span class="op">&gt;</span> UTOP <span class="op">||</span> <span class="op">(</span><span class="dt">uint32_t</span><span class="op">)</span>va <span class="op">!=</span> ROUNDUP<span class="op">((</span><span class="dt">uint32_t</span><span class="op">)</span>va<span class="op">,</span> PGSIZE<span class="op">))</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="op">-</span>E_INVAL<span class="op">;</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  pte_t <span class="op">*</span>pte<span class="op">;</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> PageInfo <span class="op">*</span>pp<span class="op">;</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  pp <span class="op">=</span> page_lookup<span class="op">(</span>e<span class="op">-&gt;</span>env_pgdir<span class="op">,</span> va<span class="op">,</span> <span class="op">&amp;</span>pte<span class="op">);</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span><span class="op">(</span>pp <span class="op">==</span> NULL<span class="op">)</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  page_remove<span class="op">(</span>e<span class="op">-&gt;</span>env_pgdir<span class="op">,</span> va<span class="op">);</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>  <span class="co">//panic("sys_page_unmap not implemented");</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div></li>
 </ul>
-<ul>
-<li><p><code>sys_page_unmap</code>: </p>
-<pre class=" language-lang-c"><code class="language-lang-c">static int
-sys_page_unmap(envid_t envid, void *va)
-{
-    // LAB 4: Your code here.
-    struct Env *e;
-    int res;
-    res = envid2env(envid, &e, 1);
-    if(res < 0) 
-        return -E_BAD_ENV;
-    if((uint32_t)va > UTOP || (uint32_t)va != ROUNDUP((uint32_t)va, PGSIZE))
-        return -E_INVAL;
-
-    pte_t *pte;
-    struct PageInfo *pp;
-    pp = page_lookup(e->env_pgdir, va, &pte);
-    if(pp == NULL)
-        return 0;
-    page_remove(e->env_pgdir, va);
-    return 0;
-
-    //panic("sys_page_unmap not implemented");
-}
-</code></pre>
-</li>
-</ul>
-<h2 id="4-Part-B-Copy-on-Write-Fork"><a href="#4-Part-B-Copy-on-Write-Fork" class="headerlink" title="4 Part B: Copy-on-Write Fork"></a>4 Part B: Copy-on-Write Fork</h2><p>At this part, we will implement a mechanism called Copy-on-Write, which allows the parent and child to <em>share</em> the memory mapped into their respective address spaces until one of the processes actually modifies it. When a write operation occurs, a page fault is triggered because the shared page is mapped with permission <code>read-only</code>. And then we can deal with the page fault with our methods. The concrete description is as followings:</p>
-<p><strong>Copy-on-write (sometimes referred to as “<code>COW</code>“)</strong> is an optimization strategy used in computer programming. The fundamental idea is that if multiple callers ask for resources which are initially indistinguishable, you can give them pointers to the same resource. This function can be maintained until a caller tries to modify its “copy” of the resource, at which point a true private copy is created to prevent the changes becoming visible to everyone else. All of this happens transparently to the callers. The primary advantage is that if a caller never makes any modifications, no private copy need ever be created. It avoids a lot of unnecessary overhead.</p>
+<h2 id="part-b-copy-on-write-fork">4 Part B: Copy-on-Write Fork</h2>
+<p>At this part, we will implement a mechanism called Copy-on-Write, which allows the parent and child to <em>share</em> the memory mapped into their respective address spaces until one of the processes actually modifies it. When a write operation occurs, a page fault is triggered because the shared page is mapped with permission <code>read-only</code>. And then we can deal with the page fault with our methods. The concrete description is as followings:</p>
+<p><strong>Copy-on-write (sometimes referred to as "<code>COW</code>")</strong> is an optimization strategy used in computer programming. The fundamental idea is that if multiple callers ask for resources which are initially indistinguishable, you can give them pointers to the same resource. This function can be maintained until a caller tries to modify its "copy" of the resource, at which point a true private copy is created to prevent the changes becoming visible to everyone else. All of this happens transparently to the callers. The primary advantage is that if a caller never makes any modifications, no private copy need ever be created. It avoids a lot of unnecessary overhead.</p>
 <p>In OS world, creating a process is a significant field of the application of <code>COW</code>. We can use <code>fork()</code> or <code>vfork()</code> to create a new process. <code>vfork</code> follows the concept of copy-on-write. For example, the child process created by <code>vfork</code> will share the data and code segment with the parent process. This speeds up the forking time. It is expected to use <code>vfork</code> if you are performing <code>exec</code> followed by <code>vfork</code>. So <code>vfork</code> will create the child process which will share data and code segment with its parent but when we call exec, it will load up the image of a new executable in the address space of the child process. In our lab, <code>fork</code> in <code>lib/fork.c</code> is so similar to <code>vfork</code>.</p>
-<h3 id="4-1-sys-env-set-pgfault-upcall"><a href="#4-1-sys-env-set-pgfault-upcall" class="headerlink" title="4-1 sys_env_set_pgfault_upcall"></a>4-1 <code>sys_env_set_pgfault_upcall</code></h3><p>When a process wants to write on a page marked <code>COW</code>(with the permission <code>read-only</code>), a page fault occur. If we want to deal with the fault in user space, we should install a user page fault handler for the kernel. <code>sys_env_set_pgfault_upcall</code> is the function that install a user page fault handler. The code is below:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">static int
-sys_env_set_pgfault_upcall(envid_t envid, void *func)
-{
-    // LAB 4: Your code here.
-    struct Env *e;
-    int ret = 0;
-    ret = envid2env(envid, &e, 1);
-    if(ret < 0)return -E_BAD_ENV;
-    e->env_pgfault_upcall = func;
-    return 0;
-}
-</code></pre>
-<h3 id="4-2-page-fault-handler"><a href="#4-2-page-fault-handler" class="headerlink" title="4-2 page_fault_handler"></a>4-2 <code>page_fault_handler</code></h3><p>After installing the user page fault handler, we are supposed to modify page fault handler in kernel, make the OS run the page fault handler in user space. </p>
+<h3 id="sys_env_set_pgfault_upcall">4-1 <code>sys_env_set_pgfault_upcall</code></h3>
+<p>When a process wants to write on a page marked <code>COW</code>(with the permission <code>read-only</code>), a page fault occur. If we want to deal with the fault in user space, we should install a user page fault handler for the kernel. <code>sys_env_set_pgfault_upcall</code> is the function that install a user page fault handler. The code is below:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>sys_env_set_pgfault_upcall<span class="op">(</span>envid_t envid<span class="op">,</span> <span class="dt">void</span> <span class="op">*</span>func<span class="op">)</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> Env <span class="op">*</span>e<span class="op">;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> ret <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    ret <span class="op">=</span> envid2env<span class="op">(</span>envid<span class="op">,</span> <span class="op">&amp;</span>e<span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>ret <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span><span class="cf">return</span> <span class="op">-</span>E_BAD_ENV<span class="op">;</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    e<span class="op">-&gt;</span>env_pgfault_upcall <span class="op">=</span> func<span class="op">;</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="page_fault_handler">4-2 <code>page_fault_handler</code></h3>
+<p>After installing the user page fault handler, we are supposed to modify page fault handler in kernel, make the OS run the page fault handler in user space.</p>
 <ul>
 <li>Set up a page fault stack frame on the user exception stack (below <code>UXSTACKTOP</code>)</li>
 <li>branch to <code>curenv-&gt;env_pgfault_upcall</code></li>
 <li>pay attention to dealing with the recursive case!</li>
 </ul>
-<p>emmm… You may have a question why we need a exception stack. In my opinion, it ensures the consistency of operations that deal with all the pages in virtual memory except user exception stack. (Maybe)</p>
-<pre class=" language-lang-c"><code class="language-lang-c">void
-page_fault_handler(struct Trapframe *tf)
-{
-    uint32_t fault_va;
-    // Read processor's CR2 register to find the faulting address
-    fault_va = rcr2();
-    // Handle kernel-mode page faults.
-    // LAB 3: Your code here.
-    if( (tf->tf_cs & 3) == 0){
-        cprintf("[%08x] user fault va %08x ip %08x\n",
-        curenv->env_id, fault_va, tf->tf_eip);
-        print_trapframe(tf);
-        panic("kernel page fault\n");
-    }
-
-    // LAB 4: Your code here.
-    // Destroy the environment that caused the fault.
-    if(curenv->env_pgfault_upcall == NULL){
-        //cprintf("111\n");
-        cprintf("[%08x] user fault va %08x ip %08x\n",
-        curenv->env_id, fault_va, tf->tf_eip);
-        print_trapframe(tf);
-        env_destroy(curenv);
-    }
-
-    uint32_t size = 0, stktop = 0;
-    if(tf->tf_esp < UXSTACKTOP && tf->tf_esp >= UXSTACKTOP - PGSIZE){
-        size = sizeof(struct UTrapframe) + sizeof(uint32_t);
-        stktop = tf->tf_esp;
-        //cprintf("%x\n",stktop - size);
-    }
-    else{
-        size = sizeof(struct UTrapframe);
-        stktop = UXSTACKTOP;
-        //cprintf("aa %x\n",stktop - size);
-    }
-    user_mem_assert(curenv, (void *)(stktop - size), size, PTE_U|PTE_P|PTE_W);
-
-    struct UTrapframe *utf = (struct UTrapframe *)(stktop - size);
-    utf->utf_esp = tf->tf_esp;
-    utf->utf_eflags = tf->tf_eflags;
-    utf->utf_eip = tf->tf_eip;
-    utf->utf_regs = tf->tf_regs;
-    utf->utf_err = tf->tf_err;
-    utf->utf_fault_va = fault_va;
-
-    curenv->env_tf.tf_esp = (uintptr_t)utf;
-    curenv->env_tf.tf_eip = (uint32_t)curenv->env_pgfault_upcall;
-    env_run(curenv);
-
-}
-</code></pre>
-<h3 id="4-3-pgfault-upcall"><a href="#4-3-pgfault-upcall" class="headerlink" title="4-3  _pgfault_upcall"></a>4-3  <code>_pgfault_upcall</code></h3><p>Now we come to the entry of user page fault handler, <code>_pgfault_upcall</code> can be seen as a scheduler of <code>_pgfault_handler</code> (the entity of user page handler). After returning from <code>_pgfault_handler</code>, there are a trap frame lying on user exception stack. We add 8 to <code>esp</code> to skip over <code>fault_va</code> and <code>error_code</code>. <code>esp</code> now points at the regular register. Because later we will <code>ret</code> to the location where the page fault occurs, we should move the <code>eip</code> to the user stack.  Then restore the trap-time registers and switch to user stack.</p>
-<p><img src="/picture/utf.png" alt=""></p>
+<p>emmm... You may have a question why we need a exception stack. In my opinion, it ensures the consistency of operations that deal with all the pages in virtual memory except user exception stack. (Maybe)</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>page_fault_handler<span class="op">(</span><span class="kw">struct</span> Trapframe <span class="op">*</span>tf<span class="op">)</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> fault_va<span class="op">;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Read processor's CR2 register to find the faulting address</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    fault_va <span class="op">=</span> rcr2<span class="op">();</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Handle kernel-mode page faults.</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 3: Your code here.</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span> <span class="op">(</span>tf<span class="op">-&gt;</span>tf_cs <span class="op">&amp;</span> <span class="dv">3</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">){</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>        cprintf<span class="op">(</span><span class="st">"[%08x] user fault va %08x ip %08x</span><span class="sc">\n</span><span class="st">"</span><span class="op">,</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>        curenv<span class="op">-&gt;</span>env_id<span class="op">,</span> fault_va<span class="op">,</span> tf<span class="op">-&gt;</span>tf_eip<span class="op">);</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>        print_trapframe<span class="op">(</span>tf<span class="op">);</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>        panic<span class="op">(</span><span class="st">"kernel page fault</span><span class="sc">\n</span><span class="st">"</span><span class="op">);</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Destroy the environment that caused the fault.</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>curenv<span class="op">-&gt;</span>env_pgfault_upcall <span class="op">==</span> NULL<span class="op">){</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>        <span class="co">//cprintf("111\n");</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>        cprintf<span class="op">(</span><span class="st">"[%08x] user fault va %08x ip %08x</span><span class="sc">\n</span><span class="st">"</span><span class="op">,</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>        curenv<span class="op">-&gt;</span>env_id<span class="op">,</span> fault_va<span class="op">,</span> tf<span class="op">-&gt;</span>tf_eip<span class="op">);</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>        print_trapframe<span class="op">(</span>tf<span class="op">);</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>        env_destroy<span class="op">(</span>curenv<span class="op">);</span></span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> size <span class="op">=</span> <span class="dv">0</span><span class="op">,</span> stktop <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>tf<span class="op">-&gt;</span>tf_esp <span class="op">&lt;</span> UXSTACKTOP <span class="op">&amp;&amp;</span> tf<span class="op">-&gt;</span>tf_esp <span class="op">&gt;=</span> UXSTACKTOP <span class="op">-</span> PGSIZE<span class="op">){</span></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>        size <span class="op">=</span> <span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> UTrapframe<span class="op">)</span> <span class="op">+</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">uint32_t</span><span class="op">);</span></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>        stktop <span class="op">=</span> tf<span class="op">-&gt;</span>tf_esp<span class="op">;</span></span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>        <span class="co">//cprintf("%x\n",stktop - size);</span></span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span><span class="op">{</span></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>        size <span class="op">=</span> <span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> UTrapframe<span class="op">);</span></span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>        stktop <span class="op">=</span> UXSTACKTOP<span class="op">;</span></span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>        <span class="co">//cprintf("aa %x\n",stktop - size);</span></span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>    user_mem_assert<span class="op">(</span>curenv<span class="op">,</span> <span class="op">(</span><span class="dt">void</span> <span class="op">*)(</span>stktop <span class="op">-</span> size<span class="op">),</span> size<span class="op">,</span> PTE_U<span class="op">|</span>PTE_P<span class="op">|</span>PTE_W<span class="op">);</span></span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> UTrapframe <span class="op">*</span>utf <span class="op">=</span> <span class="op">(</span><span class="kw">struct</span> UTrapframe <span class="op">*)(</span>stktop <span class="op">-</span> size<span class="op">);</span></span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>    utf<span class="op">-&gt;</span>utf_esp <span class="op">=</span> tf<span class="op">-&gt;</span>tf_esp<span class="op">;</span></span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>    utf<span class="op">-&gt;</span>utf_eflags <span class="op">=</span> tf<span class="op">-&gt;</span>tf_eflags<span class="op">;</span></span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>    utf<span class="op">-&gt;</span>utf_eip <span class="op">=</span> tf<span class="op">-&gt;</span>tf_eip<span class="op">;</span></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>    utf<span class="op">-&gt;</span>utf_regs <span class="op">=</span> tf<span class="op">-&gt;</span>tf_regs<span class="op">;</span></span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>    utf<span class="op">-&gt;</span>utf_err <span class="op">=</span> tf<span class="op">-&gt;</span>tf_err<span class="op">;</span></span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>    utf<span class="op">-&gt;</span>utf_fault_va <span class="op">=</span> fault_va<span class="op">;</span></span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>    curenv<span class="op">-&gt;</span>env_tf<span class="op">.</span>tf_esp <span class="op">=</span> <span class="op">(</span><span class="dt">uintptr_t</span><span class="op">)</span>utf<span class="op">;</span></span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>    curenv<span class="op">-&gt;</span>env_tf<span class="op">.</span>tf_eip <span class="op">=</span> <span class="op">(</span><span class="dt">uint32_t</span><span class="op">)</span>curenv<span class="op">-&gt;</span>env_pgfault_upcall<span class="op">;</span></span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a>    env_run<span class="op">(</span>curenv<span class="op">);</span></span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="pgfault_upcall">4-3 <code>_pgfault_upcall</code></h3>
+<p>Now we come to the entry of user page fault handler, <code>_pgfault_upcall</code> can be seen as a scheduler of <code>_pgfault_handler</code> (the entity of user page handler). After returning from <code>_pgfault_handler</code>, there are a trap frame lying on user exception stack. We add 8 to <code>esp</code> to skip over <code>fault_va</code> and <code>error_code</code>. <code>esp</code> now points at the regular register. Because later we will <code>ret</code> to the location where the page fault occurs, we should move the <code>eip</code> to the user stack. Then restore the trap-time registers and switch to user stack.</p>
+<p><img src="/picture/utf.png"></p>
 <p>Here is the code:</p>
-<pre class=" language-lang-assembly"><code class="language-lang-assembly">.text
+<pre class="assembly"><code>.text
 .globl _pgfault_upcall
 _pgfault_upcall:
     // Call the C page fault handler.
-    pushl %esp            // function argument: pointer to UTF
+    pushl %esp          // function argument: pointer to UTF
     movl _pgfault_handler, %eax
     call *%eax
-    addl $4, %esp            // pop function argument
-
+    addl $4, %esp           // pop function argument
+    
     //significant, move eip to the user stack in order to ret
     // LAB 4: Your code here.
     addl $8, %esp
@@ -712,363 +698,359 @@ _pgfault_upcall:
 
     // Return to re-execute the instruction that faulted.
     // LAB 4: Your code here.
-    ret
-</code></pre>
-<h3 id="4-4-COW-fork"><a href="#4-4-COW-fork" class="headerlink" title="4-4 COW fork"></a>4-4 <code>COW fork</code></h3><p>Here is the code:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">static void
-pgfault(struct UTrapframe *utf)
-{
-    void *addr = (void *) utf->utf_fault_va;
-    uint32_t err = utf->utf_err;
-    int r;
-    // LAB 4: Your code here.
-    pte_t pte = uvpt[PGNUM(addr)];
-
-    //cprintf("%e\n",err);
-    if( (err&FEC_WR) == 0 && (pte & PTE_COW)){
-        cprintf("%x\n",addr);
-        panic("pgfault: it's not a write err\n");
-    }
-    // LAB 4: Your code here.
-    addr = ROUNDDOWN(addr, PGSIZE);
-
-    //allocate a new page, and map it at PFTEMP
-    if(sys_page_alloc(0, (void *)PFTEMP, PTE_P|PTE_W|PTE_U) < 0){
-        panic("sys_page_alloc: alloc failed\n");
-    }
-
-    //move the content at virtual address addr to PFTEMP
-    memmove((void *)PFTEMP, addr, PGSIZE);
-
-    //remap the page at PFTEMP at new virtual address addr
-    //Here was a small bug troubling me for a long time, which I ignored PTE_W !!!
-    if(sys_page_map(0, (void *)PFTEMP, 0, (void *)addr, PTE_W|PTE_U|PTE_P) < 0){
-        panic("map failed\n");
-    }
-
-    //unmap the virtual address PFTEMP
-    if(sys_page_unmap(0, (void *)PFTEMP) < 0){
-        panic("failed\n");
-    }
-}
-
-static int
-duppage(envid_t envid, unsigned pn)
-{
-    int r;
-    struct Env *dstenv = (struct Env *)envs + ENVX(envid);
-    void *addr = (void *)(pn * PGSIZE);
-    //the pte is certainly existing, because fork will check it.
-    pte_t pte = uvpt[pn];
-    // LAB 4: Your code here.
-
-
-    if((pte&PTE_COW) || (pte&PTE_W)){
-
-        if((r = sys_page_map(0, addr, dstenv->env_id, addr, PTE_P|PTE_U|PTE_COW)) < 0){
-            cprintf("sys_page_map: %e\n", r);
-        }
-        if((r = sys_page_map(0, addr, 0, addr, PTE_P|PTE_U|PTE_COW)) < 0){
-            cprintf("sys_page_map: %e\n", r);
-        }
-    }
-    else{
-        sys_page_map(0,addr, dstenv->env_id, addr, PTE_U|PTE_P);
-    }
-
-    return 0;
-}
-
-envid_t
-fork(void)
-{
-    // LAB 4: Your code here.
-    envid_t envid;
-    uint8_t *addr;
-    int r;
-    uint32_t pn;
-
-    set_pgfault_handler(pgfault);
-
-    envid = sys_exofork();
-
-    //sys_exfork returns from child 
-    if (envid == 0) {
-        thisenv = &envs[ENVX(sys_getenvid())];
-        return 0;
-    }
-
-    // operate through all the page below UTOP
-    for (addr = 0; (uint32_t)addr < USTACKTOP; addr += PGSIZE){
-        pn = PGNUM(addr);
-        if( (PTE_P & uvpd[PDX(addr)]) && (PTE_P&uvpt[pn])){        
-            duppage(envid, pn);
-        }
-    }
-
-    // allocate a new page for UXSTACKTOP
-    sys_page_alloc(envid, (void *)(UXSTACKTOP - PGSIZE), PTE_W|PTE_U|PTE_P);
-
-    if ((r = sys_env_set_status(envid, ENV_RUNNABLE)) < 0){
-        panic("sys_env_set_status: %e", r);
-    }
-
-    return envid;
-</code></pre>
-<h2 id="5-Part-C-Preemptive-Multitasking-and-Inter-Process-communication-IPC"><a href="#5-Part-C-Preemptive-Multitasking-and-Inter-Process-communication-IPC" class="headerlink" title="5 Part C: Preemptive Multitasking and Inter-Process communication (IPC)"></a>5 Part C: Preemptive Multitasking and Inter-Process communication (IPC)</h2><h3 id="5-1-Preemptive-Multitasking"><a href="#5-1-Preemptive-Multitasking" class="headerlink" title="5-1 Preemptive Multitasking"></a>5-1 <code>Preemptive Multitasking</code></h3><p>In this part, we will implement preemptive multitasking, forcefully retaking control of the CPU from it. In order to achieve it, we must extend our kernel to support external hardware interrupts from the clock hardware. We should add some entries to both <code>trapentry.S</code> and <code>IDT</code>:</p>
+    ret</code></pre>
+<h3 id="cow-fork">4-4 <code>COW fork</code></h3>
+<p>Here is the code:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">void</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>pgfault<span class="op">(</span><span class="kw">struct</span> UTrapframe <span class="op">*</span>utf<span class="op">)</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="op">*</span>addr <span class="op">=</span> <span class="op">(</span><span class="dt">void</span> <span class="op">*)</span> utf<span class="op">-&gt;</span>utf_fault_va<span class="op">;</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> err <span class="op">=</span> utf<span class="op">-&gt;</span>utf_err<span class="op">;</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> r<span class="op">;</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    pte_t pte <span class="op">=</span> uvpt<span class="op">[</span>PGNUM<span class="op">(</span>addr<span class="op">)];</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">//cprintf("%e\n",err);</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span> <span class="op">(</span>err<span class="op">&amp;</span>FEC_WR<span class="op">)</span> <span class="op">==</span> <span class="dv">0</span> <span class="op">&amp;&amp;</span> <span class="op">(</span>pte <span class="op">&amp;</span> PTE_COW<span class="op">)){</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        cprintf<span class="op">(</span><span class="st">"%x</span><span class="sc">\n</span><span class="st">"</span><span class="op">,</span>addr<span class="op">);</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>        panic<span class="op">(</span><span class="st">"pgfault: it's not a write err</span><span class="sc">\n</span><span class="st">"</span><span class="op">);</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    addr <span class="op">=</span> ROUNDDOWN<span class="op">(</span>addr<span class="op">,</span> PGSIZE<span class="op">);</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">//allocate a new page, and map it at PFTEMP</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>sys_page_alloc<span class="op">(</span><span class="dv">0</span><span class="op">,</span> <span class="op">(</span><span class="dt">void</span> <span class="op">*)</span>PFTEMP<span class="op">,</span> PTE_P<span class="op">|</span>PTE_W<span class="op">|</span>PTE_U<span class="op">)</span> <span class="op">&lt;</span> <span class="dv">0</span><span class="op">){</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>        panic<span class="op">(</span><span class="st">"sys_page_alloc: alloc failed</span><span class="sc">\n</span><span class="st">"</span><span class="op">);</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">//move the content at virtual address addr to PFTEMP</span></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    memmove<span class="op">((</span><span class="dt">void</span> <span class="op">*)</span>PFTEMP<span class="op">,</span> addr<span class="op">,</span> PGSIZE<span class="op">);</span></span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">//remap the page at PFTEMP at new virtual address addr</span></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">//Here was a small bug troubling me for a long time, which I ignored PTE_W !!!</span></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>sys_page_map<span class="op">(</span><span class="dv">0</span><span class="op">,</span> <span class="op">(</span><span class="dt">void</span> <span class="op">*)</span>PFTEMP<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="op">(</span><span class="dt">void</span> <span class="op">*)</span>addr<span class="op">,</span> PTE_W<span class="op">|</span>PTE_U<span class="op">|</span>PTE_P<span class="op">)</span> <span class="op">&lt;</span> <span class="dv">0</span><span class="op">){</span></span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>        panic<span class="op">(</span><span class="st">"map failed</span><span class="sc">\n</span><span class="st">"</span><span class="op">);</span></span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>    <span class="co">//unmap the virtual address PFTEMP</span></span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>sys_page_unmap<span class="op">(</span><span class="dv">0</span><span class="op">,</span> <span class="op">(</span><span class="dt">void</span> <span class="op">*)</span>PFTEMP<span class="op">)</span> <span class="op">&lt;</span> <span class="dv">0</span><span class="op">){</span></span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>        panic<span class="op">(</span><span class="st">"failed</span><span class="sc">\n</span><span class="st">"</span><span class="op">);</span></span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span></span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>duppage<span class="op">(</span>envid_t envid<span class="op">,</span> <span class="dt">unsigned</span> pn<span class="op">)</span></span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> r<span class="op">;</span></span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> Env <span class="op">*</span>dstenv <span class="op">=</span> <span class="op">(</span><span class="kw">struct</span> Env <span class="op">*)</span>envs <span class="op">+</span> ENVX<span class="op">(</span>envid<span class="op">);</span></span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="op">*</span>addr <span class="op">=</span> <span class="op">(</span><span class="dt">void</span> <span class="op">*)(</span>pn <span class="op">*</span> PGSIZE<span class="op">);</span></span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>    <span class="co">//the pte is certainly existing, because fork will check it.</span></span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>    pte_t pte <span class="op">=</span> uvpt<span class="op">[</span>pn<span class="op">];</span></span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">((</span>pte<span class="op">&amp;</span>PTE_COW<span class="op">)</span> <span class="op">||</span> <span class="op">(</span>pte<span class="op">&amp;</span>PTE_W<span class="op">)){</span></span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">((</span>r <span class="op">=</span> sys_page_map<span class="op">(</span><span class="dv">0</span><span class="op">,</span> addr<span class="op">,</span> dstenv<span class="op">-&gt;</span>env_id<span class="op">,</span> addr<span class="op">,</span> PTE_P<span class="op">|</span>PTE_U<span class="op">|</span>PTE_COW<span class="op">))</span> <span class="op">&lt;</span> <span class="dv">0</span><span class="op">){</span></span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>            cprintf<span class="op">(</span><span class="st">"sys_page_map: %e</span><span class="sc">\n</span><span class="st">"</span><span class="op">,</span> r<span class="op">);</span></span>
+<span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">((</span>r <span class="op">=</span> sys_page_map<span class="op">(</span><span class="dv">0</span><span class="op">,</span> addr<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> addr<span class="op">,</span> PTE_P<span class="op">|</span>PTE_U<span class="op">|</span>PTE_COW<span class="op">))</span> <span class="op">&lt;</span> <span class="dv">0</span><span class="op">){</span></span>
+<span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a>            cprintf<span class="op">(</span><span class="st">"sys_page_map: %e</span><span class="sc">\n</span><span class="st">"</span><span class="op">,</span> r<span class="op">);</span></span>
+<span id="cb13-56"><a href="#cb13-56" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb13-57"><a href="#cb13-57" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb13-58"><a href="#cb13-58" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span><span class="op">{</span></span>
+<span id="cb13-59"><a href="#cb13-59" aria-hidden="true" tabindex="-1"></a>        sys_page_map<span class="op">(</span><span class="dv">0</span><span class="op">,</span>addr<span class="op">,</span> dstenv<span class="op">-&gt;</span>env_id<span class="op">,</span> addr<span class="op">,</span> PTE_U<span class="op">|</span>PTE_P<span class="op">);</span></span>
+<span id="cb13-60"><a href="#cb13-60" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb13-61"><a href="#cb13-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-62"><a href="#cb13-62" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb13-63"><a href="#cb13-63" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb13-64"><a href="#cb13-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-65"><a href="#cb13-65" aria-hidden="true" tabindex="-1"></a>envid_t</span>
+<span id="cb13-66"><a href="#cb13-66" aria-hidden="true" tabindex="-1"></a>fork<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb13-67"><a href="#cb13-67" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb13-68"><a href="#cb13-68" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb13-69"><a href="#cb13-69" aria-hidden="true" tabindex="-1"></a>    envid_t envid<span class="op">;</span></span>
+<span id="cb13-70"><a href="#cb13-70" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> <span class="op">*</span>addr<span class="op">;</span></span>
+<span id="cb13-71"><a href="#cb13-71" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> r<span class="op">;</span></span>
+<span id="cb13-72"><a href="#cb13-72" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> pn<span class="op">;</span></span>
+<span id="cb13-73"><a href="#cb13-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-74"><a href="#cb13-74" aria-hidden="true" tabindex="-1"></a>    set_pgfault_handler<span class="op">(</span>pgfault<span class="op">);</span></span>
+<span id="cb13-75"><a href="#cb13-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-76"><a href="#cb13-76" aria-hidden="true" tabindex="-1"></a>    envid <span class="op">=</span> sys_exofork<span class="op">();</span></span>
+<span id="cb13-77"><a href="#cb13-77" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb13-78"><a href="#cb13-78" aria-hidden="true" tabindex="-1"></a>    <span class="co">//sys_exfork returns from child </span></span>
+<span id="cb13-79"><a href="#cb13-79" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>envid <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb13-80"><a href="#cb13-80" aria-hidden="true" tabindex="-1"></a>        thisenv <span class="op">=</span> <span class="op">&amp;</span>envs<span class="op">[</span>ENVX<span class="op">(</span>sys_getenvid<span class="op">())];</span></span>
+<span id="cb13-81"><a href="#cb13-81" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb13-82"><a href="#cb13-82" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb13-83"><a href="#cb13-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-84"><a href="#cb13-84" aria-hidden="true" tabindex="-1"></a>    <span class="co">// operate through all the page below UTOP</span></span>
+<span id="cb13-85"><a href="#cb13-85" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span>addr <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> <span class="op">(</span><span class="dt">uint32_t</span><span class="op">)</span>addr <span class="op">&lt;</span> USTACKTOP<span class="op">;</span> addr <span class="op">+=</span> PGSIZE<span class="op">){</span></span>
+<span id="cb13-86"><a href="#cb13-86" aria-hidden="true" tabindex="-1"></a>        pn <span class="op">=</span> PGNUM<span class="op">(</span>addr<span class="op">);</span></span>
+<span id="cb13-87"><a href="#cb13-87" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(</span> <span class="op">(</span>PTE_P <span class="op">&amp;</span> uvpd<span class="op">[</span>PDX<span class="op">(</span>addr<span class="op">)])</span> <span class="op">&amp;&amp;</span> <span class="op">(</span>PTE_P<span class="op">&amp;</span>uvpt<span class="op">[</span>pn<span class="op">])){</span>     </span>
+<span id="cb13-88"><a href="#cb13-88" aria-hidden="true" tabindex="-1"></a>            duppage<span class="op">(</span>envid<span class="op">,</span> pn<span class="op">);</span></span>
+<span id="cb13-89"><a href="#cb13-89" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb13-90"><a href="#cb13-90" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb13-91"><a href="#cb13-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-92"><a href="#cb13-92" aria-hidden="true" tabindex="-1"></a>    <span class="co">// allocate a new page for UXSTACKTOP</span></span>
+<span id="cb13-93"><a href="#cb13-93" aria-hidden="true" tabindex="-1"></a>    sys_page_alloc<span class="op">(</span>envid<span class="op">,</span> <span class="op">(</span><span class="dt">void</span> <span class="op">*)(</span>UXSTACKTOP <span class="op">-</span> PGSIZE<span class="op">),</span> PTE_W<span class="op">|</span>PTE_U<span class="op">|</span>PTE_P<span class="op">);</span></span>
+<span id="cb13-94"><a href="#cb13-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-95"><a href="#cb13-95" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">((</span>r <span class="op">=</span> sys_env_set_status<span class="op">(</span>envid<span class="op">,</span> ENV_RUNNABLE<span class="op">))</span> <span class="op">&lt;</span> <span class="dv">0</span><span class="op">){</span></span>
+<span id="cb13-96"><a href="#cb13-96" aria-hidden="true" tabindex="-1"></a>        panic<span class="op">(</span><span class="st">"sys_env_set_status: %e"</span><span class="op">,</span> r<span class="op">);</span></span>
+<span id="cb13-97"><a href="#cb13-97" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb13-98"><a href="#cb13-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-99"><a href="#cb13-99" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> envid<span class="op">;</span></span>
+<span id="cb13-100"><a href="#cb13-100" aria-hidden="true" tabindex="-1"></a></span></code></pre></div>
+<h2 id="part-c-preemptive-multitasking-and-inter-process-communication-ipc">5 Part C: Preemptive Multitasking and Inter-Process communication (IPC)</h2>
+<h3 id="preemptive-multitasking">5-1 <code>Preemptive Multitasking</code></h3>
+<p>In this part, we will implement preemptive multitasking, forcefully retaking control of the CPU from it. In order to achieve it, we must extend our kernel to support external hardware interrupts from the clock hardware. We should add some entries to both <code>trapentry.S</code> and <code>IDT</code>:</p>
 <ul>
 <li><p><code>trapentry.S</code>:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">TRAPHANDLER_NOEC(irq_timer, IRQ_OFFSET + IRQ_TIMER)
-TRAPHANDLER_NOEC(irq_kbd, IRQ_OFFSET + IRQ_KBD)
-TRAPHANDLER_NOEC(irq_serial, IRQ_OFFSET + IRQ_SERIAL)
-TRAPHANDLER_NOEC(irq_spurious, IRQ_OFFSET + IRQ_SPURIOUS)
-TRAPHANDLER_NOEC(irq_ide, IRQ_OFFSET + IRQ_IDE)
-TRAPHANDLER_NOEC(irq_error, IRQ_OFFSET + IRQ_ERROR)
-</code></pre>
-</li>
+<div class="sourceCode" id="cb14"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>irq_timer<span class="op">,</span> IRQ_OFFSET <span class="op">+</span> IRQ_TIMER<span class="op">)</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>irq_kbd<span class="op">,</span> IRQ_OFFSET <span class="op">+</span> IRQ_KBD<span class="op">)</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>irq_serial<span class="op">,</span> IRQ_OFFSET <span class="op">+</span> IRQ_SERIAL<span class="op">)</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>irq_spurious<span class="op">,</span> IRQ_OFFSET <span class="op">+</span> IRQ_SPURIOUS<span class="op">)</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>irq_ide<span class="op">,</span> IRQ_OFFSET <span class="op">+</span> IRQ_IDE<span class="op">)</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>irq_error<span class="op">,</span> IRQ_OFFSET <span class="op">+</span> IRQ_ERROR<span class="op">)</span></span></code></pre></div></li>
 <li><p>extend IDT in <code>trap.c</code></p>
-<pre class=" language-lang-c"><code class="language-lang-c">    SETGATE(idt[IRQ_OFFSET + IRQ_TIMER], 0, GD_KT, irq_timer, 0);
-    SETGATE(idt[IRQ_OFFSET + IRQ_KBD], 0, GD_KT, irq_kbd, 0);
-    SETGATE(idt[IRQ_OFFSET + IRQ_SERIAL], 0, GD_KT, irq_serial, 0);
-    SETGATE(idt[IRQ_OFFSET + IRQ_SPURIOUS], 0, GD_KT, irq_spurious, 0);
-    SETGATE(idt[IRQ_OFFSET + IRQ_IDE], 0, GD_KT, irq_ide, 0);
-    SETGATE(idt[IRQ_OFFSET + IRQ_ERROR], 0, GD_KT, irq_error, 0);
-</code></pre>
-</li>
+<div class="sourceCode" id="cb15"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>  SETGATE<span class="op">(</span>idt<span class="op">[</span>IRQ_OFFSET <span class="op">+</span> IRQ_TIMER<span class="op">],</span> <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> irq_timer<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  SETGATE<span class="op">(</span>idt<span class="op">[</span>IRQ_OFFSET <span class="op">+</span> IRQ_KBD<span class="op">],</span> <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> irq_kbd<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  SETGATE<span class="op">(</span>idt<span class="op">[</span>IRQ_OFFSET <span class="op">+</span> IRQ_SERIAL<span class="op">],</span> <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> irq_serial<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  SETGATE<span class="op">(</span>idt<span class="op">[</span>IRQ_OFFSET <span class="op">+</span> IRQ_SPURIOUS<span class="op">],</span> <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> irq_spurious<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  SETGATE<span class="op">(</span>idt<span class="op">[</span>IRQ_OFFSET <span class="op">+</span> IRQ_IDE<span class="op">],</span> <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> irq_ide<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  SETGATE<span class="op">(</span>idt<span class="op">[</span>IRQ_OFFSET <span class="op">+</span> IRQ_ERROR<span class="op">],</span> <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> irq_error<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span></code></pre></div></li>
 </ul>
 <p>By now, the basic settings are done.</p>
 <p>Then we make interrupt enabled in user environment. The first thing is enable interrupts while initializing an environment:</p>
-<p>In <code>env_alloc</code>, we add <code>e-&gt;env_tf.tf_eflags |= FL_IF;</code> to enable interrupts, so that a user environment starts running with IF set to 1. Don’t forget to uncomment <code>'sti'</code>. Then modify the kernel’s <code>trap_dispatch()</code> function so that it calls <code>sched_yield()</code> to find and run a different environment whenever a clock interrupt takes place.</p>
-<pre class=" language-lang-c"><code class="language-lang-c">    // Handle clock interrupts. Don't forget to acknowledge the
-    // interrupt using lapic_eoi() before calling the scheduler!
-    // LAB 4: Your code here.
-    if(tf->tf_trapno == IRQ_OFFSET + IRQ_TIMER){
-        lapic_eoi();
-        sched_yield();
-        return;
-    }
-</code></pre>
-<h3 id="5-2-IPC"><a href="#5-2-IPC" class="headerlink" title="5-2 IPC"></a>5-2 <code>IPC</code></h3><p>It’s enough to read the guide of this part and comments in codes to accomplish <code>IPC</code>.</p>
+<p>In <code>env_alloc</code>, we add <code>e-&gt;env_tf.tf_eflags |= FL_IF;</code> to enable interrupts, so that a user environment starts running with IF set to 1. Don't forget to uncomment <code>'sti'</code>. Then modify the kernel's <code>trap_dispatch()</code> function so that it calls <code>sched_yield()</code> to find and run a different environment whenever a clock interrupt takes place.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Handle clock interrupts. Don't forget to acknowledge the</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// interrupt using lapic_eoi() before calling the scheduler!</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>tf<span class="op">-&gt;</span>tf_trapno <span class="op">==</span> IRQ_OFFSET <span class="op">+</span> IRQ_TIMER<span class="op">){</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>        lapic_eoi<span class="op">();</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>        sched_yield<span class="op">();</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div>
+<h3 id="ipc">5-2 <code>IPC</code></h3>
+<p>It's enough to read the guide of this part and comments in codes to accomplish <code>IPC</code>.</p>
 <p>The followings is <code>syscall</code>:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">// Try to send 'value' to the target env 'envid'.
-// If srcva < UTOP, then also send page currently mapped at 'srcva',
-// so that receiver gets a duplicate mapping of the same page.
-//
-// The send fails with a return value of -E_IPC_NOT_RECV if the
-// target is not blocked, waiting for an IPC.
-//
-// The send also can fail for the other reasons listed below.
-//
-// Otherwise, the send succeeds, and the target's ipc fields are
-// updated as follows:
-//    env_ipc_recving is set to 0 to block future sends;
-//    env_ipc_from is set to the sending envid;
-//    env_ipc_value is set to the 'value' parameter;
-//    env_ipc_perm is set to 'perm' if a page was transferred, 0 otherwise.
-// The target environment is marked runnable again, returning 0
-// from the paused sys_ipc_recv system call.  (Hint: does the
-// sys_ipc_recv function ever actually return?)
-//
-// If the sender wants to send a page but the receiver isn't asking for one,
-// then no page mapping is transferred, but no error occurs.
-// The ipc only happens when no errors occur.
-//
-// Returns 0 on success, < 0 on error.
-// Errors are:
-//    -E_BAD_ENV if environment envid doesn't currently exist.
-//        (No need to check permissions.)
-//    -E_IPC_NOT_RECV if envid is not currently blocked in sys_ipc_recv,
-//        or another environment managed to send first.
-//    -E_INVAL if srcva < UTOP but srcva is not page-aligned.
-//    -E_INVAL if srcva < UTOP and perm is inappropriate
-//        (see sys_page_alloc).
-//    -E_INVAL if srcva < UTOP but srcva is not mapped in the caller's
-//        address space.
-//    -E_INVAL if (perm & PTE_W), but srcva is read-only in the
-//        current environment's address space.
-//    -E_NO_MEM if there's not enough memory to map srcva in envid's
-//        address space.
-static int
-sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
-{
-    // LAB 4: Your code here.
-    //cprintf("send\n");
-    struct Env *dstenv;
-    int r = 0;
-    if(envid2env(envid, &dstenv, 0) < 0){
-        return -E_BAD_ENV;
-    }
-    if(dstenv->env_ipc_recving == false){
-        return -E_IPC_NOT_RECV;
-    }
-    if((uint32_t)srcva < UTOP && srcva != ROUNDDOWN(srcva, PGSIZE)){
-        return -E_INVAL;
-    }
-    int corperm = PTE_P | PTE_U | PTE_W | PTE_AVAIL;
-    if((uint32_t)srcva < UTOP && (~corperm & perm) != 0){
-        return -E_INVAL;
-    }
-    struct PageInfo *pp, *pp2;
-    pte_t *ptep, *dstptep;
-
-
-    pp = page_lookup(curenv->env_pgdir, srcva, &ptep);
-    if((uint32_t)srcva < UTOP && pp == NULL){
-        return -E_INVAL;
-    }
-    if(((*ptep) & PTE_W) == 0 && (perm & PTE_W)){
-        return -E_INVAL;
-    }
-    if((uint32_t)srcva !=UTOP && (uint32_t)(dstenv->env_ipc_dstva) == UTOP){
-        return 0;
-    }
-
-    if((uint32_t)srcva != UTOP){
-        if( envid2env(envid, &dstenv, 0) < 0 ){
-            return -E_BAD_ENV;
-        }
-        pp2 = page_lookup(dstenv->env_pgdir, srcva, &dstptep);
-        if(pp2 != NULL){
-            return -E_NO_MEM;
-        }
-        if(page_insert(dstenv->env_pgdir, pp, dstenv->env_ipc_dstva, perm) < 0){
-            return -E_NO_MEM;
-        }
-    }
-
-    dstenv->env_ipc_recving = false;
-    dstenv->env_ipc_from = curenv->env_id;
-    dstenv->env_ipc_value = value;
-    dstenv->env_ipc_perm = srcva ? perm : 0;
-    dstenv->env_status = ENV_RUNNABLE;
-    return 0;
-    //panic("sys_ipc_try_send not implemented");
-}
-
-// Block until a value is ready.  Record that you want to receive
-// using the env_ipc_recving and env_ipc_dstva fields of struct Env,
-// mark yourself not runnable, and then give up the CPU.
-//
-// If 'dstva' is < UTOP, then you are willing to receive a page of data.
-// 'dstva' is the virtual address at which the sent page should be mapped.
-//
-// This function only returns on error, but the system call will eventually
-// return 0 on success.
-// Return < 0 on error.  Errors are:
-//    -E_INVAL if dstva < UTOP but dstva is not page-aligned.
-static int
-sys_ipc_recv(void *dstva)
-{
-    // LAB 4: Your code here.
-    //cprintf("recv\n");
-
-    if((uint32_t)dstva < UTOP && (uint32_t)dstva != ROUNDDOWN((uint32_t)dstva, PGSIZE)){
-        return -E_INVAL;
-    }
-
-    curenv->env_ipc_recving= true;
-    curenv->env_ipc_dstva = dstva;
-    curenv->env_status = ENV_NOT_RUNNABLE;
-    return 0;
-    //cprintf("finish schedule\n");
-    //panic("sys_ipc_recv not implemented");
-    //return 0;
-}
-</code></pre>
+<div class="sourceCode" id="cb17"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Try to send 'value' to the target env 'envid'.</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">// If srcva &lt; UTOP, then also send page currently mapped at 'srcva',</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">// so that receiver gets a duplicate mapping of the same page.</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co">// The send fails with a return value of -E_IPC_NOT_RECV if the</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co">// target is not blocked, waiting for an IPC.</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="co">// The send also can fail for the other reasons listed below.</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="co">// Otherwise, the send succeeds, and the target's ipc fields are</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="co">// updated as follows:</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="co">//    env_ipc_recving is set to 0 to block future sends;</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="co">//    env_ipc_from is set to the sending envid;</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="co">//    env_ipc_value is set to the 'value' parameter;</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a><span class="co">//    env_ipc_perm is set to 'perm' if a page was transferred, 0 otherwise.</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a><span class="co">// The target environment is marked runnable again, returning 0</span></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a><span class="co">// from the paused sys_ipc_recv system call.  (Hint: does the</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a><span class="co">// sys_ipc_recv function ever actually return?)</span></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a><span class="co">// If the sender wants to send a page but the receiver isn't asking for one,</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a><span class="co">// then no page mapping is transferred, but no error occurs.</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a><span class="co">// The ipc only happens when no errors occur.</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a><span class="co">// Returns 0 on success, &lt; 0 on error.</span></span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a><span class="co">// Errors are:</span></span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a><span class="co">//  -E_BAD_ENV if environment envid doesn't currently exist.</span></span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a><span class="co">//      (No need to check permissions.)</span></span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a><span class="co">//  -E_IPC_NOT_RECV if envid is not currently blocked in sys_ipc_recv,</span></span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a><span class="co">//      or another environment managed to send first.</span></span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a><span class="co">//  -E_INVAL if srcva &lt; UTOP but srcva is not page-aligned.</span></span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a><span class="co">//  -E_INVAL if srcva &lt; UTOP and perm is inappropriate</span></span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a><span class="co">//      (see sys_page_alloc).</span></span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a><span class="co">//  -E_INVAL if srcva &lt; UTOP but srcva is not mapped in the caller's</span></span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a><span class="co">//      address space.</span></span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a><span class="co">//  -E_INVAL if (perm &amp; PTE_W), but srcva is read-only in the</span></span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a><span class="co">//      current environment's address space.</span></span>
+<span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a><span class="co">//  -E_NO_MEM if there's not enough memory to map srcva in envid's</span></span>
+<span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a><span class="co">//      address space.</span></span>
+<span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span></span>
+<span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a>sys_ipc_try_send<span class="op">(</span>envid_t envid<span class="op">,</span> <span class="dt">uint32_t</span> value<span class="op">,</span> <span class="dt">void</span> <span class="op">*</span>srcva<span class="op">,</span> <span class="dt">unsigned</span> perm<span class="op">)</span></span>
+<span id="cb17-41"><a href="#cb17-41" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb17-42"><a href="#cb17-42" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb17-43"><a href="#cb17-43" aria-hidden="true" tabindex="-1"></a>    <span class="co">//cprintf("send\n");</span></span>
+<span id="cb17-44"><a href="#cb17-44" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> Env <span class="op">*</span>dstenv<span class="op">;</span></span>
+<span id="cb17-45"><a href="#cb17-45" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> r <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb17-46"><a href="#cb17-46" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>envid2env<span class="op">(</span>envid<span class="op">,</span> <span class="op">&amp;</span>dstenv<span class="op">,</span> <span class="dv">0</span><span class="op">)</span> <span class="op">&lt;</span> <span class="dv">0</span><span class="op">){</span></span>
+<span id="cb17-47"><a href="#cb17-47" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>E_BAD_ENV<span class="op">;</span></span>
+<span id="cb17-48"><a href="#cb17-48" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-49"><a href="#cb17-49" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>dstenv<span class="op">-&gt;</span>env_ipc_recving <span class="op">==</span> false<span class="op">){</span></span>
+<span id="cb17-50"><a href="#cb17-50" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>E_IPC_NOT_RECV<span class="op">;</span></span>
+<span id="cb17-51"><a href="#cb17-51" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-52"><a href="#cb17-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">((</span><span class="dt">uint32_t</span><span class="op">)</span>srcva <span class="op">&lt;</span> UTOP <span class="op">&amp;&amp;</span> srcva <span class="op">!=</span> ROUNDDOWN<span class="op">(</span>srcva<span class="op">,</span> PGSIZE<span class="op">)){</span></span>
+<span id="cb17-53"><a href="#cb17-53" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>E_INVAL<span class="op">;</span></span>
+<span id="cb17-54"><a href="#cb17-54" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-55"><a href="#cb17-55" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> corperm <span class="op">=</span> PTE_P <span class="op">|</span> PTE_U <span class="op">|</span> PTE_W <span class="op">|</span> PTE_AVAIL<span class="op">;</span></span>
+<span id="cb17-56"><a href="#cb17-56" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">((</span><span class="dt">uint32_t</span><span class="op">)</span>srcva <span class="op">&lt;</span> UTOP <span class="op">&amp;&amp;</span> <span class="op">(~</span>corperm <span class="op">&amp;</span> perm<span class="op">)</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">){</span></span>
+<span id="cb17-57"><a href="#cb17-57" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>E_INVAL<span class="op">;</span></span>
+<span id="cb17-58"><a href="#cb17-58" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-59"><a href="#cb17-59" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> PageInfo <span class="op">*</span>pp<span class="op">,</span> <span class="op">*</span>pp2<span class="op">;</span></span>
+<span id="cb17-60"><a href="#cb17-60" aria-hidden="true" tabindex="-1"></a>    pte_t <span class="op">*</span>ptep<span class="op">,</span> <span class="op">*</span>dstptep<span class="op">;</span></span>
+<span id="cb17-61"><a href="#cb17-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-62"><a href="#cb17-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-63"><a href="#cb17-63" aria-hidden="true" tabindex="-1"></a>    pp <span class="op">=</span> page_lookup<span class="op">(</span>curenv<span class="op">-&gt;</span>env_pgdir<span class="op">,</span> srcva<span class="op">,</span> <span class="op">&amp;</span>ptep<span class="op">);</span></span>
+<span id="cb17-64"><a href="#cb17-64" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">((</span><span class="dt">uint32_t</span><span class="op">)</span>srcva <span class="op">&lt;</span> UTOP <span class="op">&amp;&amp;</span> pp <span class="op">==</span> NULL<span class="op">){</span></span>
+<span id="cb17-65"><a href="#cb17-65" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>E_INVAL<span class="op">;</span></span>
+<span id="cb17-66"><a href="#cb17-66" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-67"><a href="#cb17-67" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(((*</span>ptep<span class="op">)</span> <span class="op">&amp;</span> PTE_W<span class="op">)</span> <span class="op">==</span> <span class="dv">0</span> <span class="op">&amp;&amp;</span> <span class="op">(</span>perm <span class="op">&amp;</span> PTE_W<span class="op">)){</span></span>
+<span id="cb17-68"><a href="#cb17-68" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>E_INVAL<span class="op">;</span></span>
+<span id="cb17-69"><a href="#cb17-69" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-70"><a href="#cb17-70" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">((</span><span class="dt">uint32_t</span><span class="op">)</span>srcva <span class="op">!=</span>UTOP <span class="op">&amp;&amp;</span> <span class="op">(</span><span class="dt">uint32_t</span><span class="op">)(</span>dstenv<span class="op">-&gt;</span>env_ipc_dstva<span class="op">)</span> <span class="op">==</span> UTOP<span class="op">){</span></span>
+<span id="cb17-71"><a href="#cb17-71" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb17-72"><a href="#cb17-72" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-73"><a href="#cb17-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-74"><a href="#cb17-74" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">((</span><span class="dt">uint32_t</span><span class="op">)</span>srcva <span class="op">!=</span> UTOP<span class="op">){</span></span>
+<span id="cb17-75"><a href="#cb17-75" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(</span> envid2env<span class="op">(</span>envid<span class="op">,</span> <span class="op">&amp;</span>dstenv<span class="op">,</span> <span class="dv">0</span><span class="op">)</span> <span class="op">&lt;</span> <span class="dv">0</span> <span class="op">){</span></span>
+<span id="cb17-76"><a href="#cb17-76" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="op">-</span>E_BAD_ENV<span class="op">;</span></span>
+<span id="cb17-77"><a href="#cb17-77" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb17-78"><a href="#cb17-78" aria-hidden="true" tabindex="-1"></a>        pp2 <span class="op">=</span> page_lookup<span class="op">(</span>dstenv<span class="op">-&gt;</span>env_pgdir<span class="op">,</span> srcva<span class="op">,</span> <span class="op">&amp;</span>dstptep<span class="op">);</span></span>
+<span id="cb17-79"><a href="#cb17-79" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(</span>pp2 <span class="op">!=</span> NULL<span class="op">){</span></span>
+<span id="cb17-80"><a href="#cb17-80" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="op">-</span>E_NO_MEM<span class="op">;</span></span>
+<span id="cb17-81"><a href="#cb17-81" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb17-82"><a href="#cb17-82" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(</span>page_insert<span class="op">(</span>dstenv<span class="op">-&gt;</span>env_pgdir<span class="op">,</span> pp<span class="op">,</span> dstenv<span class="op">-&gt;</span>env_ipc_dstva<span class="op">,</span> perm<span class="op">)</span> <span class="op">&lt;</span> <span class="dv">0</span><span class="op">){</span></span>
+<span id="cb17-83"><a href="#cb17-83" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="op">-</span>E_NO_MEM<span class="op">;</span></span>
+<span id="cb17-84"><a href="#cb17-84" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb17-85"><a href="#cb17-85" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-86"><a href="#cb17-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-87"><a href="#cb17-87" aria-hidden="true" tabindex="-1"></a>    dstenv<span class="op">-&gt;</span>env_ipc_recving <span class="op">=</span> false<span class="op">;</span></span>
+<span id="cb17-88"><a href="#cb17-88" aria-hidden="true" tabindex="-1"></a>    dstenv<span class="op">-&gt;</span>env_ipc_from <span class="op">=</span> curenv<span class="op">-&gt;</span>env_id<span class="op">;</span></span>
+<span id="cb17-89"><a href="#cb17-89" aria-hidden="true" tabindex="-1"></a>    dstenv<span class="op">-&gt;</span>env_ipc_value <span class="op">=</span> value<span class="op">;</span></span>
+<span id="cb17-90"><a href="#cb17-90" aria-hidden="true" tabindex="-1"></a>    dstenv<span class="op">-&gt;</span>env_ipc_perm <span class="op">=</span> srcva <span class="op">?</span> perm <span class="op">:</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb17-91"><a href="#cb17-91" aria-hidden="true" tabindex="-1"></a>    dstenv<span class="op">-&gt;</span>env_status <span class="op">=</span> ENV_RUNNABLE<span class="op">;</span></span>
+<span id="cb17-92"><a href="#cb17-92" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb17-93"><a href="#cb17-93" aria-hidden="true" tabindex="-1"></a>    <span class="co">//panic("sys_ipc_try_send not implemented");</span></span>
+<span id="cb17-94"><a href="#cb17-94" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb17-95"><a href="#cb17-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-96"><a href="#cb17-96" aria-hidden="true" tabindex="-1"></a><span class="co">// Block until a value is ready.  Record that you want to receive</span></span>
+<span id="cb17-97"><a href="#cb17-97" aria-hidden="true" tabindex="-1"></a><span class="co">// using the env_ipc_recving and env_ipc_dstva fields of struct Env,</span></span>
+<span id="cb17-98"><a href="#cb17-98" aria-hidden="true" tabindex="-1"></a><span class="co">// mark yourself not runnable, and then give up the CPU.</span></span>
+<span id="cb17-99"><a href="#cb17-99" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb17-100"><a href="#cb17-100" aria-hidden="true" tabindex="-1"></a><span class="co">// If 'dstva' is &lt; UTOP, then you are willing to receive a page of data.</span></span>
+<span id="cb17-101"><a href="#cb17-101" aria-hidden="true" tabindex="-1"></a><span class="co">// 'dstva' is the virtual address at which the sent page should be mapped.</span></span>
+<span id="cb17-102"><a href="#cb17-102" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb17-103"><a href="#cb17-103" aria-hidden="true" tabindex="-1"></a><span class="co">// This function only returns on error, but the system call will eventually</span></span>
+<span id="cb17-104"><a href="#cb17-104" aria-hidden="true" tabindex="-1"></a><span class="co">// return 0 on success.</span></span>
+<span id="cb17-105"><a href="#cb17-105" aria-hidden="true" tabindex="-1"></a><span class="co">// Return &lt; 0 on error.  Errors are:</span></span>
+<span id="cb17-106"><a href="#cb17-106" aria-hidden="true" tabindex="-1"></a><span class="co">//  -E_INVAL if dstva &lt; UTOP but dstva is not page-aligned.</span></span>
+<span id="cb17-107"><a href="#cb17-107" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span></span>
+<span id="cb17-108"><a href="#cb17-108" aria-hidden="true" tabindex="-1"></a>sys_ipc_recv<span class="op">(</span><span class="dt">void</span> <span class="op">*</span>dstva<span class="op">)</span></span>
+<span id="cb17-109"><a href="#cb17-109" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb17-110"><a href="#cb17-110" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb17-111"><a href="#cb17-111" aria-hidden="true" tabindex="-1"></a>    <span class="co">//cprintf("recv\n");</span></span>
+<span id="cb17-112"><a href="#cb17-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-113"><a href="#cb17-113" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">((</span><span class="dt">uint32_t</span><span class="op">)</span>dstva <span class="op">&lt;</span> UTOP <span class="op">&amp;&amp;</span> <span class="op">(</span><span class="dt">uint32_t</span><span class="op">)</span>dstva <span class="op">!=</span> ROUNDDOWN<span class="op">((</span><span class="dt">uint32_t</span><span class="op">)</span>dstva<span class="op">,</span> PGSIZE<span class="op">)){</span></span>
+<span id="cb17-114"><a href="#cb17-114" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>E_INVAL<span class="op">;</span></span>
+<span id="cb17-115"><a href="#cb17-115" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-116"><a href="#cb17-116" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb17-117"><a href="#cb17-117" aria-hidden="true" tabindex="-1"></a>    curenv<span class="op">-&gt;</span>env_ipc_recving<span class="op">=</span> true<span class="op">;</span></span>
+<span id="cb17-118"><a href="#cb17-118" aria-hidden="true" tabindex="-1"></a>    curenv<span class="op">-&gt;</span>env_ipc_dstva <span class="op">=</span> dstva<span class="op">;</span></span>
+<span id="cb17-119"><a href="#cb17-119" aria-hidden="true" tabindex="-1"></a>    curenv<span class="op">-&gt;</span>env_status <span class="op">=</span> ENV_NOT_RUNNABLE<span class="op">;</span></span>
+<span id="cb17-120"><a href="#cb17-120" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb17-121"><a href="#cb17-121" aria-hidden="true" tabindex="-1"></a>    <span class="co">//cprintf("finish schedule\n");</span></span>
+<span id="cb17-122"><a href="#cb17-122" aria-hidden="true" tabindex="-1"></a>    <span class="co">//panic("sys_ipc_recv not implemented");</span></span>
+<span id="cb17-123"><a href="#cb17-123" aria-hidden="true" tabindex="-1"></a>    <span class="co">//return 0;</span></span>
+<span id="cb17-124"><a href="#cb17-124" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <ul>
 <li><code>ipc.c</code></li>
 </ul>
-<pre class=" language-lang-c"><code class="language-lang-c">// Receive a value via IPC and return it.
-// If 'pg' is nonnull, then any page sent by the sender will be mapped at
-//    that address.
-// If 'from_env_store' is nonnull, then store the IPC sender's envid in
-//    *from_env_store.
-// If 'perm_store' is nonnull, then store the IPC sender's page permission
-//    in *perm_store (this is nonzero iff a page was successfully
-//    transferred to 'pg').
-// If the system call fails, then store 0 in *fromenv and *perm (if
-//    they're nonnull) and return the error.
-// Otherwise, return the value sent by the sender
-//
-// Hint:
-//   Use 'thisenv' to discover the value and who sent it.
-//   If 'pg' is null, pass sys_ipc_recv a value that it will understand
-//   as meaning "no page".  (Zero is not the right value, since that's
-//   a perfectly valid place to map a page.)
-int32_t
-ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)
-{
-    // LAB 4: Your code here.
-    int r;
-    if(pg == NULL){
-        pg = (void *)UTOP;
-    }
-    //cprintf("%x\n", (uint32_t)pg);
-
-    while(1){
-        r = sys_ipc_recv(pg);
-        if(r < 0){
-
-            if(from_env_store != NULL) *from_env_store = 0;
-            if(perm_store != NULL) *perm_store = 0;
-            //cprintf("error: %e\n", r);
-            return r;
-        }
-        if(thisenv->env_ipc_recving == false)break;
-    }
-
-    if(from_env_store != NULL){
-        *from_env_store = thisenv->env_ipc_from;
-    }
-
-    if(perm_store != NULL){
-        *perm_store = thisenv->env_ipc_perm;
-    }
-
-    return thisenv->env_ipc_value;
-    //panic("ipc_recv not implemented");
-    return 0;
-}
-
-// Send 'val' (and 'pg' with 'perm', if 'pg' is nonnull) to 'toenv'.
-// This function keeps trying until it succeeds.
-// It should panic() on any error other than -E_IPC_NOT_RECV.
-//
-// Hint:
-//   Use sys_yield() to be CPU-friendly.
-//   If 'pg' is null, pass sys_ipc_try_send a value that it will understand
-//   as meaning "no page".  (Zero is not the right value.)
-void
-ipc_send(envid_t to_env, uint32_t val, void *pg, int perm)
-{
-    // LAB 4: Your code here.
-    int r = 0;
-    if(pg == NULL){
-        pg = (void *)UTOP;
-    }
-    while(1){
-        r = sys_ipc_try_send(to_env, val, pg, perm);
-        if(r == 0){ 
-            break;
-        }
-        else if(r != -E_IPC_NOT_RECV){
-            panic("ipc_send: %e\n", r);
-        }
-        sys_yield();
-    }
-    //panic("ipc_send not implemented");
-}
-</code></pre>
-<h2 id="6-Question"><a href="#6-Question" class="headerlink" title="6 Question"></a>6 Question</h2><ol>
+<div class="sourceCode" id="cb18"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Receive a value via IPC and return it.</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co">// If 'pg' is nonnull, then any page sent by the sender will be mapped at</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co">//  that address.</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co">// If 'from_env_store' is nonnull, then store the IPC sender's envid in</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="co">//  *from_env_store.</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="co">// If 'perm_store' is nonnull, then store the IPC sender's page permission</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="co">//  in *perm_store (this is nonzero iff a page was successfully</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co">//  transferred to 'pg').</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="co">// If the system call fails, then store 0 in *fromenv and *perm (if</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="co">//  they're nonnull) and return the error.</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="co">// Otherwise, return the value sent by the sender</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="co">// Hint:</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="co">//   Use 'thisenv' to discover the value and who sent it.</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a><span class="co">//   If 'pg' is null, pass sys_ipc_recv a value that it will understand</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a><span class="co">//   as meaning "no page".  (Zero is not the right value, since that's</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a><span class="co">//   a perfectly valid place to map a page.)</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a><span class="dt">int32_t</span></span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>ipc_recv<span class="op">(</span>envid_t <span class="op">*</span>from_env_store<span class="op">,</span> <span class="dt">void</span> <span class="op">*</span>pg<span class="op">,</span> <span class="dt">int</span> <span class="op">*</span>perm_store<span class="op">)</span></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> r<span class="op">;</span></span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>pg <span class="op">==</span> NULL<span class="op">){</span></span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>        pg <span class="op">=</span> <span class="op">(</span><span class="dt">void</span> <span class="op">*)</span>UTOP<span class="op">;</span></span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">//cprintf("%x\n", (uint32_t)pg);</span></span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span><span class="op">(</span><span class="dv">1</span><span class="op">){</span></span>
+<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>        r <span class="op">=</span> sys_ipc_recv<span class="op">(</span>pg<span class="op">);</span></span>
+<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(</span>r <span class="op">&lt;</span> <span class="dv">0</span><span class="op">){</span></span>
+<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span><span class="op">(</span>from_env_store <span class="op">!=</span> NULL<span class="op">)</span> <span class="op">*</span>from_env_store <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span><span class="op">(</span>perm_store <span class="op">!=</span> NULL<span class="op">)</span> <span class="op">*</span>perm_store <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a>            <span class="co">//cprintf("error: %e\n", r);</span></span>
+<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> r<span class="op">;</span></span>
+<span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb18-37"><a href="#cb18-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(</span>thisenv<span class="op">-&gt;</span>env_ipc_recving <span class="op">==</span> false<span class="op">)</span><span class="cf">break</span><span class="op">;</span></span>
+<span id="cb18-38"><a href="#cb18-38" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb18-39"><a href="#cb18-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-40"><a href="#cb18-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>from_env_store <span class="op">!=</span> NULL<span class="op">){</span></span>
+<span id="cb18-41"><a href="#cb18-41" aria-hidden="true" tabindex="-1"></a>        <span class="op">*</span>from_env_store <span class="op">=</span> thisenv<span class="op">-&gt;</span>env_ipc_from<span class="op">;</span></span>
+<span id="cb18-42"><a href="#cb18-42" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb18-43"><a href="#cb18-43" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb18-44"><a href="#cb18-44" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>perm_store <span class="op">!=</span> NULL<span class="op">){</span></span>
+<span id="cb18-45"><a href="#cb18-45" aria-hidden="true" tabindex="-1"></a>        <span class="op">*</span>perm_store <span class="op">=</span> thisenv<span class="op">-&gt;</span>env_ipc_perm<span class="op">;</span></span>
+<span id="cb18-46"><a href="#cb18-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb18-47"><a href="#cb18-47" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb18-48"><a href="#cb18-48" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> thisenv<span class="op">-&gt;</span>env_ipc_value<span class="op">;</span></span>
+<span id="cb18-49"><a href="#cb18-49" aria-hidden="true" tabindex="-1"></a>    <span class="co">//panic("ipc_recv not implemented");</span></span>
+<span id="cb18-50"><a href="#cb18-50" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb18-51"><a href="#cb18-51" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb18-52"><a href="#cb18-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-53"><a href="#cb18-53" aria-hidden="true" tabindex="-1"></a><span class="co">// Send 'val' (and 'pg' with 'perm', if 'pg' is nonnull) to 'toenv'.</span></span>
+<span id="cb18-54"><a href="#cb18-54" aria-hidden="true" tabindex="-1"></a><span class="co">// This function keeps trying until it succeeds.</span></span>
+<span id="cb18-55"><a href="#cb18-55" aria-hidden="true" tabindex="-1"></a><span class="co">// It should panic() on any error other than -E_IPC_NOT_RECV.</span></span>
+<span id="cb18-56"><a href="#cb18-56" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb18-57"><a href="#cb18-57" aria-hidden="true" tabindex="-1"></a><span class="co">// Hint:</span></span>
+<span id="cb18-58"><a href="#cb18-58" aria-hidden="true" tabindex="-1"></a><span class="co">//   Use sys_yield() to be CPU-friendly.</span></span>
+<span id="cb18-59"><a href="#cb18-59" aria-hidden="true" tabindex="-1"></a><span class="co">//   If 'pg' is null, pass sys_ipc_try_send a value that it will understand</span></span>
+<span id="cb18-60"><a href="#cb18-60" aria-hidden="true" tabindex="-1"></a><span class="co">//   as meaning "no page".  (Zero is not the right value.)</span></span>
+<span id="cb18-61"><a href="#cb18-61" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb18-62"><a href="#cb18-62" aria-hidden="true" tabindex="-1"></a>ipc_send<span class="op">(</span>envid_t to_env<span class="op">,</span> <span class="dt">uint32_t</span> val<span class="op">,</span> <span class="dt">void</span> <span class="op">*</span>pg<span class="op">,</span> <span class="dt">int</span> perm<span class="op">)</span></span>
+<span id="cb18-63"><a href="#cb18-63" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb18-64"><a href="#cb18-64" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 4: Your code here.</span></span>
+<span id="cb18-65"><a href="#cb18-65" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> r <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb18-66"><a href="#cb18-66" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>pg <span class="op">==</span> NULL<span class="op">){</span></span>
+<span id="cb18-67"><a href="#cb18-67" aria-hidden="true" tabindex="-1"></a>        pg <span class="op">=</span> <span class="op">(</span><span class="dt">void</span> <span class="op">*)</span>UTOP<span class="op">;</span></span>
+<span id="cb18-68"><a href="#cb18-68" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb18-69"><a href="#cb18-69" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span><span class="op">(</span><span class="dv">1</span><span class="op">){</span></span>
+<span id="cb18-70"><a href="#cb18-70" aria-hidden="true" tabindex="-1"></a>        r <span class="op">=</span> sys_ipc_try_send<span class="op">(</span>to_env<span class="op">,</span> val<span class="op">,</span> pg<span class="op">,</span> perm<span class="op">);</span></span>
+<span id="cb18-71"><a href="#cb18-71" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(</span>r <span class="op">==</span> <span class="dv">0</span><span class="op">){</span> </span>
+<span id="cb18-72"><a href="#cb18-72" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb18-73"><a href="#cb18-73" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb18-74"><a href="#cb18-74" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> <span class="cf">if</span><span class="op">(</span>r <span class="op">!=</span> <span class="op">-</span>E_IPC_NOT_RECV<span class="op">){</span></span>
+<span id="cb18-75"><a href="#cb18-75" aria-hidden="true" tabindex="-1"></a>            panic<span class="op">(</span><span class="st">"ipc_send: %e</span><span class="sc">\n</span><span class="st">"</span><span class="op">,</span> r<span class="op">);</span></span>
+<span id="cb18-76"><a href="#cb18-76" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb18-77"><a href="#cb18-77" aria-hidden="true" tabindex="-1"></a>        sys_yield<span class="op">();</span></span>
+<span id="cb18-78"><a href="#cb18-78" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb18-79"><a href="#cb18-79" aria-hidden="true" tabindex="-1"></a>    <span class="co">//panic("ipc_send not implemented");</span></span>
+<span id="cb18-80"><a href="#cb18-80" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="question">6 Question</h2>
+<ol type="1">
 <li><p>question: Compare <code>kern/mpentry.S</code> side by side with <code>boot/boot.S</code>. Bearing in mind that <code>kern/mpentry.S</code> is compiled and linked to run above <code>KERNBASE</code> just like everything else in the kernel, what is the purpose of macro <code>MPBOOTPHYS</code>? Why is it necessary in <code>kern/mpentry.S</code> but not in <code>boot/boot.S</code>? In other words, what could go wrong if it were omitted in <code>kern/mpentry.S</code>?</p>
-<p>answer:  Below is the macro <code>MPBOOTPHYS</code>. As we know, the symbol <code>mpentry_start</code> is linked at the link address that is above <code>KERNBASE</code>, but when a <code>CPU</code> initially starts, it begins in real mode. The load address begins at <code>0x7000</code> (<code>MPENTRY_PADDR</code>), so the macro is designated for translate a link address to the corresponding load address, which allows the <code>CPU</code> can work well before turning on paging.</p>
-<pre class=" language-lang-c"><code class="language-lang-c">#define MPBOOTPHYS(s) ((s) - mpentry_start + MPENTRY_PADDR)
-</code></pre>
-</li>
+<p>answer: Below is the macro <code>MPBOOTPHYS</code>. As we know, the symbol <code>mpentry_start</code> is linked at the link address that is above <code>KERNBASE</code>, but when a <code>CPU</code> initially starts, it begins in real mode. The load address begins at <code>0x7000</code> (<code>MPENTRY_PADDR</code>), so the macro is designated for translate a link address to the corresponding load address, which allows the <code>CPU</code> can work well before turning on paging.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define MPBOOTPHYS(s) ((s) - mpentry_start + MPENTRY_PADDR)</span></span></code></pre></div></li>
 </ol>
-<h2 id="7-reference"><a href="#7-reference" class="headerlink" title="7 reference"></a>7 reference</h2><ol>
+<h2 id="reference">7 reference</h2>
+<ol type="1">
 <li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/ia32/MPspec.pdf">MultiProcessor Specification (mit.edu)</a></li>
-<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/628938/what-is-copy-on-write#:~:text=&quot;Copy on write&quot; means more or less what,is used to resolve concurrency sorts of problems.">optimization - What is copy-on-write? - Stack Overflow</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/628938/what-is-copy-on-write#:~:text=%22Copy%20on%20write%22%20means%20more%20or%20less%20what,is%20used%20to%20resolve%20concurrency%20sorts%20of%20problems.">optimization - What is copy-on-write? - Stack Overflow</a></li>
 <li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/labs/lab4/">Lab 4: Preemptive Multitasking (mit.edu)</a></li>
 </ol>
 
@@ -1472,7 +1454,7 @@ ipc_send(envid_t to_env, uint32_t val, void *pg, int perm)
 <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 <script>
     MathJax.Hub.Config({
-        tex2jax: {inlineMath: [['$', '$'], ['\(', '\)']]}
+        tex2jax: {inlineMath: [['$', '$'],['\\(', '\\)']]}
     });
 </script>
 

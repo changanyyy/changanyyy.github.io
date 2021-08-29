@@ -309,14 +309,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    4.3k
+                    5.9k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    27 分
+                    36 分
                 </div>
                 
 
@@ -331,288 +331,261 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="Lab3-note"><a href="#Lab3-note" class="headerlink" title="Lab3 note"></a>Lab3 note</h1><h2 id="1-Introduction"><a href="#1-Introduction" class="headerlink" title="1 Introduction"></a>1 Introduction</h2><p>I learned a lot in the two experiments conducted couple of days ago. Let’s look back at the previous labs. In the first lab, we were acquainted with the process of booting a computer. And in the next one, we learnt and completed a system supporting paging. On this occasion, we are supposed to complete a portion of system called processes switching. (Maybe it’s more accurate to call it environments switching?)</p>
+                <h1 id="lab3-note">Lab3 note</h1>
+<h2 id="introduction">1 Introduction</h2>
+<p>I learned a lot in the two experiments conducted couple of days ago. Let's look back at the previous labs. In the first lab, we were acquainted with the process of booting a computer. And in the next one, we learnt and completed a system supporting paging. On this occasion, we are supposed to complete a portion of system called processes switching. (Maybe it's more accurate to call it environments switching?)</p>
 <blockquote>
-<p>Note: in this lab, the terms environment and process are interchangeable - both refer to an abstraction that allows you to run a program. We introduce the term “environment” instead of the traditional term “process” in order to stress the point that JOS environments and UNIX processes provide different interfaces, and do not provide the semantics.</p>
+<p>Note: in this lab, the terms environment and process are interchangeable - both refer to an abstraction that allows you to run a program. We introduce the term "environment" instead of the traditional term "process" in order to stress the point that JOS environments and UNIX processes provide different interfaces, and do not provide the semantics.</p>
 </blockquote>
-<h2 id="2-Start-coding"><a href="#2-Start-coding" class="headerlink" title="2 Start coding"></a>2 Start coding</h2><h3 id="2-1-read-code"><a href="#2-1-read-code" class="headerlink" title="2-1 read code"></a>2-1 read code</h3><p>In this lab directory, there are much more additional source and header files. After having a quick view on these files, I have a rough idea about environments.</p>
+<h2 id="start-coding">2 Start coding</h2>
+<h3 id="read-code">2-1 read code</h3>
+<p>In this lab directory, there are much more additional source and header files. After having a quick view on these files, I have a rough idea about environments.</p>
 <p>In <code>inc/env.h</code>, we can see some basic structures sustaining the abstraction of environments switching:</p>
-<ol>
+<ol type="1">
 <li><p>we define a new variable type <code>envid_t</code>.</p>
-<pre class=" language-lang-c"><code class="language-lang-c">typedef int32_t envid_t;
-// An environment ID 'envid_t' has three parts:
-//
-// +1+---------------21-----------------+--------10--------+
-// |0|          Uniqueifier             |   Environment    |
-// | |                                  |      Index       |
-// +------------------------------------+------------------+
-//                                       \--- ENVX(eid) --/
-//
-// The environment index ENVX(eid) equals the environment's index in the
-// 'envs[]' array.  The uniqueifier distinguishes environments that were
-// created at different times, but share the same environment index.
-//
-// All real environments are greater than 0 (so the sign bit is zero).
-// envid_ts less than 0 signify errors.  The envid_t == 0 is special, and
-// stands for the current environment.
-</code></pre>
-</li>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="dt">int32_t</span> envid_t<span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">// An environment ID 'envid_t' has three parts:</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">// +1+---------------21-----------------+--------10--------+</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">// |0|          Uniqueifier             |   Environment    |</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">// | |                                  |      Index       |</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">// +------------------------------------+------------------+</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">//                                       \--- ENVX(eid) --/</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">// The environment index ENVX(eid) equals the environment's index in the</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">// 'envs[]' array.  The uniqueifier distinguishes environments that were</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">// created at different times, but share the same environment index.</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">// All real environments are greater than 0 (so the sign bit is zero).</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">// envid_ts less than 0 signify errors.  The envid_t == 0 is special, and</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">// stands for the current environment.</span></span></code></pre></div></li>
 <li><p>And we define the maximal number of environments that concurrently run.</p>
-<pre class=" language-lang-c"><code class="language-lang-c">#define LOG2NENV        10
-#define NENV            (1 << LOG2NENV)
-</code></pre>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define LOG2NENV     10</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define NENV         (1 &lt;&lt; LOG2NENV)</span></span></code></pre></div>
 <p>As seen above, <code>NENV</code> is <code>1024 (2^10)</code>.</p>
-<p>Additionally, we define a macro <code>#define ENVX(envid)        ((envid) &amp; (NENV - 1))</code>, the macro extract the <strong>INDEX</strong> portion of environment ID.</p>
-</li>
+<p>Additionally, we define a macro <code>#define ENVX(envid)     ((envid) &amp; (NENV - 1))</code>, the macro extract the <strong>INDEX</strong> portion of environment ID.</p></li>
 <li><p>the following is a enumeration structure representing values of environment status <code>env_status</code>.</p>
 <ul>
 <li><code>ENV_FREE</code>: It indicates that the environment structure variable is not in use. we can feel free to allocate it to a new environment.</li>
 <li><code>ENV_DYING</code>: The environment is dying, so we should free the structure variable in next dis-allocation.</li>
 <li><code>ENV_RUNNABLE</code>: The environment is queuing in the scheduling queue and ready to run.</li>
 <li><code>ENV_RUNNING</code>: It is the current environment.</li>
-<li><code>ENV_NOT_RUNNABLE</code>: It is in blocked status, so it can’t be scheduled.</li>
+<li><code>ENV_NOT_RUNNABLE</code>: It is in blocked status, so it can't be scheduled.</li>
 </ul>
-<pre class=" language-lang-c"><code class="language-lang-c">// Values of env_status in struct Env
-enum {
-    ENV_FREE = 0,
-    ENV_DYING,
-    ENV_RUNNABLE,
-    ENV_RUNNING,
-    ENV_NOT_RUNNABLE
-};
-</code></pre>
-</li>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Values of env_status in struct Env</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">enum</span> <span class="op">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a> ENV_FREE <span class="op">=</span> <span class="dv">0</span><span class="op">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a> ENV_DYING<span class="op">,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a> ENV_RUNNABLE<span class="op">,</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a> ENV_RUNNING<span class="op">,</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a> ENV_NOT_RUNNABLE</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div></li>
 <li><p>The enumeration <code>EnvType</code> represents the <code>env_type</code> member. This is used to distinguish special environments. For most environments,it is <code>ENV_TYPE_USER</code>. But more types in later labs.</p>
-<pre class=" language-lang-c"><code class="language-lang-c">// Special environment types
-enum EnvType {
-    ENV_TYPE_USER = 0,
-};
-</code></pre>
-</li>
-<li><p>The most important structure is coming! <code>Env</code> plays a role as <strong>Process Control Block</strong>. </p>
-<pre class=" language-lang-c"><code class="language-lang-c">struct Env {
-    struct Trapframe env_tf;    // Saved registers
-    struct Env *env_link;        // Next free Env
-    envid_t env_id;            // Unique environment identifier
-    envid_t env_parent_id;        // env_id of this env's parent
-    enum EnvType env_type;        // Indicates special system environments
-    unsigned env_status;        // Status of the environment
-    uint32_t env_runs;        // Number of times environment has run
-
-    // Address space
-    pde_t *env_pgdir;        // Kernel virtual address of page dir
-};
-</code></pre>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Special environment types</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">enum</span> EnvType <span class="op">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a> ENV_TYPE_USER <span class="op">=</span> <span class="dv">0</span><span class="op">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div></li>
+<li><p>The most important structure is coming! <code>Env</code> plays a role as <strong>Process Control Block</strong>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Env <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a> <span class="kw">struct</span> Trapframe env_tf<span class="op">;</span>    <span class="co">// Saved registers</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a> <span class="kw">struct</span> Env <span class="op">*</span>env_link<span class="op">;</span>       <span class="co">// Next free Env</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a> envid_t env_id<span class="op">;</span>         <span class="co">// Unique environment identifier</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a> envid_t env_parent_id<span class="op">;</span>      <span class="co">// env_id of this env's parent</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a> <span class="kw">enum</span> EnvType env_type<span class="op">;</span>      <span class="co">// Indicates special system environments</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a> <span class="dt">unsigned</span> env_status<span class="op">;</span>        <span class="co">// Status of the environment</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a> <span class="dt">uint32_t</span> env_runs<span class="op">;</span>      <span class="co">// Number of times environment has run</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a> <span class="co">// Address space</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a> pde_t <span class="op">*</span>env_pgdir<span class="op">;</span>       <span class="co">// Kernel virtual address of page dir</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
 <p>The structure has a couple of fields as above:</p>
-<ol>
+<ol type="1">
 <li><p>The first member is a structure named <code>Trapframe</code>. It holds the saved register values for the environment while it is not running.</p>
-<p><img src="/picture/trapframe.png" alt=""></p>
-</li>
-<li><p>The second is a pointer pointing to next free environment in the free environment list that we are going to use to allocate a new environment structure variable.</p>
-</li>
-<li><p><code>env_id</code>: I have explained it above. and <code>env_parent_id</code> is it’s parent’s <code>env_id</code>,for we will introduce the concept of <strong>father and son processes</strong>. All the relationships form a <strong>family tree</strong>. The kernel stores a value that uniquely identifiers the environment currently using <code>Env</code>. After a user environment terminates, the Kernel may re-allocate the same <code>Env</code> structure to a new environment that need a different <code>env_id</code> from the old one even though the new environment is re-using the same slot in the <code>env</code> array.</p>
-</li>
-<li><p><code>env_type</code> and <code>env_status</code>: I’ve introduced it above.</p>
-</li>
-<li><p><code>env_runs</code>: Numbers of times the environment has run.</p>
-</li>
-<li><p>The last member is <code>env_pgdir</code> which supports the virtual address memory space layout, just like <code>kern_pgdir</code>.</p>
-</li>
+<p><img src="/picture/trapframe.png"></p></li>
+<li><p>The second is a pointer pointing to next free environment in the free environment list that we are going to use to allocate a new environment structure variable.</p></li>
+<li><p><code>env_id</code>: I have explained it above. and <code>env_parent_id</code> is it's parent's <code>env_id</code>,for we will introduce the concept of <strong>father and son processes</strong>. All the relationships form a <strong>family tree</strong>. The kernel stores a value that uniquely identifiers the environment currently using <code>Env</code>. After a user environment terminates, the Kernel may re-allocate the same <code>Env</code> structure to a new environment that need a different <code>env_id</code> from the old one even though the new environment is re-using the same slot in the <code>env</code> array.</p></li>
+<li><p><code>env_type</code> and <code>env_status</code>: I've introduced it above.</p></li>
+<li><p><code>env_runs</code>: Numbers of times the environment has run.</p></li>
+<li><p>The last member is <code>env_pgdir</code> which supports the virtual address memory space layout, just like <code>kern_pgdir</code>.</p></li>
+</ol></li>
 </ol>
-</li>
-</ol>
-<p>Above, I introduced some basic structure. But how to transform them into entities? Let’s look at the source file <code>kern/env.c</code>. There are three entities that are reflected in the eyes.</p>
-<pre class=" language-lang-c"><code class="language-lang-c">struct Env *envs = NULL;        // All environments
-struct Env *curenv = NULL;        // The current env
-static struct Env *env_free_list;    // Free environment list
-</code></pre>
+<p>Above, I introduced some basic structure. But how to transform them into entities? Let's look at the source file <code>kern/env.c</code>. There are three entities that are reflected in the eyes.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Env <span class="op">*</span>envs <span class="op">=</span> NULL<span class="op">;</span>        <span class="co">// All environments</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Env <span class="op">*</span>curenv <span class="op">=</span> NULL<span class="op">;</span>      <span class="co">// The current env</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="kw">struct</span> Env <span class="op">*</span>env_free_list<span class="op">;</span>   <span class="co">// Free environment list</span></span></code></pre></div>
 <ul>
-<li><p><code>envs</code>: The <code>envs</code> pointer points to an array of <code>Env</code> structures representing all the environments in the system. The JOS Kernel will support a maximum of <code>NENV</code> simultaneously active environments.</p>
-</li>
-<li><p><code>curenv</code>: This is a pointer pointing to the running environment. It is initially set to <code>NULL</code>. We use the <code>curenv</code> symbol to keep track of the currently executing environment at any given time. During boot up, before the first environment is run, <code>curenv</code> is initially set to <code>NULL</code>.</p>
-</li>
+<li><p><code>envs</code>: The <code>envs</code> pointer points to an array of <code>Env</code> structures representing all the environments in the system. The JOS Kernel will support a maximum of <code>NENV</code> simultaneously active environments.</p></li>
+<li><p><code>curenv</code>: This is a pointer pointing to the running environment. It is initially set to <code>NULL</code>. We use the <code>curenv</code> symbol to keep track of the currently executing environment at any given time. During boot up, before the first environment is run, <code>curenv</code> is initially set to <code>NULL</code>.</p></li>
 <li><p><code>env_free_list</code>: This is the head pointer of free environment list , which point to the first environment structure variable that is ready to be assigned out.</p>
 <ul>
 <li><p>for example, if we wanna allocate a <code>env</code> for a new environment, we could do it like this: (basic for chain list)</p>
-<pre class=" language-lang-c"><code class="language-lang-c">e = env_free_list;
-env_free_list = env_free_list->env_link;
-</code></pre>
-</li>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>e <span class="op">=</span> env_free_list<span class="op">;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>env_free_list <span class="op">=</span> env_free_list<span class="op">-&gt;</span>env_link<span class="op">;</span></span></code></pre></div></li>
 <li><p>Additionally, if we want to recycle a <code>env</code>:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">e->env_free_list = env_free_list;
-env_free_list = e;
-</code></pre>
-</li>
-</ul>
-</li>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>e<span class="op">-&gt;</span>env_free_list <span class="op">=</span> env_free_list<span class="op">;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>env_free_list <span class="op">=</span> e<span class="op">;</span></span></code></pre></div></li>
+</ul></li>
 </ul>
 <p>As I said above, the include file <code>inc/env.h</code> contains basic definitions for user environments in JOS. Kernel uses the <code>Env</code> array to keep track of each user environment. In the followings, We will initially create just one environment, but later we should make the Kernel support multiple environments.</p>
 <p>We couples the concepts of thread and address space. The thread is defined primarily by the saved registers, and the address space is defined by the page directory and page tables pointed to by <code>env_pgdir</code>. In order to run an environment, Kernel should set up the CPU with both the saved registers and the appropriate address space.</p>
-<h3 id="2-2-Allocating-the-Environment-Array"><a href="#2-2-Allocating-the-Environment-Array" class="headerlink" title="2-2  Allocating the Environment Array"></a>2-2  Allocating the Environment Array</h3><p>Before using environment array, we should allocate space for it.</p>
+<h3 id="allocating-the-environment-array">2-2 Allocating the Environment Array</h3>
+<p>Before using environment array, we should allocate space for it.</p>
 <p>The work will be done in <code>mem_init</code>, which is intended for initializing memory space, opening paging mechanism, and layout for the virtual address space.</p>
 <p>Just like the <code>pages</code> array, we allocate space for <code>envs</code>:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">    //////////////////////////////////////////////////////////////////////
-    // Make 'envs' point to an array of size 'NENV' of 'struct Env'.
-    // LAB 3: Your code here.
-    envs = (struct Env *)boot_alloc(sizeof(struct Env) * NENV);
-</code></pre>
-<p>And as usual, next step is of course map the array at linear address <code>UENVS</code>. </p>
-<pre class=" language-lang-c"><code class="language-lang-c">
-    // LAB 3: Your code here.
-    boot_map_region(kern_pgdir, (uintptr_t)UENVS, PTSIZE, (physaddr_t)PADDR(envs), PTE_U | PTE_P);
-</code></pre>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>    <span class="co">//////////////////////////////////////////////////////////////////////</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Make 'envs' point to an array of size 'NENV' of 'struct Env'.</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 3: Your code here.</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    envs <span class="op">=</span> <span class="op">(</span><span class="kw">struct</span> Env <span class="op">*)</span>boot_alloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> Env<span class="op">)</span> <span class="op">*</span> NENV<span class="op">);</span></span></code></pre></div>
+<p>And as usual, next step is of course map the array at linear address <code>UENVS</code>.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 3: Your code here.</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    boot_map_region<span class="op">(</span>kern_pgdir<span class="op">,</span> <span class="op">(</span><span class="dt">uintptr_t</span><span class="op">)</span>UENVS<span class="op">,</span> PTSIZE<span class="op">,</span> <span class="op">(</span>physaddr_t<span class="op">)</span>PADDR<span class="op">(</span>envs<span class="op">),</span> PTE_U <span class="op">|</span> PTE_P<span class="op">);</span></span></code></pre></div>
 <p>To test whether my code is correct, <code>make qemu</code> and find that <code>check_kern_pgdir()</code> succeeds.</p>
-<h3 id="2-3-Make-the-Environment-Run"><a href="#2-3-Make-the-Environment-Run" class="headerlink" title="2-3 Make the Environment Run"></a>2-3 Make the Environment Run</h3><p>After allocating the space, we can use the <code>env</code> array to do anything. But we should get familiar with something, such as how we can load the binary image in the correct position. The guide says as below:</p>
+<h3 id="make-the-environment-run">2-3 Make the Environment Run</h3>
+<p>After allocating the space, we can use the <code>env</code> array to do anything. But we should get familiar with something, such as how we can load the binary image in the correct position. The guide says as below:</p>
 <blockquote>
-<p>The Lab 3 <code>GNUmakefile</code> generates a number of binary images in the <code>obj/user/</code> directory. If you look at <code>kern/Makefrag</code>, you will notice some magic that “links” these binaries directly into the kernel executable as if they were <code>.o</code> files. The <code>-b binary</code> option on the linker command line causes these files to be linked in as “raw” uninterpreted binary files rather than as regular <code>.o</code> files produced by the compiler. (As far as the linker is concerned, these files do not have to be ELF images at all - they could be anything, such as text files or pictures!) If you look at <code>obj/kern/kernel.sym</code> after building the kernel, you will notice that the linker has “magically” produced a number of funny symbols with obscure names like <code>_binary_obj_user_hello_start</code>, <code>_binary_obj_user_hello_end</code>, and <code>_binary_obj_user_hello_size</code>. The linker generates these symbol names by mangling the file names of the binary files; the symbols provide the regular kernel code with a way to reference the embedded binary files.</p>
+<p>The Lab 3 <code>GNUmakefile</code> generates a number of binary images in the <code>obj/user/</code> directory. If you look at <code>kern/Makefrag</code>, you will notice some magic that "links" these binaries directly into the kernel executable as if they were <code>.o</code> files. The <code>-b binary</code> option on the linker command line causes these files to be linked in as "raw" uninterpreted binary files rather than as regular <code>.o</code> files produced by the compiler. (As far as the linker is concerned, these files do not have to be ELF images at all - they could be anything, such as text files or pictures!) If you look at <code>obj/kern/kernel.sym</code> after building the kernel, you will notice that the linker has "magically" produced a number of funny symbols with obscure names like <code>_binary_obj_user_hello_start</code>, <code>_binary_obj_user_hello_end</code>, and <code>_binary_obj_user_hello_size</code>. The linker generates these symbol names by mangling the file names of the binary files; the symbols provide the regular kernel code with a way to reference the embedded binary files.</p>
 </blockquote>
-<p>Let’s have a look at <code>obj/kern/kernel.sym</code>, which lists all the symbols in the Kernel ELF file. So the user binary ELF files are integrated into the Kernel! So surprising! It indicates that we should read ELF files from Memory instead of disk hardware. We can operate it by <code>memcpy</code> or <code>memset</code>.</p>
-<p><img src="/picture/kernsym.png" alt=""></p>
+<p>Let's have a look at <code>obj/kern/kernel.sym</code>, which lists all the symbols in the Kernel ELF file. So the user binary ELF files are integrated into the Kernel! So surprising! It indicates that we should read ELF files from Memory instead of disk hardware. We can operate it by <code>memcpy</code> or <code>memset</code>.</p>
+<p><img src="/picture/kernsym.png"></p>
 <p>First, we fill the function <code>env_init</code>. It links up all the (free) nodes in <code>envs</code>.</p>
-<p>It’s usually done with the method of head interpolation. And according to the guide, the pointer <code>env_free_list</code> should point to <code>env[0]</code>. And don’t forget clear the <code>env_id</code>. </p>
-<pre class=" language-lang-c"><code class="language-lang-c">// Mark all environments in 'envs' as free, set their env_ids to 0,
-// and insert them into the env_free_list.
-// Make sure the environments are in the free list in the same order
-// they are in the envs array (i.e., so that the first call to
-// env_alloc() returns envs[0]).
-//
-void
-env_init(void)
-{
-    // Set up envs array
-    // LAB 3: Your code here.
-    env_free_list = NULL;
-    for(int i = NENV - 1; i >= 0; i--){
-        envs[i].env_status = ENV_FREE;
-        envs[i].env_id = 0;
-        envs[i].env_link = env_free_list;
-        env_free_list = &envs[i];
-    }
-
-    // Per-CPU part of the initialization
-    env_init_percpu();
-}
-</code></pre>
-<p>The function <code>env_setup_vm</code> is the second function we should fill in. It’s duty is to initialize the Kernel virtual memory layout for an environment pointed to by <code>e</code>.  The things it does is allocate a page directory, set <code>e-&gt;env_pgdir</code> accordingly, and initialize the Kernel portion of the new environment’s address space. In this stage, don’t map anything into the user portion.</p>
+<p>It's usually done with the method of head interpolation. And according to the guide, the pointer <code>env_free_list</code> should point to <code>env[0]</code>. And don't forget clear the <code>env_id</code>.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Mark all environments in 'envs' as free, set their env_ids to 0,</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">// and insert them into the env_free_list.</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Make sure the environments are in the free list in the same order</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">// they are in the envs array (i.e., so that the first call to</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co">// env_alloc() returns envs[0]).</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>env_init<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Set up envs array</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 3: Your code here.</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    env_free_list <span class="op">=</span> NULL<span class="op">;</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> NENV <span class="op">-</span> <span class="dv">1</span><span class="op">;</span> i <span class="op">&gt;=</span> <span class="dv">0</span><span class="op">;</span> i<span class="op">--){</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>        envs<span class="op">[</span>i<span class="op">].</span>env_status <span class="op">=</span> ENV_FREE<span class="op">;</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>        envs<span class="op">[</span>i<span class="op">].</span>env_id <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>        envs<span class="op">[</span>i<span class="op">].</span>env_link <span class="op">=</span> env_free_list<span class="op">;</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>        env_free_list <span class="op">=</span> <span class="op">&amp;</span>envs<span class="op">[</span>i<span class="op">];</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Per-CPU part of the initialization</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    env_init_percpu<span class="op">();</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The function <code>env_setup_vm</code> is the second function we should fill in. It's duty is to initialize the Kernel virtual memory layout for an environment pointed to by <code>e</code>. The things it does is allocate a page directory, set <code>e-&gt;env_pgdir</code> accordingly, and initialize the Kernel portion of the new environment's address space. In this stage, don't map anything into the user portion.</p>
 <p>I utilise an auxiliary function called <code>map_region</code> that has the same function as <code>boot_map_region</code>. There are four regions that we should deal with:</p>
-<ol>
+<ol type="1">
 <li><code>UPAGES</code>: the array keeping track of physical pages</li>
 <li><code>UENVS</code>: the array keeping track of active environments</li>
 <li><code>KSTACK</code>: kernel stack of JOS</li>
 <li><code>KERNBASE</code>: kernel data and code</li>
 </ol>
-<pre class=" language-lang-c"><code class="language-lang-c">static int
-env_setup_vm(struct Env *e)
-{
-    int i;
-    struct PageInfo *p = NULL;
-
-    // Allocate a page for the page directory
-    if (!(p = page_alloc(ALLOC_ZERO)))
-        return -E_NO_MEM;
-
-    // LAB 3: Your code here.
-    p->pp_ref++;
-    e->env_pgdir = KADDR(page2pa(p));
-    map_region(e->env_pgdir, (uintptr_t)UPAGES, PTSIZE, 
-        (physaddr_t)PADDR(pages), PTE_U | PTE_P);
-    map_region(e->env_pgdir, (uintptr_t)UENVS, PTSIZE, 
-        (physaddr_t)PADDR(envs), PTE_U | PTE_P);
-    map_region(e->env_pgdir, (uintptr_t)KSTACKTOP - KSTKSIZE, KSTKSIZE, 
-        (physaddr_t)PADDR(bootstack), PTE_W | PTE_P);
-    map_region(e->env_pgdir, (uintptr_t)KERNBASE, 0xffffffff - KERNBASE,
-        (physaddr_t)0, PTE_W | PTE_P);
-
-    // UVPT maps the env's own page table read-only.
-    // Permissions: kernel R, user R
-    e->env_pgdir[PDX(UVPT)] = PADDR(e->env_pgdir) | PTE_P | PTE_U;
-
-    return 0;
-}
-</code></pre>
-<p>The next function is <code>region_alloc</code>.  When the parameter <code>len</code> is 0 or a negative number, it’s the illegal state. Physical pages are supposed to simultaneously be mapped for <code>kern_pgdir</code> and <code>env_pgdir</code>. Another solution is <code>lcr3(e-&gt;pgdir[PDX(UVPT)])</code>, which reaches the same goal as my method.</p>
-<pre class=" language-lang-c"><code class="language-lang-c">// Allocate len bytes of physical memory for environment env,
-// and map it at virtual address va in the environment's address space.
-// Does not zero or otherwise initialize the mapped pages in any way.
-// Pages should be writable by user and kernel.
-// Panic if any allocation attempt fails.
-//
-static void
-region_alloc(struct Env *e, void *va, size_t len)
-{
-    // LAB 3: Your code here.
-    if(len == 0)return;
-    else if(len < 0)panic("region_alloc: len is a negtive num\n");
-
-    void *st = ROUNDDOWN(va, PGSIZE), *end = ROUNDUP(va + len, PGSIZE);
-    int pgn = (uint32_t)(end - st) / PGSIZE;
-    struct PageInfo *pg;
-
-    for(int i = 0; i < pgn; i++){
-        pg = page_alloc(~ALLOC_ZERO);
-        if(!pg)panic("region_alloc: alloc failed\n");
-        pg->pp_ref++;
-        page_insert(e->env_pgdir, pg, va, PTE_W | PTE_U | PTE_P);
-        page_insert(kern_pgdir, pg, va, PTE_W | PTE_U | PTE_P);
-        va += PGSIZE;
-    }
-}
-</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">int</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>env_setup_vm<span class="op">(</span><span class="kw">struct</span> Env <span class="op">*</span>e<span class="op">)</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> i<span class="op">;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> PageInfo <span class="op">*</span>p <span class="op">=</span> NULL<span class="op">;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Allocate a page for the page directory</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(!(</span>p <span class="op">=</span> page_alloc<span class="op">(</span>ALLOC_ZERO<span class="op">)))</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>E_NO_MEM<span class="op">;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 3: Your code here.</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    p<span class="op">-&gt;</span>pp_ref<span class="op">++;</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    e<span class="op">-&gt;</span>env_pgdir <span class="op">=</span> KADDR<span class="op">(</span>page2pa<span class="op">(</span>p<span class="op">));</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    map_region<span class="op">(</span>e<span class="op">-&gt;</span>env_pgdir<span class="op">,</span> <span class="op">(</span><span class="dt">uintptr_t</span><span class="op">)</span>UPAGES<span class="op">,</span> PTSIZE<span class="op">,</span> </span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>        <span class="op">(</span>physaddr_t<span class="op">)</span>PADDR<span class="op">(</span>pages<span class="op">),</span> PTE_U <span class="op">|</span> PTE_P<span class="op">);</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    map_region<span class="op">(</span>e<span class="op">-&gt;</span>env_pgdir<span class="op">,</span> <span class="op">(</span><span class="dt">uintptr_t</span><span class="op">)</span>UENVS<span class="op">,</span> PTSIZE<span class="op">,</span> </span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>        <span class="op">(</span>physaddr_t<span class="op">)</span>PADDR<span class="op">(</span>envs<span class="op">),</span> PTE_U <span class="op">|</span> PTE_P<span class="op">);</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    map_region<span class="op">(</span>e<span class="op">-&gt;</span>env_pgdir<span class="op">,</span> <span class="op">(</span><span class="dt">uintptr_t</span><span class="op">)</span>KSTACKTOP <span class="op">-</span> KSTKSIZE<span class="op">,</span> KSTKSIZE<span class="op">,</span> </span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        <span class="op">(</span>physaddr_t<span class="op">)</span>PADDR<span class="op">(</span>bootstack<span class="op">),</span> PTE_W <span class="op">|</span> PTE_P<span class="op">);</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    map_region<span class="op">(</span>e<span class="op">-&gt;</span>env_pgdir<span class="op">,</span> <span class="op">(</span><span class="dt">uintptr_t</span><span class="op">)</span>KERNBASE<span class="op">,</span> <span class="bn">0xffffffff</span> <span class="op">-</span> KERNBASE<span class="op">,</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>        <span class="op">(</span>physaddr_t<span class="op">)</span><span class="dv">0</span><span class="op">,</span> PTE_W <span class="op">|</span> PTE_P<span class="op">);</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">// UVPT maps the env's own page table read-only.</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Permissions: kernel R, user R</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>    e<span class="op">-&gt;</span>env_pgdir<span class="op">[</span>PDX<span class="op">(</span>UVPT<span class="op">)]</span> <span class="op">=</span> PADDR<span class="op">(</span>e<span class="op">-&gt;</span>env_pgdir<span class="op">)</span> <span class="op">|</span> PTE_P <span class="op">|</span> PTE_U<span class="op">;</span></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The next function is <code>region_alloc</code>. When the parameter <code>len</code> is 0 or a negative number, it's the illegal state. Physical pages are supposed to simultaneously be mapped for <code>kern_pgdir</code> and <code>env_pgdir</code>. Another solution is <code>lcr3(e-&gt;pgdir[PDX(UVPT)])</code>, which reaches the same goal as my method.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Allocate len bytes of physical memory for environment env,</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">// and map it at virtual address va in the environment's address space.</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Does not zero or otherwise initialize the mapped pages in any way.</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Pages should be writable by user and kernel.</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Panic if any allocation attempt fails.</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">void</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>region_alloc<span class="op">(</span><span class="kw">struct</span> Env <span class="op">*</span>e<span class="op">,</span> <span class="dt">void</span> <span class="op">*</span>va<span class="op">,</span> <span class="dt">size_t</span> len<span class="op">)</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 3: Your code here.</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>len <span class="op">==</span> <span class="dv">0</span><span class="op">)</span><span class="cf">return</span><span class="op">;</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="cf">if</span><span class="op">(</span>len <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span>panic<span class="op">(</span><span class="st">"region_alloc: len is a negtive num</span><span class="sc">\n</span><span class="st">"</span><span class="op">);</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="op">*</span>st <span class="op">=</span> ROUNDDOWN<span class="op">(</span>va<span class="op">,</span> PGSIZE<span class="op">),</span> <span class="op">*</span>end <span class="op">=</span> ROUNDUP<span class="op">(</span>va <span class="op">+</span> len<span class="op">,</span> PGSIZE<span class="op">);</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> pgn <span class="op">=</span> <span class="op">(</span><span class="dt">uint32_t</span><span class="op">)(</span>end <span class="op">-</span> st<span class="op">)</span> <span class="op">/</span> PGSIZE<span class="op">;</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> PageInfo <span class="op">*</span>pg<span class="op">;</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> pgn<span class="op">;</span> i<span class="op">++){</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>        pg <span class="op">=</span> page_alloc<span class="op">(~</span>ALLOC_ZERO<span class="op">);</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(!</span>pg<span class="op">)</span>panic<span class="op">(</span><span class="st">"region_alloc: alloc failed</span><span class="sc">\n</span><span class="st">"</span><span class="op">);</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>        pg<span class="op">-&gt;</span>pp_ref<span class="op">++;</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>        page_insert<span class="op">(</span>e<span class="op">-&gt;</span>env_pgdir<span class="op">,</span> pg<span class="op">,</span> va<span class="op">,</span> PTE_W <span class="op">|</span> PTE_U <span class="op">|</span> PTE_P<span class="op">);</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>        page_insert<span class="op">(</span>kern_pgdir<span class="op">,</span> pg<span class="op">,</span> va<span class="op">,</span> PTE_W <span class="op">|</span> PTE_U <span class="op">|</span> PTE_P<span class="op">);</span></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>        va <span class="op">+=</span> PGSIZE<span class="op">;</span></span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Having finished the previous functions, we come up with the function <code>load_icode</code>. It will load the code and data of user environment into the correct position. First, we define a variable named <code>elfhdr</code> whose type is <code>struct Elf</code> and another two variables named <code>ph</code> and <code>eph</code> pointing to the start and the end of the program header.</p>
 <p>The following code assigned ELF header to <code>elfhdr</code>, and testify that it is correct:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">    struct Elf *elfhdr;
-    elfhdr = (struct Elf *) binary;
-    if(elfhdr -> e_magic != ELF_MAGIC)panic("load_icode: elf header error\n");
-</code></pre>
+<div class="sourceCode" id="cb14"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> Elf <span class="op">*</span>elfhdr<span class="op">;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    elfhdr <span class="op">=</span> <span class="op">(</span><span class="kw">struct</span> Elf <span class="op">*)</span> binary<span class="op">;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>elfhdr <span class="op">-&gt;</span> e_magic <span class="op">!=</span> ELF_MAGIC<span class="op">)</span>panic<span class="op">(</span><span class="st">"load_icode: elf header error</span><span class="sc">\n</span><span class="st">"</span><span class="op">);</span></span></code></pre></div>
 <p>For further environment switching, we have to assign <code>e_entry</code> to <code>e-&gt;env_tf.tf_eip</code> so that once we switch to this environment, the register <code>eip</code> will point to the first instruction.</p>
 <p>Then, we load sections through loops:</p>
 <blockquote>
 <p>Attention!!!</p>
-<p>We should map corresponding regions before moving memory! And don’t forget to clear the memory between <code>filesz</code> and <code>memsz</code>.</p>
+<p>We should map corresponding regions before moving memory! And don't forget to clear the memory between <code>filesz</code> and <code>memsz</code>.</p>
 </blockquote>
-<pre class=" language-lang-c"><code class="language-lang-c">    for(; ph < eph; ph++){
-        //cprintf("%d",ph->p_type);
-        if(ph->p_type == ELF_PROG_LOAD){
-            region_alloc(e, (void *) ph->p_va, ph->p_memsz);
-            memcpy((void *) ph->p_va, binary + ph->p_offset, ph->p_memsz);
-            memset((void *) ph->p_va + ph->p_filesz, 0, ph->p_memsz - ph->p_filesz);
-
-        }
-</code></pre>
-<p>In the end, we map one page for the program’s initial stack at virtual address <code>USTACKTOP-PGSIZE</code>:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">    region_alloc(e, (void *) USTACKTOP - PGSIZE, PGSIZE);
-</code></pre>
+<div class="sourceCode" id="cb15"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span><span class="op">(;</span> ph <span class="op">&lt;</span> eph<span class="op">;</span> ph<span class="op">++){</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>        <span class="co">//cprintf("%d",ph-&gt;p_type);</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(</span>ph<span class="op">-&gt;</span>p_type <span class="op">==</span> ELF_PROG_LOAD<span class="op">){</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>            region_alloc<span class="op">(</span>e<span class="op">,</span> <span class="op">(</span><span class="dt">void</span> <span class="op">*)</span> ph<span class="op">-&gt;</span>p_va<span class="op">,</span> ph<span class="op">-&gt;</span>p_memsz<span class="op">);</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>            memcpy<span class="op">((</span><span class="dt">void</span> <span class="op">*)</span> ph<span class="op">-&gt;</span>p_va<span class="op">,</span> binary <span class="op">+</span> ph<span class="op">-&gt;</span>p_offset<span class="op">,</span> ph<span class="op">-&gt;</span>p_memsz<span class="op">);</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>            memset<span class="op">((</span><span class="dt">void</span> <span class="op">*)</span> ph<span class="op">-&gt;</span>p_va <span class="op">+</span> ph<span class="op">-&gt;</span>p_filesz<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> ph<span class="op">-&gt;</span>p_memsz <span class="op">-</span> ph<span class="op">-&gt;</span>p_filesz<span class="op">);</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span></code></pre></div>
+<p>In the end, we map one page for the program's initial stack at virtual address <code>USTACKTOP-PGSIZE</code>:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>    region_alloc<span class="op">(</span>e<span class="op">,</span> <span class="op">(</span><span class="dt">void</span> <span class="op">*)</span> USTACKTOP <span class="op">-</span> PGSIZE<span class="op">,</span> PGSIZE<span class="op">);</span></span></code></pre></div>
 <p>The remaining two functions will integrate above all functions. But they are not difficult.</p>
 <p>The first one is <code>env_create</code>:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">//
-// Allocates a new env with env_alloc, loads the named elf
-// binary into it with load_icode, and sets its env_type.
-// This function is ONLY called during kernel initialization,
-// before running the first user-mode environment.
-// The new env's parent ID is set to 0.
-//
-void
-env_create(uint8_t *binary, enum EnvType type)
-{
-    // LAB 3: Your code here.
-    struct Env *env_store = NULL;
-
-    //******a bug had confused me for a long time, it's because curenv is null!
-    //int r = env_alloc( env_store, curenv->env_id);
-
-    int r = env_alloc(&env_store, 0);
-
-    if(r){
-        panic("env_create: env alloc failed\n");
-    }
-    env_store->env_type = type;
-
-    load_icode(env_store, binary);
-}
-</code></pre>
+<div class="sourceCode" id="cb17"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Allocates a new env with env_alloc, loads the named elf</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">// binary into it with load_icode, and sets its env_type.</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co">// This function is ONLY called during kernel initialization,</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co">// before running the first user-mode environment.</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co">// The new env's parent ID is set to 0.</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>env_create<span class="op">(</span><span class="dt">uint8_t</span> <span class="op">*</span>binary<span class="op">,</span> <span class="kw">enum</span> EnvType type<span class="op">)</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 3: Your code here.</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> Env <span class="op">*</span>env_store <span class="op">=</span> NULL<span class="op">;</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">//******a bug had confused me for a long time, it's because curenv is null!</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">//int r = env_alloc( env_store, curenv-&gt;env_id);</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> r <span class="op">=</span> env_alloc<span class="op">(&amp;</span>env_store<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>r<span class="op">){</span></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>        panic<span class="op">(</span><span class="st">"env_create: env alloc failed</span><span class="sc">\n</span><span class="st">"</span><span class="op">);</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>    env_store<span class="op">-&gt;</span>env_type <span class="op">=</span> type<span class="op">;</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>    load_icode<span class="op">(</span>env_store<span class="op">,</span> binary<span class="op">);</span></span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>The second is <code>env_run</code>. There are two steps:</p>
 <p>Step1:</p>
-<ol>
+<ol type="1">
 <li>Set the current environment (if any) back to <code>ENV_RUNNABLE</code> if it is <code>ENV_RUNNING</code>.</li>
 <li>Set <code>curenv</code> to the new environment.</li>
 <li>Set its status to <code>ENV_RUNNING</code>.</li>
@@ -620,47 +593,49 @@ env_create(uint8_t *binary, enum EnvType type)
 <li>Use <code>lcr3()</code> to switch to its address space.</li>
 </ol>
 <p>Step2:</p>
-<ol>
-<li>Use <code>env_pop_tf()</code> to restore the environment’s registers and drop into user mode in the environment.</li>
+<ol type="1">
+<li>Use <code>env_pop_tf()</code> to restore the environment's registers and drop into user mode in the environment.</li>
 </ol>
-<pre class=" language-lang-c"><code class="language-lang-c">void
-env_run(struct Env *e)
-{
-    // LAB 3: Your code here.
-    if(curenv && curenv->env_status == ENV_RUNNING)curenv->env_status = ENV_RUNNABLE;
-    curenv = e;
-    curenv->env_status = ENV_RUNNING;
-    curenv->env_runs++;
-    lcr3(curenv->env_pgdir[PDX(UVPT)]);
-
-    env_pop_tf(&(curenv->env_tf));
-
-    panic("env_run not yet implemented");
-}
-</code></pre>
-<h2 id="3-Test-it"><a href="#3-Test-it" class="headerlink" title="3 Test it"></a>3 Test it</h2><p>After struggle with bugs for a while, I succeed so far. Below is the screenshot when I debug with <code>GDB</code>. It crashed at the instruction <code>int $0x30</code>, which we will complete corresponding codes.</p>
-<p><img src="/picture/sigtrap.png" alt=""></p>
-<h2 id="4-Set-IDT"><a href="#4-Set-IDT" class="headerlink" title="4  Set IDT"></a>4  Set IDT</h2><p>From now on, we should set interrupt descriptor table correct values. But before starting, we need review some assembly instructions such as <code>int</code> and <code>iret</code>.</p>
-<h3 id="4-1-INT-and-tss"><a href="#4-1-INT-and-tss" class="headerlink" title="4-1 INT and tss"></a>4-1 <code>INT</code> and <code>tss</code></h3><p>The <code>INT</code> instruction generates a call to the interrupt or exception handler specified with the destination operand. The destination operand specifies a vector from 0 to 255, encoded as an 8-bit unsigned intermediate value. Each vector provides an index to a gate descriptor in the IDT. The first 32 vector are reserved by intel for system use. Some of these vectors are used for internally generated exceptions.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>env_run<span class="op">(</span><span class="kw">struct</span> Env <span class="op">*</span>e<span class="op">)</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 3: Your code here.</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>curenv <span class="op">&amp;&amp;</span> curenv<span class="op">-&gt;</span>env_status <span class="op">==</span> ENV_RUNNING<span class="op">)</span>curenv<span class="op">-&gt;</span>env_status <span class="op">=</span> ENV_RUNNABLE<span class="op">;</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    curenv <span class="op">=</span> e<span class="op">;</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    curenv<span class="op">-&gt;</span>env_status <span class="op">=</span> ENV_RUNNING<span class="op">;</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    curenv<span class="op">-&gt;</span>env_runs<span class="op">++;</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    lcr3<span class="op">(</span>curenv<span class="op">-&gt;</span>env_pgdir<span class="op">[</span>PDX<span class="op">(</span>UVPT<span class="op">)]);</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    env_pop_tf<span class="op">(&amp;(</span>curenv<span class="op">-&gt;</span>env_tf<span class="op">));</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    panic<span class="op">(</span><span class="st">"env_run not yet implemented"</span><span class="op">);</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="test-it">3 Test it</h2>
+<p>After struggle with bugs for a while, I succeed so far. Below is the screenshot when I debug with <code>GDB</code>. It crashed at the instruction <code>int $0x30</code>, which we will complete corresponding codes.</p>
+<p><img src="/picture/sigtrap.png"></p>
+<h2 id="set-idt">4 Set IDT</h2>
+<p>From now on, we should set interrupt descriptor table correct values. But before starting, we need review some assembly instructions such as <code>int</code> and <code>iret</code>.</p>
+<h3 id="int-and-tss">4-1 <code>INT</code> and <code>tss</code></h3>
+<p>The <code>INT</code> instruction generates a call to the interrupt or exception handler specified with the destination operand. The destination operand specifies a vector from 0 to 255, encoded as an 8-bit unsigned intermediate value. Each vector provides an index to a gate descriptor in the IDT. The first 32 vector are reserved by intel for system use. Some of these vectors are used for internally generated exceptions.</p>
 <p>The <code>INT n</code> instruction is the general mnemonic for executing a software generated call to an interrupt handler. The <code>INTO</code> instruction is a special mnemonic for calling overflow exception, exception 4. The overflow interrupt checks the <code>OF</code> flag in the <code>EFLAGS</code> register and calls the overflow interrupt handler if the <code>OF</code> flag is set to 1.</p>
 <p>The <code>int 3</code>instruction uses a one-byte opcode(CC) and is intended for calling the debug exception handler with a breakpoint exception (#BP).</p>
 <p>From i386 Documents, we find what <code>INT</code> instruction exactly does in the mode that JOS is now in:</p>
-<pre class=" language-lang-pseudocode"><code class="language-lang-pseudocode">INTER-PRIVILEGE-LEVEL-INTERRUPT:
-    (* PE = 1, interrupt or trap gate, non-conforming code segment, DPL < CPL *)
+<pre class="pseudocode"><code>INTER-PRIVILEGE-LEVEL-INTERRUPT:
+    (* PE = 1, interrupt or trap gate, non-conforming code segment, DPL &lt; CPL *)
     IF (IA32_EFER.LMA = 0) (* Not IA-32e mode *)
         THEN
         (* Identify stack-segment selector for new privilege level in current TSS *)
             IF current TSS is 32-bit
                 THEN
                         TSSstackAddress ← (new code-segment DPL « 3) + 4;
-                        IF (TSSstackAddress + 5) > current TSS limit
+                        IF (TSSstackAddress + 5) &gt; current TSS limit
                             THEN #TS(error_code(current TSS selector,0,EXT)); FI;
                             (* idt operand to error_code is 0 because selector is used *)
                         NewSS ← 2 bytes loaded from (TSS base + TSSstackAddress + 4);
                         NewESP ← 4 bytes loaded from (TSS base + TSSstackAddress);
                 ELSE (* current TSS is 16-bit *)
                         TSSstackAddress ← (new code-segment DPL « 2) + 2
-                        IF (TSSstackAddress + 3) > current TSS limit
+                        IF (TSSstackAddress + 3) &gt; current TSS limit
                             THEN #TS(error_code(current TSS selector,0,EXT)); FI;
                             (* idt operand to error_code is 0 because selector is used *)
                         NewSS ← 2 bytes loaded from (TSS base + TSSstackAddress + 2);
@@ -679,35 +654,33 @@ env_run(struct Env *e)
                 (* idt operand to error_code is 0 because selector is used *)
             IF NewSS is not present
                 THEN #SS(error_code(NewSS,0,EXT)); FI;
-                (* idt operand to error_code is 0 because selector is used *)
-</code></pre>
-<p> First, the CPU will judge how many bits the TSS is, and we goes into this branch. Now, we come across a symbol called <code>TSSstackAddress</code> that represents the offset of <code>esp</code> in the TSS descriptor in this new privilege. And then the <code>ss</code> register is loaded from <code>(TSS base + TSSstackAddress + 4)</code>. The <code>esp</code> register is loaded from <code>(TSS base + TSSstackAddress)</code>. </p>
-<p>Now, we are get the idea What <code>TSS</code> is. The function <code>trap_init_percpu</code> in <code>kern/trap.c</code> is helpful for us. Firstly, JOS loads assigns <code>KSTACKTOP</code> and <code>ts_ss0</code> to <code>ts.ts_esp0</code> and <code>ts.ts_ss0</code>(privilege 0). And then load the <code>TSS</code> portion of <code>gdt</code> and load the TSS selector. That’s the initializing process.</p>
-<pre class=" language-lang-c"><code class="language-lang-c">// Initialize and load the per-CPU TSS and IDT
-void
-trap_init_percpu(void)
-{
-    // Setup a TSS so that we get the right stack
-    // when we trap to the kernel.
-    ts.ts_esp0 = KSTACKTOP;
-    ts.ts_ss0 = GD_KD;
-    ts.ts_iomb = sizeof(struct Taskstate);
-
-    // Initialize the TSS slot of the gdt.
-    gdt[GD_TSS0 >> 3] = SEG16(STS_T32A, (uint32_t) (&ts),
-                    sizeof(struct Taskstate) - 1, 0);
-    gdt[GD_TSS0 >> 3].sd_s = 0;
-
-    // Load the TSS selector (like other segment selectors, the
-    // bottom three bits are special; we leave them 0)
-    ltr(GD_TSS0);
-
-    // Load the IDT
-    lidt(&idt_pd);
-}
-</code></pre>
-<p>And then it’s about <code>CS:EIP</code>:</p>
-<pre class=" language-lang-pseudocode"><code class="language-lang-pseudocode"> IF IDT gate is 32-bit
+                (* idt operand to error_code is 0 because selector is used *)</code></pre>
+<p>First, the CPU will judge how many bits the TSS is, and we goes into this branch. Now, we come across a symbol called <code>TSSstackAddress</code> that represents the offset of <code>esp</code> in the TSS descriptor in this new privilege. And then the <code>ss</code> register is loaded from <code>(TSS base + TSSstackAddress + 4)</code>. The <code>esp</code> register is loaded from <code>(TSS base + TSSstackAddress)</code>.</p>
+<p>Now, we are get the idea What <code>TSS</code> is. The function <code>trap_init_percpu</code> in <code>kern/trap.c</code> is helpful for us. Firstly, JOS loads assigns <code>KSTACKTOP</code> and <code>ts_ss0</code> to <code>ts.ts_esp0</code> and <code>ts.ts_ss0</code>(privilege 0). And then load the <code>TSS</code> portion of <code>gdt</code> and load the TSS selector. That's the initializing process.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Initialize and load the per-CPU TSS and IDT</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>trap_init_percpu<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Setup a TSS so that we get the right stack</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// when we trap to the kernel.</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>    ts<span class="op">.</span>ts_esp0 <span class="op">=</span> KSTACKTOP<span class="op">;</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>    ts<span class="op">.</span>ts_ss0 <span class="op">=</span> GD_KD<span class="op">;</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    ts<span class="op">.</span>ts_iomb <span class="op">=</span> <span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> Taskstate<span class="op">);</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Initialize the TSS slot of the gdt.</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    gdt<span class="op">[</span>GD_TSS0 <span class="op">&gt;&gt;</span> <span class="dv">3</span><span class="op">]</span> <span class="op">=</span> SEG16<span class="op">(</span>STS_T32A<span class="op">,</span> <span class="op">(</span><span class="dt">uint32_t</span><span class="op">)</span> <span class="op">(&amp;</span>ts<span class="op">),</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>                    <span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> Taskstate<span class="op">)</span> <span class="op">-</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    gdt<span class="op">[</span>GD_TSS0 <span class="op">&gt;&gt;</span> <span class="dv">3</span><span class="op">].</span>sd_s <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Load the TSS selector (like other segment selectors, the</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">// bottom three bits are special; we leave them 0)</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>    ltr<span class="op">(</span>GD_TSS0<span class="op">);</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Load the IDT</span></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>    lidt<span class="op">(&amp;</span>idt_pd<span class="op">);</span></span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>And then it's about <code>CS:EIP</code>:</p>
+<pre class="pseudocode"><code> IF IDT gate is 32-bit
         THEN
             CS:EIP ← Gate(CS:EIP); (* Segment descriptor information also loaded *)
         ELSE
@@ -718,58 +691,56 @@ trap_init_percpu(void)
                 ELSE (* 64-bit IDT gate *)
                         CS:RIP ← Gate(CS:RIP);
                         (* Segment descriptor information also loaded *)
-            FI;
-</code></pre>
-<p>Lastly, hardware pushes <code>EFLAGS</code> and <code>errorcode</code>…</p>
-<pre class=" language-lang-pseudocode"><code class="language-lang-pseudocode">    IF IDT gate is 32-bit
+            FI;</code></pre>
+<p>Lastly, hardware pushes <code>EFLAGS</code> and <code>errorcode</code>...</p>
+<pre class="pseudocode"><code>    IF IDT gate is 32-bit
             THEN
                 Push(far pointer to old stack);
                 (* Old SS and ESP, 3 words padded to 4 *)
                 Push(EFLAGS);
                 Push(far pointer to return instruction);
                 (* Old CS and EIP, 3 words padded to 4 *)
-                Push(ErrorCode); (* If needed, 4 bytes *)
-</code></pre>
+                Push(ErrorCode); (* If needed, 4 bytes *)</code></pre>
 <p>As a summary, when the <code>INT n</code> instruction is executing, the below steps is followed.</p>
-<ol>
-<li>look up the <code>tr</code> register (<code>tr</code> is similar to <code>cs</code>, <code>ds</code>……) and find the correct entry in <code>gdt</code> according to the immediate number and the base address(looking up table by index!).</li>
+<ol type="1">
+<li>look up the <code>tr</code> register (<code>tr</code> is similar to <code>cs</code>, <code>ds</code>......) and find the correct entry in <code>gdt</code> according to the immediate number and the base address(looking up table by index!).</li>
 <li><code>gdt[GD_TSS0 &gt;&gt; 3]</code> has the base address of task statement segment through which we can access <code>TSS</code>.</li>
 <li>Load <code>esp0</code> and <code>ss0</code> into register <code>esp</code> and <code>ss</code>.</li>
 <li>push <code>EFLAGS</code>, <code>cs</code>, <code>eip</code>, <code>errorcode</code></li>
 <li>get new <code>cs</code>, <code>eip</code> from <code>IDT entry</code>.</li>
 </ol>
 <p>In contrast, conduct <code>iret</code> is the reverse process!</p>
-<h3 id="4-2-Coding"><a href="#4-2-Coding" class="headerlink" title="4-2 Coding"></a>4-2 Coding</h3><p>We should fill the assembly file <code>trapentry.S</code>. There are two macros named <code>TRAPHANDLER</code> and <code>TRAPHANDLER_NOEC</code>. The former is used to declare a code block connected with <code>IDT</code> entries with the <code>INT</code> instruction pushing <code>errorcode</code>, and the later will explicitly push <code>0</code> as <code>errorcode</code>!</p>
-<p>By looking up <a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_10.htm">80386 Programmer’s Reference Manual — Section 9.10 (mit.edu)</a>, we produce code below:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">TRAPHANDLER_NOEC(divide_entry, T_DIVIDE)
-TRAPHANDLER_NOEC(debug_entry, T_DEBUG)
-TRAPHANDLER(nmi_entry, T_NMI)
-TRAPHANDLER_NOEC(brkpt_entry, T_BRKPT)
-TRAPHANDLER_NOEC(oflow_entry, T_OFLOW)
-TRAPHANDLER_NOEC(bound_entry, T_BOUND)
-TRAPHANDLER_NOEC(illop_entry, T_ILLOP)
-TRAPHANDLER_NOEC(device_entry, T_DEVICE)
-TRAPHANDLER(dblflt_entry, T_DBLFLT)
-
-TRAPHANDLER(tss_entry, T_TSS)
-TRAPHANDLER(segnp_entry, T_SEGNP)
-TRAPHANDLER(stack_entry, T_STACK)
-TRAPHANDLER(gpflt_entry, T_GPFLT)
-TRAPHANDLER(pgflt_entry, T_PGFLT)
-
-TRAPHANDLER_NOEC(fperr_entry, T_FPERR)
-TRAPHANDLER_NOEC(align_entry, T_ALIGN)
-TRAPHANDLER_NOEC(mchk_entry, T_MCHK)
-TRAPHANDLER_NOEC(simderr_entry, T_SIMDERR)
-</code></pre>
-<p> All the code blocks will jump to procedure <code>_alltraps</code>, which should:</p>
-<ol>
+<h3 id="coding">4-2 Coding</h3>
+<p>We should fill the assembly file <code>trapentry.S</code>. There are two macros named <code>TRAPHANDLER</code> and <code>TRAPHANDLER_NOEC</code>. The former is used to declare a code block connected with <code>IDT</code> entries with the <code>INT</code> instruction pushing <code>errorcode</code>, and the later will explicitly push <code>0</code> as <code>errorcode</code>!</p>
+<p>By looking up <a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_10.htm">80386 Programmer's Reference Manual -- Section 9.10 (mit.edu)</a>, we produce code below:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>divide_entry<span class="op">,</span> T_DIVIDE<span class="op">)</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>debug_entry<span class="op">,</span> T_DEBUG<span class="op">)</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER<span class="op">(</span>nmi_entry<span class="op">,</span> T_NMI<span class="op">)</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>brkpt_entry<span class="op">,</span> T_BRKPT<span class="op">)</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>oflow_entry<span class="op">,</span> T_OFLOW<span class="op">)</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>bound_entry<span class="op">,</span> T_BOUND<span class="op">)</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>illop_entry<span class="op">,</span> T_ILLOP<span class="op">)</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>device_entry<span class="op">,</span> T_DEVICE<span class="op">)</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER<span class="op">(</span>dblflt_entry<span class="op">,</span> T_DBLFLT<span class="op">)</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER<span class="op">(</span>tss_entry<span class="op">,</span> T_TSS<span class="op">)</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER<span class="op">(</span>segnp_entry<span class="op">,</span> T_SEGNP<span class="op">)</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER<span class="op">(</span>stack_entry<span class="op">,</span> T_STACK<span class="op">)</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER<span class="op">(</span>gpflt_entry<span class="op">,</span> T_GPFLT<span class="op">)</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER<span class="op">(</span>pgflt_entry<span class="op">,</span> T_PGFLT<span class="op">)</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>fperr_entry<span class="op">,</span> T_FPERR<span class="op">)</span></span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>align_entry<span class="op">,</span> T_ALIGN<span class="op">)</span></span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>mchk_entry<span class="op">,</span> T_MCHK<span class="op">)</span></span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>TRAPHANDLER_NOEC<span class="op">(</span>simderr_entry<span class="op">,</span> T_SIMDERR<span class="op">)</span></span></code></pre></div>
+<p>All the code blocks will jump to procedure <code>_alltraps</code>, which should:</p>
+<ol type="1">
 <li>push values to make the stack look like a struct <code>Trapframe</code></li>
 <li>load <code>GD_KD</code> into <code>%ds</code> and <code>%es</code></li>
 <li><code>pushl %esp</code> to pass a pointer to the <code>Trapframe</code> as an argument to trap()</li>
 <li><code>call trap</code></li>
 </ol>
-<pre class=" language-lang-assembly"><code class="language-lang-assembly"> .global _alltraps
+<pre class="assembly"><code> .global _alltraps
 _alltraps:
     pushl %ds
     pushl %es
@@ -783,239 +754,254 @@ _alltraps:
     popl %es
     popl %ds
     addl $8, %esp
-    iret
-</code></pre>
-<p>Don’t forget initialize trap.</p>
-<pre class=" language-lang-c"><code class="language-lang-c">void
-trap_init(void)
-{
-    extern struct Segdesc gdt[];
-
-    // LAB 3: Your code here.
-    SETGATE(idt[T_DIVIDE],  0, GD_KT, divide_entry,     0);
-    SETGATE(idt[T_DEBUG],   0, GD_KT, debug_entry,      0);
-    SETGATE(idt[T_NMI],     0, GD_KT, nmi_entry,         0);
-    SETGATE(idt[T_BRKPT],   0, GD_KT, brkpt_entry,      0);
-    SETGATE(idt[T_OFLOW],   0, GD_KT, oflow_entry,       0);
-    SETGATE(idt[T_BOUND],   0, GD_KT, bound_entry,      0);
-    SETGATE(idt[T_ILLOP],   0, GD_KT, illop_entry,      0);
-    SETGATE(idt[T_DEVICE],  0, GD_KT, device_entry,     0);
-    SETGATE(idt[T_DBLFLT],  0, GD_KT, dblflt_entry,      0);
-
-    SETGATE(idt[T_TSS],     0, GD_KT, tss_entry,        0);
-    SETGATE(idt[T_SEGNP],   0, GD_KT, segnp_entry,      0);
-    SETGATE(idt[T_STACK],   0, GD_KT, stack_entry,      0);
-    SETGATE(idt[T_GPFLT],   0, GD_KT, gpflt_entry,      0);
-    SETGATE(idt[T_PGFLT],   0, GD_KT, pgflt_entry,      0);
-
-    SETGATE(idt[T_FPERR],   1, GD_KT, fperr_entry,      0);
-    SETGATE(idt[T_ALIGN],   1, GD_KT, align_entry,      0);
-    SETGATE(idt[T_MCHK],    1, GD_KT, mchk_entry,       0);
-    SETGATE(idt[T_SIMDERR], 1, GD_KT, simderr_entry,    0);
-
-    // Per-CPU setup 
-    trap_init_percpu();
-}
-</code></pre>
-<p>That’s all in part One.</p>
-<h3 id="4-3Test-part-One"><a href="#4-3Test-part-One" class="headerlink" title="4-3Test part One"></a>4-3Test part One</h3><p>Let’s <code>make grade</code>.</p>
-<p><img src="/picture/makegrade.png" alt=""></p>
-<h2 id="4-Episode"><a href="#4-Episode" class="headerlink" title="4 Episode"></a>4 Episode</h2><p>Let’s play an episode to take a relaxation (x) by recall the whole process how the JOS  running in. After <code>BIOS</code> initially boots up the machine, the control power is given to boot loader. </p>
-<h3 id="4-1-bootloader"><a href="#4-1-bootloader" class="headerlink" title="4-1 bootloader"></a>4-1 bootloader</h3><h4 id="4-1-1-boot-S"><a href="#4-1-1-boot-S" class="headerlink" title="4-1-1 boot.S"></a>4-1-1 <code>boot.S</code></h4><h5 id="4-1-1-1-disable-interrupt-and-set-segment-register"><a href="#4-1-1-1-disable-interrupt-and-set-segment-register" class="headerlink" title="4-1-1-1 disable interrupt and set segment register"></a>4-1-1-1 disable interrupt and set segment register</h5><p>The first instruction is <code>cli</code> in physical address <code>0x7c00</code>. (Because the bios boot the bootloader at <code>0x7c00</code>.) <code>cli</code> is used to disable interrupts and the subsequent <code>cld</code> is used for string operations increment. And then the <code>start</code> clear some important data segment registers, such as <code>ds</code>, <code>es</code>, <code>ss</code>.</p>
-<h5 id="4-1-1-2-enable-A20"><a href="#4-1-1-2-enable-A20" class="headerlink" title="4-1-1-2 enable A20"></a>4-1-1-2 enable A20</h5><p>Next, it enables <code>A20</code>. For backwards compatibility with the earliest PCs, physical address line 20 is tied low, so that addresses higher than <code>1MB</code> wrap around to zero by default. The code undoes this.</p>
-<h5 id="4-1-1-3-switch-to-protected-mode"><a href="#4-1-1-3-switch-to-protected-mode" class="headerlink" title="4-1-1-3 switch to protected mode"></a>4-1-1-3 switch to protected mode</h5><p>The code load <code>gdtr</code> using <code>lgtr</code>. We can see that there are two segments. One is the code segment whose base address is <code>0x0</code> and limit is <code>0xffffffff</code> with permission <code>Executable</code> and <code>readable</code>. Another is the data segment whose base address is also <code>0x0</code> and limit is <code>0xffffffff</code> as well ,but with permission <code>writable</code>.</p>
-<pre class=" language-lang-assembly"><code class="language-lang-assembly"># Bootstrap GDT
+    iret</code></pre>
+<p>Don't forget initialize trap.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>trap_init<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">extern</span> <span class="kw">struct</span> Segdesc gdt<span class="op">[];</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LAB 3: Your code here.</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_DIVIDE<span class="op">],</span>  <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> divide_entry<span class="op">,</span>     <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_DEBUG<span class="op">],</span>   <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> debug_entry<span class="op">,</span>      <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_NMI<span class="op">],</span>     <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> nmi_entry<span class="op">,</span>        <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_BRKPT<span class="op">],</span>   <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> brkpt_entry<span class="op">,</span>      <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_OFLOW<span class="op">],</span>   <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> oflow_entry<span class="op">,</span>      <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_BOUND<span class="op">],</span>   <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> bound_entry<span class="op">,</span>      <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_ILLOP<span class="op">],</span>   <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> illop_entry<span class="op">,</span>      <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_DEVICE<span class="op">],</span>  <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> device_entry<span class="op">,</span>     <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_DBLFLT<span class="op">],</span>  <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> dblflt_entry<span class="op">,</span>     <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_TSS<span class="op">],</span>     <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> tss_entry<span class="op">,</span>        <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_SEGNP<span class="op">],</span>   <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> segnp_entry<span class="op">,</span>      <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_STACK<span class="op">],</span>   <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> stack_entry<span class="op">,</span>      <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_GPFLT<span class="op">],</span>   <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> gpflt_entry<span class="op">,</span>      <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_PGFLT<span class="op">],</span>   <span class="dv">0</span><span class="op">,</span> GD_KT<span class="op">,</span> pgflt_entry<span class="op">,</span>      <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_FPERR<span class="op">],</span>   <span class="dv">1</span><span class="op">,</span> GD_KT<span class="op">,</span> fperr_entry<span class="op">,</span>      <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_ALIGN<span class="op">],</span>   <span class="dv">1</span><span class="op">,</span> GD_KT<span class="op">,</span> align_entry<span class="op">,</span>      <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_MCHK<span class="op">],</span>    <span class="dv">1</span><span class="op">,</span> GD_KT<span class="op">,</span> mchk_entry<span class="op">,</span>       <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>    SETGATE<span class="op">(</span>idt<span class="op">[</span>T_SIMDERR<span class="op">],</span> <span class="dv">1</span><span class="op">,</span> GD_KT<span class="op">,</span> simderr_entry<span class="op">,</span>    <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Per-CPU setup </span></span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>    trap_init_percpu<span class="op">();</span></span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>That's all in part One.</p>
+<h3 id="test-part-one">4-3Test part One</h3>
+<p>Let's <code>make grade</code>.</p>
+<p><img src="/picture/makegrade.png"></p>
+<h2 id="episode">4 Episode</h2>
+<p>Let's play an episode to take a relaxation (x) by recall the whole process how the JOS running in. After <code>BIOS</code> initially boots up the machine, the control power is given to boot loader.</p>
+<h3 id="bootloader">4-1 bootloader</h3>
+<h4 id="boot.s">4-1-1 <code>boot.S</code></h4>
+<h5 id="disable-interrupt-and-set-segment-register">4-1-1-1 disable interrupt and set segment register</h5>
+<p>The first instruction is <code>cli</code> in physical address <code>0x7c00</code>. (Because the bios boot the bootloader at <code>0x7c00</code>.) <code>cli</code> is used to disable interrupts and the subsequent <code>cld</code> is used for string operations increment. And then the <code>start</code> clear some important data segment registers, such as <code>ds</code>, <code>es</code>, <code>ss</code>.</p>
+<h5 id="enable-a20">4-1-1-2 enable A20</h5>
+<p>Next, it enables <code>A20</code>. For backwards compatibility with the earliest PCs, physical address line 20 is tied low, so that addresses higher than <code>1MB</code> wrap around to zero by default. The code undoes this.</p>
+<h5 id="switch-to-protected-mode">4-1-1-3 switch to protected mode</h5>
+<p>The code load <code>gdtr</code> using <code>lgtr</code>. We can see that there are two segments. One is the code segment whose base address is <code>0x0</code> and limit is <code>0xffffffff</code> with permission <code>Executable</code> and <code>readable</code>. Another is the data segment whose base address is also <code>0x0</code> and limit is <code>0xffffffff</code> as well ,but with permission <code>writable</code>.</p>
+<pre class="assembly"><code># Bootstrap GDT
 .p2align 2                                # force 4 byte alignment
 gdt:
-  SEG_NULL                # null seg
-  SEG(STA_X|STA_R, 0x0, 0xffffffff)    # code seg
-  SEG(STA_W, 0x0, 0xffffffff)            # data seg
+  SEG_NULL              # null seg
+  SEG(STA_X|STA_R, 0x0, 0xffffffff) # code seg
+  SEG(STA_W, 0x0, 0xffffffff)           # data seg
 
 gdtdesc:
   .word   0x17                            # sizeof(gdt) - 1
-  .long   gdt                             # address gdt
-</code></pre>
-<p>The following is to set <code>PE</code> bit of <code>CR0</code>. It means that the system switched from real to protected mode, using a bootstrap <code>GDT</code> and segment translation that makes virtual addresses identical to their physical addresses, so that the effective memory map does not change during the switch. And instruction’s address is the same as the one before switching. The <code>ljmp</code> loads <code>PROT_MODE_DSEG</code> to <code>cs</code> and jumps to the <code>protcseg</code> procedure.</p>
-<h5 id="4-1-1-4-Protcseg"><a href="#4-1-1-4-Protcseg" class="headerlink" title="4-1-1-4 Protcseg"></a>4-1-1-4 Protcseg</h5><p>It set <code>ds</code>, <code>es</code>, <code>fs</code>, <code>gs</code>, <code>ss</code> to <code>PROT_MODE_DSEG</code>. And then it makes <code>esp</code> point at <code>start</code>, which makes the space in front of <code>start</code> the temporary stack. And then call <code>bootmain</code> edited in <code>Clang</code>.</p>
-<h4 id="4-1-2-bootmain"><a href="#4-1-2-bootmain" class="headerlink" title="4-1-2 bootmain"></a>4-1-2 <code>bootmain</code></h4><p><code>bootmain</code> is used to load the <code>ELF</code> into the memory. And jump to the entry by a function pointer:</p>
-<pre><code>    ((void (*)(void)) (ELFHDR-&gt;e_entry))();
-</code></pre><h3 id="4-2-Kernel"><a href="#4-2-Kernel" class="headerlink" title="4-2 Kernel"></a>4-2 Kernel</h3><h4 id="4-2-1-entry-S"><a href="#4-2-1-entry-S" class="headerlink" title="4-2-1 entry.S"></a>4-2-1 <code>entry.S</code></h4><h5 id="4-2-1-1-entry"><a href="#4-2-1-1-entry" class="headerlink" title="4-2-1-1 entry"></a>4-2-1-1 entry</h5><p>By now, we haven’t set up virtual memory yet, so we’re running from the physical address the boot loader loaded the kernel at: <code>1MB</code>. However, the C code is linked to run at <code>KERNBASE + 1MB</code>. Hence, we set up a trivial page directory that translates virtual address <code>[KERNBASE, KERNBASE + 4MB)</code> to physical addresses <code>[0, 4MB)</code>. This 4MB region will be sufficient until we set up our read page table in <code>mem_init</code>.</p>
-<p>First, we load the physical address of <code>entry_pgdir</code> into <code>cr3</code>. <code>entry_pgdir</code> is defined in <code>entrypgdir.c</code>. And then turn on paging by set <code>PG</code> bit in <code>cr0</code>. Note that the subsequent two instructions’ virtual address is both in <code>[KERNBASE, KERNBASE + 4MB)</code> and <code>[0, 4MB)</code>, and we can look through <code>entrypgdir.c</code> for details. These two instructions make the low <code>eip</code> ( in<code>[0, 4MB)</code>) become in high address ( in <code>[KERNBASE, KERNBASE + 4MB)</code>), But they are both map into the same physical addresses.</p>
-<h5 id="4-2-1-2-relocated"><a href="#4-2-1-2-relocated" class="headerlink" title="4-2-1-2 relocated"></a>4-2-1-2 relocated</h5><p>The procedure clear the frame pointer register <code>ebp</code> first so that the monitor’s <code>backtrace</code> can work correctly. And then it set the stack pointer <code>esp</code>. The code below is the stack region.</p>
-<pre class=" language-lang-assembly"><code class="language-lang-assembly">.data
+  .long   gdt                             # address gdt</code></pre>
+<p>The following is to set <code>PE</code> bit of <code>CR0</code>. It means that the system switched from real to protected mode, using a bootstrap <code>GDT</code> and segment translation that makes virtual addresses identical to their physical addresses, so that the effective memory map does not change during the switch. And instruction's address is the same as the one before switching. The <code>ljmp</code> loads <code>PROT_MODE_DSEG</code> to <code>cs</code> and jumps to the <code>protcseg</code> procedure.</p>
+<h5 id="protcseg">4-1-1-4 Protcseg</h5>
+<p>It set <code>ds</code>, <code>es</code>, <code>fs</code>, <code>gs</code>, <code>ss</code> to <code>PROT_MODE_DSEG</code>. And then it makes <code>esp</code> point at <code>start</code>, which makes the space in front of <code>start</code> the temporary stack. And then call <code>bootmain</code> edited in <code>Clang</code>.</p>
+<h4 id="bootmain">4-1-2 <code>bootmain</code></h4>
+<p><code>bootmain</code> is used to load the <code>ELF</code> into the memory. And jump to the entry by a function pointer:</p>
+<pre><code>    ((void (*)(void)) (ELFHDR-&gt;e_entry))();</code></pre>
+<h3 id="kernel">4-2 Kernel</h3>
+<h4 id="entry.s">4-2-1 <code>entry.S</code></h4>
+<h5 id="entry">4-2-1-1 entry</h5>
+<p>By now, we haven't set up virtual memory yet, so we're running from the physical address the boot loader loaded the kernel at: <code>1MB</code>. However, the C code is linked to run at <code>KERNBASE + 1MB</code>. Hence, we set up a trivial page directory that translates virtual address <code>[KERNBASE, KERNBASE + 4MB)</code> to physical addresses <code>[0, 4MB)</code>. This 4MB region will be sufficient until we set up our read page table in <code>mem_init</code>.</p>
+<p>First, we load the physical address of <code>entry_pgdir</code> into <code>cr3</code>. <code>entry_pgdir</code> is defined in <code>entrypgdir.c</code>. And then turn on paging by set <code>PG</code> bit in <code>cr0</code>. Note that the subsequent two instructions' virtual address is both in <code>[KERNBASE, KERNBASE + 4MB)</code> and <code>[0, 4MB)</code>, and we can look through <code>entrypgdir.c</code> for details. These two instructions make the low <code>eip</code> ( in<code>[0, 4MB)</code>) become in high address ( in <code>[KERNBASE, KERNBASE + 4MB)</code>), But they are both map into the same physical addresses.</p>
+<h5 id="relocated">4-2-1-2 relocated</h5>
+<p>The procedure clear the frame pointer register <code>ebp</code> first so that the monitor's <code>backtrace</code> can work correctly. And then it set the stack pointer <code>esp</code>. The code below is the stack region.</p>
+<pre class="assembly"><code>.data
 ###################################################################
 # boot stack
 ###################################################################
-    .p2align    PGSHIFT        # force page alignment
-    .globl        bootstack
+    .p2align    PGSHIFT     # force page alignment
+    .globl      bootstack
 bootstack:
-    .space        KSTKSIZE
-    .globl        bootstacktop   
+    .space      KSTKSIZE
+    .globl      bootstacktop   
 bootstacktop:
 </code></pre>
 <p>Then, it jumps to <code>i386_init</code> in C code.</p>
-<h4 id="4-2-2-i386-init"><a href="#4-2-2-i386-init" class="headerlink" title="4-2-2 i386_init"></a>4-2-2 <code>i386_init</code></h4><p>The function is intended for do some initialization. First, clear the uninitialized global data (BSS) section of our program. This ensures that all static/global variables start out zero.</p>
-<h5 id="4-2-2-1"><a href="#4-2-2-1" class="headerlink" title="4-2-2-1"></a>4-2-2-1</h5><p>And then initialize the console by <code>cons_init</code>. All the functions are located in <code>console.c</code></p>
-<pre class=" language-lang-c"><code class="language-lang-c">// initialize the console devices
-void
-cons_init(void)
-{
-    cga_init();
-    kbd_init();
-    serial_init();
-
-    if (!serial_exists)
-        cprintf("Serial port does not exist!\n");
-}
-</code></pre>
-<h4 id="4-2-3-pmap-c"><a href="#4-2-3-pmap-c" class="headerlink" title="4-2-3 pmap.c"></a>4-2-3 <code>pmap.c</code></h4><p>After initialization of the console, <code>mem_init</code> should enter on the stage. Firstly, it use <code>i386_detect_memory</code> to get some basic information. And then allocate space for Kernel’s page directory, and map the virtual address space. Below is the memory layout:</p>
-<pre class=" language-lang-c"><code class="language-lang-c">/*
- * Virtual memory map:                                Permissions
- *                                                    kernel/user
- *
- *    4 Gig -------->  +------------------------------+
- *                     |                              | RW/--
- *                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *                     :              .               :
- *                     :              .               :
- *                     :              .               :
- *                     |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~| RW/--
- *                     |                              | RW/--
- *                     |   Remapped Physical Memory   | RW/--
- *                     |                              | RW/--
- *    KERNBASE, ---->  +------------------------------+ 0xf0000000      --+
- *    KSTACKTOP        |     CPU0's Kernel Stack      | RW/--  KSTKSIZE   |
- *                     | - - - - - - - - - - - - - - -|                   |
- *                     |      Invalid Memory (*)      | --/--  KSTKGAP    |
- *                     +------------------------------+                   |
- *                     |     CPU1's Kernel Stack      | RW/--  KSTKSIZE   |
- *                     | - - - - - - - - - - - - - - -|                 PTSIZE
- *                     |      Invalid Memory (*)      | --/--  KSTKGAP    |
- *                     +------------------------------+                   |
- *                     :              .               :                   |
- *                     :              .               :                   |
- *    MMIOLIM ------>  +------------------------------+ 0xefc00000      --+
- *                     |       Memory-mapped I/O      | RW/--  PTSIZE
- * ULIM, MMIOBASE -->  +------------------------------+ 0xef800000
- *                     |  Cur. Page Table (User R-)   | R-/R-  PTSIZE
- *    UVPT      ---->  +------------------------------+ 0xef400000
- *                     |          RO PAGES            | R-/R-  PTSIZE
- *    UPAGES    ---->  +------------------------------+ 0xef000000
- *                     |           RO ENVS            | R-/R-  PTSIZE
- * UTOP,UENVS ------>  +------------------------------+ 0xeec00000
- * UXSTACKTOP -/       |     User Exception Stack     | RW/RW  PGSIZE
- *                     +------------------------------+ 0xeebff000
- *                     |       Empty Memory (*)       | --/--  PGSIZE
- *    USTACKTOP  --->  +------------------------------+ 0xeebfe000
- *                     |      Normal User Stack       | RW/RW  PGSIZE
- *                     +------------------------------+ 0xeebfd000
- *                     |                              |
- *                     |                              |
- *                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *                     .                              .
- *                     .                              .
- *                     .                              .
- *                     |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
- *                     |     Program Data & Heap      |
- *    UTEXT -------->  +------------------------------+ 0x00800000
- *    PFTEMP ------->  |       Empty Memory (*)       |        PTSIZE
- *                     |                              |
- *    UTEMP -------->  +------------------------------+ 0x00400000      --+
- *                     |       Empty Memory (*)       |                   |
- *                     | - - - - - - - - - - - - - - -|                   |
- *                     |  User STAB Data (optional)   |                 PTSIZE
- *    USTABDATA ---->  +------------------------------+ 0x00200000        |
- *                     |       Empty Memory (*)       |                   |
- *    0 ------------>  +------------------------------+                 --+
- *
- * (*) Note: The kernel ensures that "Invalid Memory" is *never* mapped.
- *     "Empty Memory" is normally unmapped, but user programs may map pages
- *     there if desired.  JOS user programs map pages temporarily at UTEMP.
- */
-</code></pre>
-<p>We allocate space for the page array and the environment array. After allocating space for all the basic structures, we initialize the page array. the first page and pages between <code>IOPHYSMEM(0x000A0000)</code> and <code>EXTPHYSMEM(0x00100000)</code> are occupied and shouldn’t be replaced or allocated anymore.</p>
-<p><img src="/picture/layout.png" alt=""></p>
+<h4 id="i386_init">4-2-2 <code>i386_init</code></h4>
+<p>The function is intended for do some initialization. First, clear the uninitialized global data (BSS) section of our program. This ensures that all static/global variables start out zero.</p>
+<h5 id="section">4-2-2-1</h5>
+<p>And then initialize the console by <code>cons_init</code>. All the functions are located in <code>console.c</code></p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">// initialize the console devices</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>cons_init<span class="op">(</span><span class="dt">void</span><span class="op">)</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    cga_init<span class="op">();</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    kbd_init<span class="op">();</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    serial_init<span class="op">();</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(!</span>serial_exists<span class="op">)</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>        cprintf<span class="op">(</span><span class="st">"Serial port does not exist!</span><span class="sc">\n</span><span class="st">"</span><span class="op">);</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h4 id="pmap.c">4-2-3 <code>pmap.c</code></h4>
+<p>After initialization of the console, <code>mem_init</code> should enter on the stage. Firstly, it use <code>i386_detect_memory</code> to get some basic information. And then allocate space for Kernel's page directory, and map the virtual address space. Below is the memory layout:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co">/*</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * Virtual memory map:                                Permissions</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co"> *                                                    kernel/user</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *    4 Gig --------&gt;  +------------------------------+</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |                              | RW/--</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     :              .               :</span></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     :              .               :</span></span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     :              .               :</span></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~| RW/--</span></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |                              | RW/--</span></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |   Remapped Physical Memory   | RW/--</span></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |                              | RW/--</span></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a><span class="co"> *    KERNBASE, ----&gt;  +------------------------------+ 0xf0000000      --+</span></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a><span class="co"> *    KSTACKTOP        |     CPU0's Kernel Stack      | RW/--  KSTKSIZE   |</span></span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     | - - - - - - - - - - - - - - -|                   |</span></span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |      Invalid Memory (*)      | --/--  KSTKGAP    |</span></span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     +------------------------------+                   |</span></span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |     CPU1's Kernel Stack      | RW/--  KSTKSIZE   |</span></span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     | - - - - - - - - - - - - - - -|                 PTSIZE</span></span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |      Invalid Memory (*)      | --/--  KSTKGAP    |</span></span>
+<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     +------------------------------+                   |</span></span>
+<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     :              .               :                   |</span></span>
+<span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     :              .               :                   |</span></span>
+<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a><span class="co"> *    MMIOLIM ------&gt;  +------------------------------+ 0xefc00000      --+</span></span>
+<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |       Memory-mapped I/O      | RW/--  PTSIZE</span></span>
+<span id="cb30-28"><a href="#cb30-28" aria-hidden="true" tabindex="-1"></a><span class="co"> * ULIM, MMIOBASE --&gt;  +------------------------------+ 0xef800000</span></span>
+<span id="cb30-29"><a href="#cb30-29" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |  Cur. Page Table (User R-)   | R-/R-  PTSIZE</span></span>
+<span id="cb30-30"><a href="#cb30-30" aria-hidden="true" tabindex="-1"></a><span class="co"> *    UVPT      ----&gt;  +------------------------------+ 0xef400000</span></span>
+<span id="cb30-31"><a href="#cb30-31" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |          RO PAGES            | R-/R-  PTSIZE</span></span>
+<span id="cb30-32"><a href="#cb30-32" aria-hidden="true" tabindex="-1"></a><span class="co"> *    UPAGES    ----&gt;  +------------------------------+ 0xef000000</span></span>
+<span id="cb30-33"><a href="#cb30-33" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |           RO ENVS            | R-/R-  PTSIZE</span></span>
+<span id="cb30-34"><a href="#cb30-34" aria-hidden="true" tabindex="-1"></a><span class="co"> * UTOP,UENVS ------&gt;  +------------------------------+ 0xeec00000</span></span>
+<span id="cb30-35"><a href="#cb30-35" aria-hidden="true" tabindex="-1"></a><span class="co"> * UXSTACKTOP -/       |     User Exception Stack     | RW/RW  PGSIZE</span></span>
+<span id="cb30-36"><a href="#cb30-36" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     +------------------------------+ 0xeebff000</span></span>
+<span id="cb30-37"><a href="#cb30-37" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |       Empty Memory (*)       | --/--  PGSIZE</span></span>
+<span id="cb30-38"><a href="#cb30-38" aria-hidden="true" tabindex="-1"></a><span class="co"> *    USTACKTOP  ---&gt;  +------------------------------+ 0xeebfe000</span></span>
+<span id="cb30-39"><a href="#cb30-39" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |      Normal User Stack       | RW/RW  PGSIZE</span></span>
+<span id="cb30-40"><a href="#cb30-40" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     +------------------------------+ 0xeebfd000</span></span>
+<span id="cb30-41"><a href="#cb30-41" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |                              |</span></span>
+<span id="cb30-42"><a href="#cb30-42" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |                              |</span></span>
+<span id="cb30-43"><a href="#cb30-43" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></span>
+<span id="cb30-44"><a href="#cb30-44" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     .                              .</span></span>
+<span id="cb30-45"><a href="#cb30-45" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     .                              .</span></span>
+<span id="cb30-46"><a href="#cb30-46" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     .                              .</span></span>
+<span id="cb30-47"><a href="#cb30-47" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|</span></span>
+<span id="cb30-48"><a href="#cb30-48" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |     Program Data &amp; Heap      |</span></span>
+<span id="cb30-49"><a href="#cb30-49" aria-hidden="true" tabindex="-1"></a><span class="co"> *    UTEXT --------&gt;  +------------------------------+ 0x00800000</span></span>
+<span id="cb30-50"><a href="#cb30-50" aria-hidden="true" tabindex="-1"></a><span class="co"> *    PFTEMP -------&gt;  |       Empty Memory (*)       |        PTSIZE</span></span>
+<span id="cb30-51"><a href="#cb30-51" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |                              |</span></span>
+<span id="cb30-52"><a href="#cb30-52" aria-hidden="true" tabindex="-1"></a><span class="co"> *    UTEMP --------&gt;  +------------------------------+ 0x00400000      --+</span></span>
+<span id="cb30-53"><a href="#cb30-53" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |       Empty Memory (*)       |                   |</span></span>
+<span id="cb30-54"><a href="#cb30-54" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     | - - - - - - - - - - - - - - -|                   |</span></span>
+<span id="cb30-55"><a href="#cb30-55" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |  User STAB Data (optional)   |                 PTSIZE</span></span>
+<span id="cb30-56"><a href="#cb30-56" aria-hidden="true" tabindex="-1"></a><span class="co"> *    USTABDATA ----&gt;  +------------------------------+ 0x00200000        |</span></span>
+<span id="cb30-57"><a href="#cb30-57" aria-hidden="true" tabindex="-1"></a><span class="co"> *                     |       Empty Memory (*)       |                   |</span></span>
+<span id="cb30-58"><a href="#cb30-58" aria-hidden="true" tabindex="-1"></a><span class="co"> *    0 ------------&gt;  +------------------------------+                 --+</span></span>
+<span id="cb30-59"><a href="#cb30-59" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb30-60"><a href="#cb30-60" aria-hidden="true" tabindex="-1"></a><span class="co"> * (*) Note: The kernel ensures that "Invalid Memory" is *never* mapped.</span></span>
+<span id="cb30-61"><a href="#cb30-61" aria-hidden="true" tabindex="-1"></a><span class="co"> *     "Empty Memory" is normally unmapped, but user programs may map pages</span></span>
+<span id="cb30-62"><a href="#cb30-62" aria-hidden="true" tabindex="-1"></a><span class="co"> *     there if desired.  JOS user programs map pages temporarily at UTEMP.</span></span>
+<span id="cb30-63"><a href="#cb30-63" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span></code></pre></div>
+<p>We allocate space for the page array and the environment array. After allocating space for all the basic structures, we initialize the page array. the first page and pages between <code>IOPHYSMEM(0x000A0000)</code> and <code>EXTPHYSMEM(0x00100000)</code> are occupied and shouldn't be replaced or allocated anymore.</p>
+<p><img src="/picture/layout.png"></p>
 <p>After the initialization of physical pages, we should set up virtual memory：</p>
-<ol>
+<ol type="1">
 <li>Map <code>pages</code> read-only by the user at linear address <code>UPAGES</code></li>
 <li>Map the <code>envs</code> array read-only by the user at linear address <code>UENVS</code></li>
-<li>Use the physical memory that <code>bootstack</code> refers to as the kernel stack.  The kernel stack grows down from virtual address <code>KSTACKTOP</code>. We consider the entire range from <code>[KSTACKTOP-PTSIZE, KSTACKTOP)</code> to be the kernel stack.</li>
+<li>Use the physical memory that <code>bootstack</code> refers to as the kernel stack. The kernel stack grows down from virtual address <code>KSTACKTOP</code>. We consider the entire range from <code>[KSTACKTOP-PTSIZE, KSTACKTOP)</code> to be the kernel stack.</li>
 <li>Map all of physical memory at KERNBASE. The VA range <code>[KERNBASE, 2^32)</code> should map to the PA range <code>[0, 2^32 - KERNBASE)</code>. We might not have <code>2^32 - KERNBASE</code> bytes of physical memory, but we just set up the mapping anyway.</li>
 </ol>
 <p>Having mapped virtual memory, we switch from the minimal entry page directory to the full <code>kern_pgdir</code> page table we just created. Our instruction pointer should be somewhere between <code>KERNBASE</code> and <code>KERNBASE + 4MB</code> right now, which is mapped the same way by both page tables.</p>
-<pre class=" language-lang-c"><code class="language-lang-c">lcr3(PADDR(kern_pgdir));
-</code></pre>
+<div class="sourceCode" id="cb31"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>lcr3<span class="op">(</span>PADDR<span class="op">(</span>kern_pgdir<span class="op">));</span></span></code></pre></div>
 <p>And then turn on all the flags of <code>cr0</code> we need.</p>
 <p>Now,we finished the initialization of virtual memory layout.</p>
-<h4 id="4-2-4-env-init"><a href="#4-2-4-env-init" class="headerlink" title="4-2-4 env_init"></a>4-2-4 <code>env_init</code></h4><p>We set up the environment free list by a chain. And Load new <code>GDT</code> and segment descriptors using <code>env_init_percpu</code>. Read the comments if you want more details.</p>
-<pre class=" language-lang-c"><code class="language-lang-c">// Global descriptor table.
-//
-// Set up global descriptor table (GDT) with separate segments for
-// kernel mode and user mode.  Segments serve many purposes on the x86.
-// We don't use any of their memory-mapping capabilities, but we need
-// them to switch privilege levels. 
-//
-// The kernel and user segments are identical except for the DPL.
-// To load the SS register, the CPL must equal the DPL.  Thus,
-// we must duplicate the segments for the user and the kernel.
-//
-// In particular, the last argument to the SEG macro used in the
-// definition of gdt specifies the Descriptor Privilege Level (DPL)
-// of that descriptor: 0 for kernel and 3 for user.
-//
-struct Segdesc gdt[] =
-{
-    // 0x0 - unused (always faults -- for trapping NULL far pointers)
-    SEG_NULL,
-
-    // 0x8 - kernel code segment
-    [GD_KT >> 3] = SEG(STA_X | STA_R, 0x0, 0xffffffff, 0),
-
-    // 0x10 - kernel data segment
-    [GD_KD >> 3] = SEG(STA_W, 0x0, 0xffffffff, 0),
-
-    // 0x18 - user code segment
-    [GD_UT >> 3] = SEG(STA_X | STA_R, 0x0, 0xffffffff, 3),
-
-    // 0x20 - user data segment
-    [GD_UD >> 3] = SEG(STA_W, 0x0, 0xffffffff, 3),
-
-    // 0x28 - tss, initialized in trap_init_percpu()
-    [GD_TSS0 >> 3] = SEG_NULL
-};
-
-struct Pseudodesc gdt_pd = {
-    sizeof(gdt) - 1, (unsigned long) gdt
-};
-</code></pre>
-<h4 id="4-2-5-trap-init"><a href="#4-2-5-trap-init" class="headerlink" title="4-2-5 trap_init"></a>4-2-5 <code>trap_init</code></h4><p>we should now have the basic information we need in order to set up the IDT and handle exceptions in JOS. For now, we will set up the IDT to handle interrupt vectors <code>0-31</code> (the processor exceptions).</p>
-<p>Exceptions and interrupts are both “protected control transfers,” which cause the processor to switch from user to kernel mode (CPL=0) without giving the user-mode code any opportunity to interfere with the functioning of the kernel or other environments. In Intel’s terminology, an <em>interrupt</em> is a protected control transfer that is caused by an asynchronous event usually external to the processor, such as notification of external device I/O activity. An <em>exception</em>, in contrast, is a protected control transfer caused synchronously by the currently running code, for example due to a divide by zero or an invalid memory access.</p>
-<p>In order to ensure that these protected control transfers are actually <em>protected</em>, the processor’s interrupt/exception mechanism is designed so that the code currently running when the interrupt or exception occurs <em>does not get to choose arbitrarily where the kernel is entered or how</em>. Instead, the processor ensures that the kernel can be entered only under carefully controlled conditions. On the x86, two mechanisms work together to provide this protection:</p>
-<ol>
+<h4 id="env_init">4-2-4 <code>env_init</code></h4>
+<p>We set up the environment free list by a chain. And Load new <code>GDT</code> and segment descriptors using <code>env_init_percpu</code>. Read the comments if you want more details.</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Global descriptor table.</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Set up global descriptor table (GDT) with separate segments for</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co">// kernel mode and user mode.  Segments serve many purposes on the x86.</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="co">// We don't use any of their memory-mapping capabilities, but we need</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="co">// them to switch privilege levels. </span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="co">// The kernel and user segments are identical except for the DPL.</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="co">// To load the SS register, the CPL must equal the DPL.  Thus,</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="co">// we must duplicate the segments for the user and the kernel.</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a><span class="co">// In particular, the last argument to the SEG macro used in the</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="co">// definition of gdt specifies the Descriptor Privilege Level (DPL)</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a><span class="co">// of that descriptor: 0 for kernel and 3 for user.</span></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Segdesc gdt<span class="op">[]</span> <span class="op">=</span></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 0x0 - unused (always faults -- for trapping NULL far pointers)</span></span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>    SEG_NULL<span class="op">,</span></span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 0x8 - kernel code segment</span></span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">[</span>GD_KT <span class="op">&gt;&gt;</span> <span class="dv">3</span><span class="op">]</span> <span class="op">=</span> SEG<span class="op">(</span>STA_X <span class="op">|</span> STA_R<span class="op">,</span> <span class="bn">0x0</span><span class="op">,</span> <span class="bn">0xffffffff</span><span class="op">,</span> <span class="dv">0</span><span class="op">),</span></span>
+<span id="cb32-23"><a href="#cb32-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-24"><a href="#cb32-24" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 0x10 - kernel data segment</span></span>
+<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">[</span>GD_KD <span class="op">&gt;&gt;</span> <span class="dv">3</span><span class="op">]</span> <span class="op">=</span> SEG<span class="op">(</span>STA_W<span class="op">,</span> <span class="bn">0x0</span><span class="op">,</span> <span class="bn">0xffffffff</span><span class="op">,</span> <span class="dv">0</span><span class="op">),</span></span>
+<span id="cb32-26"><a href="#cb32-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-27"><a href="#cb32-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 0x18 - user code segment</span></span>
+<span id="cb32-28"><a href="#cb32-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">[</span>GD_UT <span class="op">&gt;&gt;</span> <span class="dv">3</span><span class="op">]</span> <span class="op">=</span> SEG<span class="op">(</span>STA_X <span class="op">|</span> STA_R<span class="op">,</span> <span class="bn">0x0</span><span class="op">,</span> <span class="bn">0xffffffff</span><span class="op">,</span> <span class="dv">3</span><span class="op">),</span></span>
+<span id="cb32-29"><a href="#cb32-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-30"><a href="#cb32-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 0x20 - user data segment</span></span>
+<span id="cb32-31"><a href="#cb32-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">[</span>GD_UD <span class="op">&gt;&gt;</span> <span class="dv">3</span><span class="op">]</span> <span class="op">=</span> SEG<span class="op">(</span>STA_W<span class="op">,</span> <span class="bn">0x0</span><span class="op">,</span> <span class="bn">0xffffffff</span><span class="op">,</span> <span class="dv">3</span><span class="op">),</span></span>
+<span id="cb32-32"><a href="#cb32-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-33"><a href="#cb32-33" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 0x28 - tss, initialized in trap_init_percpu()</span></span>
+<span id="cb32-34"><a href="#cb32-34" aria-hidden="true" tabindex="-1"></a>    <span class="op">[</span>GD_TSS0 <span class="op">&gt;&gt;</span> <span class="dv">3</span><span class="op">]</span> <span class="op">=</span> SEG_NULL</span>
+<span id="cb32-35"><a href="#cb32-35" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb32-36"><a href="#cb32-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-37"><a href="#cb32-37" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Pseudodesc gdt_pd <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb32-38"><a href="#cb32-38" aria-hidden="true" tabindex="-1"></a>    <span class="kw">sizeof</span><span class="op">(</span>gdt<span class="op">)</span> <span class="op">-</span> <span class="dv">1</span><span class="op">,</span> <span class="op">(</span><span class="dt">unsigned</span> <span class="dt">long</span><span class="op">)</span> gdt</span>
+<span id="cb32-39"><a href="#cb32-39" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<h4 id="trap_init">4-2-5 <code>trap_init</code></h4>
+<p>we should now have the basic information we need in order to set up the IDT and handle exceptions in JOS. For now, we will set up the IDT to handle interrupt vectors <code>0-31</code> (the processor exceptions).</p>
+<p>Exceptions and interrupts are both "protected control transfers," which cause the processor to switch from user to kernel mode (CPL=0) without giving the user-mode code any opportunity to interfere with the functioning of the kernel or other environments. In Intel's terminology, an <em>interrupt</em> is a protected control transfer that is caused by an asynchronous event usually external to the processor, such as notification of external device I/O activity. An <em>exception</em>, in contrast, is a protected control transfer caused synchronously by the currently running code, for example due to a divide by zero or an invalid memory access.</p>
+<p>In order to ensure that these protected control transfers are actually <em>protected</em>, the processor's interrupt/exception mechanism is designed so that the code currently running when the interrupt or exception occurs <em>does not get to choose arbitrarily where the kernel is entered or how</em>. Instead, the processor ensures that the kernel can be entered only under carefully controlled conditions. On the x86, two mechanisms work together to provide this protection:</p>
+<ol type="1">
 <li><p><strong>The Interrupt Descriptor Table.</strong> The processor ensures that interrupts and exceptions can only cause the kernel to be entered at a few specific, well-defined entry-points <em>determined by the kernel itself</em>, and not by the code running when the interrupt or exception is taken.</p>
-<p>The x86 allows up to 256 different interrupt or exception entry points into the kernel, each with a different <em>interrupt vector</em>. A vector is a number between 0 and 255. An interrupt’s vector is determined by the source of the interrupt: different devices, error conditions, and application requests to the kernel generate interrupts with different vectors. The CPU uses the vector as an index into the processor’s <em>interrupt descriptor table</em> (IDT), which the kernel sets up in kernel-private memory, much like the GDT. From the appropriate entry in this table the processor loads:</p>
+<p>The x86 allows up to 256 different interrupt or exception entry points into the kernel, each with a different <em>interrupt vector</em>. A vector is a number between 0 and 255. An interrupt's vector is determined by the source of the interrupt: different devices, error conditions, and application requests to the kernel generate interrupts with different vectors. The CPU uses the vector as an index into the processor's <em>interrupt descriptor table</em> (IDT), which the kernel sets up in kernel-private memory, much like the GDT. From the appropriate entry in this table the processor loads:</p>
 <ul>
 <li>the value to load into the instruction pointer (<code>EIP</code>) register, pointing to the kernel code designated to handle that type of exception.</li>
 <li>the value to load into the code segment (<code>CS</code>) register, which includes in bits 0-1 the privilege level at which the exception handler is to run. (In JOS, all exceptions are handled in kernel mode, privilege level 0.)</li>
-</ul>
-</li>
+</ul></li>
 <li><p><strong>The Task State Segment.</strong> The processor needs a place to save the <em>old</em> processor state before the interrupt or exception occurred, such as the original values of <code>EIP</code> and <code>CS</code> before the processor invoked the exception handler, so that the exception handler can later restore that old state and resume the interrupted code from where it left off. But this save area for the old processor state must in turn be protected from unprivileged user-mode code; otherwise buggy or malicious user code could compromise the kernel.</p>
-<p>For this reason, when an x86 processor takes an interrupt or trap that causes a privilege level change from user to kernel mode, it also switches to a stack in the kernel’s memory. A structure called the <em>task state segment</em> (TSS) specifies the segment selector and address where this stack lives. The processor pushes (on this new stack) <code>SS</code>, <code>ESP</code>, <code>EFLAGS</code>, <code>CS</code>, <code>EIP</code>, and an optional error code. Then it loads the <code>CS</code> and <code>EIP</code> from the interrupt descriptor, and sets the <code>ESP</code> and <code>SS</code> to refer to the new stack.</p>
-<p>Although the TSS is large and can potentially serve a variety of purposes, JOS only uses it to define the kernel stack that the processor should switch to when it transfers from user to kernel mode. Since “kernel mode” in JOS is privilege level 0 on the x86, the processor uses the <code>ESP0</code> and <code>SS0</code> fields of the TSS to define the kernel stack when entering kernel mode. JOS doesn’t use any other TSS fields.</p>
-</li>
+<p>For this reason, when an x86 processor takes an interrupt or trap that causes a privilege level change from user to kernel mode, it also switches to a stack in the kernel's memory. A structure called the <em>task state segment</em> (TSS) specifies the segment selector and address where this stack lives. The processor pushes (on this new stack) <code>SS</code>, <code>ESP</code>, <code>EFLAGS</code>, <code>CS</code>, <code>EIP</code>, and an optional error code. Then it loads the <code>CS</code> and <code>EIP</code> from the interrupt descriptor, and sets the <code>ESP</code> and <code>SS</code> to refer to the new stack.</p>
+<p>Although the TSS is large and can potentially serve a variety of purposes, JOS only uses it to define the kernel stack that the processor should switch to when it transfers from user to kernel mode. Since "kernel mode" in JOS is privilege level 0 on the x86, the processor uses the <code>ESP0</code> and <code>SS0</code> fields of the TSS to define the kernel stack when entering kernel mode. JOS doesn't use any other TSS fields.</p></li>
 </ol>
-<p>There is an example in the <a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/labs/lab3/#An-Example">lab guide</a>. And for more details, please refer to the <strong>reference 7</strong>. </p>
-<h4 id="4-2-6-Create-a-user-environment"><a href="#4-2-6-Create-a-user-environment" class="headerlink" title="4-2-6 Create a user environment"></a>4-2-6 <code>Create a user environment</code></h4><p>All preparatory work is done, so we can create a user environment. </p>
-<h5 id="4-2-6-1-a-macro"><a href="#4-2-6-1-a-macro" class="headerlink" title="4-2-6-1 a macro"></a>4-2-6-1 <code>a macro</code></h5><p>macro <code>ENV_CREATE(x, type)</code> is used for sticking the string together and call <code>env_create</code>. </p>
-<h5 id="4-2-6-2-env-create"><a href="#4-2-6-2-env-create" class="headerlink" title="4-2-6-2 env_create"></a>4-2-6-2 <code>env_create</code></h5><p>it allocates a <code>env</code> structure for the user environment first. And load its ELF file into the memory. (In fact, it move it from kernel text to another position.) </p>
-<h5 id="4-2-6-3-load-icode"><a href="#4-2-6-3-load-icode" class="headerlink" title="4-2-6-3 load_icode"></a>4-2-6-3 <code>load_icode</code></h5><p>Its duty is to move the loadable section to the correct location. The detail is in the code!</p>
-<h5 id="4-2-6-4-env-run"><a href="#4-2-6-4-env-run" class="headerlink" title="4-2-6-4 env_run"></a>4-2-6-4 <code>env_run</code></h5><p>It loads the page directory’s base address into <code>cr3</code>. And change the state of the environment. Then pop the registers and conduct <code>iret</code>.</p>
-<h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><ol>
-<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_10.htm">80386 Programmer’s Reference Manual — Section 9.10 (mit.edu)</a></li>
-<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_09.htm">80386 Programmer’s Reference Manual — Section 9.9 (mit.edu)</a></li>
+<p>There is an example in the <a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/labs/lab3/#An-Example">lab guide</a>. And for more details, please refer to the <strong>reference 7</strong>.</p>
+<h4 id="create-a-user-environment">4-2-6 <code>Create a user environment</code></h4>
+<p>All preparatory work is done, so we can create a user environment.</p>
+<h5 id="a-macro">4-2-6-1 <code>a macro</code></h5>
+<p>macro <code>ENV_CREATE(x, type)</code> is used for sticking the string together and call <code>env_create</code>.</p>
+<h5 id="env_create">4-2-6-2 <code>env_create</code></h5>
+<p>it allocates a <code>env</code> structure for the user environment first. And load its ELF file into the memory. (In fact, it move it from kernel text to another position.)</p>
+<h5 id="load_icode">4-2-6-3 <code>load_icode</code></h5>
+<p>Its duty is to move the loadable section to the correct location. The detail is in the code!</p>
+<h5 id="env_run">4-2-6-4 <code>env_run</code></h5>
+<p>It loads the page directory's base address into <code>cr3</code>. And change the state of the environment. Then pop the registers and conduct <code>iret</code>.</p>
+<h2 id="reference">reference</h2>
+<ol type="1">
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_10.htm">80386 Programmer's Reference Manual -- Section 9.10 (mit.edu)</a></li>
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_09.htm">80386 Programmer's Reference Manual -- Section 9.9 (mit.edu)</a></li>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/elv/article/details/4140532">实模式、保护模式、虚拟8086模式和IA-32e模式_elv的专栏-CSDN博客</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.felixcloutier.com/x86/intn:into:int3:int1">INT n/INTO/INT3/INT1 — Call to Interrupt Procedure (felixcloutier.com)</a></li>
-<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_06.htm">80386 Programmer’s Reference Manual — Section 9.6 (mit.edu)</a></li>
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2018/readings/i386/s09_06.htm">80386 Programmer's Reference Manual -- Section 9.6 (mit.edu)</a></li>
 <li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/3425085/the-difference-between-call-gate-interrupt-gate-trap-gate">x86 - The difference between Call Gate, Interrupt Gate, Trap Gate? - Stack Overflow</a></li>
 <li>《计算机系统基础》（第二版）（袁春风）</li>
 </ol>
@@ -1420,7 +1406,7 @@ struct Pseudodesc gdt_pd = {
 <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 <script>
     MathJax.Hub.Config({
-        tex2jax: {inlineMath: [['$', '$'], ['\(', '\)']]}
+        tex2jax: {inlineMath: [['$', '$'],['\\(', '\\)']]}
     });
 </script>
 
