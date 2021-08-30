@@ -370,12 +370,12 @@
 <h4 id="推导归约">推导，归约</h4>
 <p>定义2.</p>
 <ul>
-<li>给出文法 <code>G = ( V, T, P, S )</code>，我们定义两个字符串之间的一个关系“ <span class="math inline">\(\underset {G}{\Rightarrow}\)</span>”：若 <span class="math inline">\(α= α_1α_2α_3\)</span>, <span class="math inline">\(γ=α_1βα_3\)</span>, 并且 <span class="math inline">\(α_2→β\)</span>是P中的一个产生式，则有 α<span class="math inline">\(\underset {G}{\Rightarrow}\)</span>γ，此时称<strong>由α直接推导(derives)出γ</strong>。根据第一章关于集合上关系的闭包的 定义，我们也可把<span class="math inline">\(\underset {G}{\Rightarrow}\)</span>扩充为<span class="math inline">\(\overset { \* }{\underset {G}{\Rightarrow}}\)</span> ，将α<span class="math inline">\(\overset {\*}{\underset {G}{\Rightarrow}}\)</span>γ称为<strong>由α推导出γ</strong>。</li>
-<li>若有S<span class="math inline">\(\overset {\*}{\underset {G}{\Rightarrow}}\)</span> γ，则称γ为句型(sentential form)，当γ∈Ｔ＊ ， 则称γ为句子(sentence)。</li>
-<li>对应于推导，还有一个重要的概念，称为“归约 ”(reduce)。定义是：如果α<span class="math inline">\(\overset {\*}{\underset {G}{\Rightarrow}}\)</span>γ是由α到γ的推导，则 反过来称γ归约到α，记作γ<span class="math inline">\(\overset {\*}{\underset {G}{\Leftarrow}}\)</span>α。</li>
+<li>给出文法 <code>G = ( V, T, P, S )</code>，我们定义两个字符串之间的一个关系“ <span class="math inline">\(\underset {G}{\Rightarrow}\)</span>”：若 <span class="math inline">\(α= α_1α_2α_3\)</span>, <span class="math inline">\(γ=α_1βα_3\)</span>, 并且 <span class="math inline">\(α_2→β\)</span>是P中的一个产生式，则有 α<span class="math inline">\(\underset {G}{\Rightarrow}\)</span>γ，此时称<strong>由α直接推导(derives)出γ</strong>。根据第一章关于集合上关系的闭包的 定义，我们也可把<span class="math inline">\(\underset {G}{\Rightarrow}\)</span>扩充为<span class="math inline">\(\overset { * }{\underset {G}{\Rightarrow}}\)</span> ，将α<span class="math inline">\(\overset {*}{\underset {G}{\Rightarrow}}\)</span>γ称为<strong>由α推导出γ</strong>。</li>
+<li>若有S<span class="math inline">\(\overset {*}{\underset {G}{\Rightarrow}}\)</span> γ，则称γ为句型(sentential form)，当γ∈Ｔ＊ ， 则称γ为句子(sentence)。</li>
+<li>对应于推导，还有一个重要的概念，称为“归约 ”(reduce)。定义是：如果α<span class="math inline">\(\overset {*}{\underset {G}{\Rightarrow}}\)</span>γ是由α到γ的推导，则 反过来称γ归约到α，记作γ<span class="math inline">\(\overset {*}{\underset {G}{\Leftarrow}}\)</span>α。</li>
 </ul>
 <h4 id="什么是语言">什么是语言</h4>
-<p>定义3. 给出文法 <code>G=(V, T, P, S)</code>，它所产生的语言记作<code>L(G)</code>，由下述集合定义： L(G)={<span class="math inline">\(\omega\)</span>| <span class="math inline">\(S\overset {\*}{\underset {G}{\Rightarrow}}\omega\)</span>，并且 <span class="math inline">\(\omega ∈Ｔ^\*\)</span> }。 换句话说，文法G产生的语言<code>L(G)</code>，就是由G中开始符号S推导出来的全体终结符号串所构成的集合，也就 是<strong>句子的集合</strong></p>
+<p>定义3. 给出文法 <code>G=(V, T, P, S)</code>，它所产生的语言记作<code>L(G)</code>，由下述集合定义： L(G)={<span class="math inline">\(\omega\)</span>| <span class="math inline">\(S\overset {*}{\underset {G}{\Rightarrow}}\omega\)</span>，并且 <span class="math inline">\(\omega ∈Ｔ^*\)</span> }。 换句话说，文法G产生的语言<code>L(G)</code>，就是由G中开始符号S推导出来的全体终结符号串所构成的集合，也就 是<strong>句子的集合</strong></p>
 <h3 id="文法等价">文法等价</h3>
 <p>定义2.4 对于两个不同的文法<code>G1 ＝(V1 ，T1 ，P1 ， S1）</code>，<code>G2＝(V2，T2，P2，S2)</code>，如果<code>Ｌ(G1)＝Ｌ(G2)</code>，则称 文法<code>G1</code>与<code>G2</code>等价。</p>
 <h3 id="文法的乔姆斯基体系">文法的乔姆斯基体系</h3>

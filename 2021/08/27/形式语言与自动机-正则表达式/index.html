@@ -309,14 +309,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    2.4k
+                    4.6k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    11 分
+                    21 分
                 </div>
                 
 
@@ -440,7 +440,7 @@
 <li><span class="math inline">\(R = (R_1\circ R_2)\)</span>, with <span class="math inline">\(R_1\)</span> and <span class="math inline">\(R_2\)</span> regular expressions; denoting the languages <span class="math inline">\(L(R_1)L(R_2)\)</span>.</li>
 <li><span class="math inline">\(R = (R_1^*)\)</span>, with <span class="math inline">\(R_1\)</span> a regular expression; denoting the languages <span class="math inline">\(L(R1)^*\)</span>.</li>
 </ol>
-<h4 id="定理">1-2-1 定理</h4>
+<h4 id="fa和re等价">1-2-1 FA和RE等价</h4>
 <p>定理4. A language is regular <strong>if and only if</strong> some regular expression describes it.</p>
 <p>想要证明这个定理，我们需要从两个方向入手，</p>
 <h5 id="证明1">1-2-1-1 证明1</h5>
@@ -516,6 +516,37 @@ L(M)=\underset{q_f\in F}{\cup}R_{1f}^n
 <p>归纳基础：k=0。 <span class="math inline">\(R_{ij}^0\)</span> 是一个有穷集合，其中每个元素是 <span class="math inline">\(\Sigma\)</span> 中的符号或空串，因此 <span class="math inline">\(r_{ij}^0\)</span> 可以写成 <span class="math inline">\(a_1+a_2+...+a_p（i \ne j）\)</span> 或者 <span class="math inline">\(a_1+a_2+...+a_p+\epsilon(i=j)\)</span> 的形式。这里， <span class="math inline">\(\{a_1,a_2,...,a_p\}\)</span> 是让 <span class="math inline">\(\delta(q_i,a)=q_j\)</span> 的一切符号a的集合。</p>
 <p>归纳步骤：设对<span class="math inline">\(m&lt;k\)</span>的一切m，都已经求出正则表达式<span class="math inline">\(r_{ij}^m\)</span>代表<span class="math inline">\(R_{ij}^m\)</span>，现在考虑m=k。根据<span class="math inline">\(R_{ij}^k\)</span>递归定义，存在正则表达式<span class="math inline">\(R_{ij}^k=R_{ij}^{k-1}+R_{ik}^{k-1}(R_{kk}^{k-1})^*R_{kj}^{k-1},(k=1,2,...,n)\)</span>代表<span class="math inline">\(R_{ij}^k\)</span>。</p>
 <p>证毕。</p>
+<h4 id="fa和rg的等价性">1-2-2 FA和RG的等价性</h4>
+<h5 id="fa接受的语言是正则语言">1-2-2-1 FA接受的语言是正则语言</h5>
+<p>证明：根据FA M构造RG G。基本思想是让RG的派生与DFA的状态转移相对应。</p>
+<ol type="1">
+<li><p>设<span class="math inline">\(DFA\,M=(Q,\Sigma,\delta,q_0,F)\)</span>，取<strong>右线性</strong><span class="math inline">\(G=(Q,\Sigma,P,q_0)\)</span>，<span class="math inline">\(p=\{q\rightarrow qp|\delta(q,a)=p\}\cup \{q\rightarrow a|\delta(q,a)=p,p\in F\}\)</span></p></li>
+<li><p>证明<span class="math inline">\(L(G)=L(M)-\{\epsilon\}\)</span></p>
+<p>对于<span class="math inline">\(a_1a_2...a_{n-1}a_n\in \Sigma^+\)</span>，<span class="math inline">\(a_1a_2...a_{n-1}a_n\in L(G)\)</span></p>
+<p><span class="math inline">\(q_0\Rightarrow^+a_1a_2...a_n\)</span></p>
+<p><span class="math inline">\(\Leftrightarrow q_0\rightarrow a_1q_1,\,q_1\rightarrow a_2q_2,\,...\)</span></p>
+<p><span class="math inline">\(\Leftrightarrow \delta(q_0,a_1)=q_1,\delta(q_1,a_2)=q_2,...\)</span></p>
+<p><span class="math inline">\(\Leftrightarrow \delta(q_0,a_1a_2...a_n)=q_n\in F\)</span></p>
+<p><span class="math inline">\(\Leftrightarrow a_1a_2...a_n\in L(M)\)</span></p></li>
+<li><p>关于空字符串</p>
+<ul>
+<li>如果<span class="math inline">\(q_0\notin F\)</span>，那么<span class="math inline">\(\epsilon \notin L(M)\)</span>，<span class="math inline">\(L(G)=L(M)\)</span>。</li>
+<li>如果<span class="math inline">\(q_0\in F\)</span>，那么扩充G为G'，<span class="math inline">\(L(G')=L(G)\cup\{\epsilon\}=L(M)\)</span>。其中，G'比G增加一个开始符号S和两个产生式<span class="math inline">\(S\rightarrow q_0|\epsilon\)</span>。</li>
+</ul></li>
+<li><p>综上所述，对于任意DFA M，存在正则文法G，使得<span class="math inline">\(L(G)=L(M)\)</span>，定理得证。</p></li>
+</ol>
+<h5 id="正则语言可以由fa接受">1-2-2-2 正则语言可以由FA接受</h5>
+<p>证明：根据RG，构造FA。基本思想是让FA模拟RG的派生过程。</p>
+<ol type="1">
+<li><p>设<span class="math inline">\(G=(V,T,P,S)\)</span>，且<span class="math inline">\(\epsilon\notin L(G)\)</span>，取<span class="math inline">\(FA\,M(V\cup\{f\},T,\delta,S,\{f\}),f\notin V\)</span>。</p>
+<p>定义产生式如下</p>
+<p><span class="math inline">\(\delta(A,a) = \begin{cases} \{B|A\rightarrow aB\in P\}\cup\{f\}, &amp; if\, A\rightarrow a\in P \\ \{B|A\rightarrow aB\in P\}, &amp; if\,A\rightarrow a\notin P \end{cases}\)</span></p></li>
+<li><p>证明<span class="math inline">\(L(M)=L(G)\)</span></p>
+<p>对于<span class="math inline">\(a_1a_2...a_n\in T^+\)</span>，</p>
+<p><span class="math inline">\(a_1a_2...a_n\in L(G)\Leftrightarrow S\Rightarrow^+a_1a_2...a_n\)</span></p>
+<p><span class="math inline">\(\Leftrightarrow S\Rightarrow a_1A_1\Rightarrow a_1a_2A_2\Rightarrow...\)</span></p>
+<p><span class="math inline">\(\Leftrightarrow S\rightarrow a_1A_1,A1\rightarrow a_2A_2,...,A_{n-1}\rightarrow a_n\in P\)</span></p></li>
+</ol>
 <h2 id="正则表达式的代数定律">2 正则表达式的代数定律</h2>
 <h3 id="交换律和结合律">2-1 交换律和结合律</h3>
 <p>设L，M和N是正则表达式，则：</p>
@@ -559,8 +590,91 @@ L(M)=\underset{q_f\in F}{\cup}R_{1f}^n
 <li>查找文本中的模式</li>
 <li>......</li>
 </ol>
-<h2 id="知识补充">4 知识补充</h2>
-<h3 id="gnfa">4-1 GNFA</h3>
+<h2 id="正则表达式的泵引理">4 正则表达式的泵引理</h2>
+<p>泵引理运用了鸽巢原理，在知识补充模块。</p>
+<h3 id="property-of-regular-languages">4-1 Property of regular languages</h3>
+<p>L is a regular language <span class="math inline">\(\Rightarrow \exists DFA\,A:L(A)=L\)</span></p>
+<p>Let <span class="math inline">\(A=(Q,\Sigma,\delta,q_0,F)\)</span>, and <span class="math inline">\(n=|Q|\)</span></p>
+<p>Get <span class="math inline">\(w\in L\)</span>, and suppose <span class="math inline">\(w=a_1a_2...a_m,m\ge n\)</span></p>
+<p>Let <span class="math inline">\(q_i=\overset{-}{\delta}(q_0,a_1a_2...a_i)\)</span></p>
+<p>​ <span class="math inline">\(\Rightarrow\exists0&lt;i&lt;j\le n\)</span></p>
+<p>下面是泵引理的形象标识，用状态转移图。</p>
+<p><img src="/picture/beng.png"></p>
+<p><strong>Pumping lemma</strong>: For each regular language L, there is a pumping length <strong>p</strong>, such that for any string <span class="math inline">\(s\in L\)</span> and <span class="math inline">\(|s|\ge p\)</span>, we can write s=xyz with</p>
+<ol type="1">
+<li><span class="math inline">\(xy^iz\in L\)</span> for every <span class="math inline">\(i\in \{0,1,2,...\}\)</span></li>
+<li><span class="math inline">\(|y|&gt;0\)</span></li>
+<li><span class="math inline">\(|xy|\le p\)</span></li>
+</ol>
+<p>注意，上面有一些暗含的意思：</p>
+<ol type="1">
+<li>暗示<span class="math inline">\(xz\in L\)</span></li>
+<li>y不能是空串</li>
+<li>不是永远成立</li>
+</ol>
+<p>经得起泵测试是RL的必要条件（不是充分条件）</p>
+<p>证明一下：</p>
+<p>设<span class="math inline">\(p=|Q|=n\)</span>，<span class="math inline">\(s=a_1a_2...a_m\)</span>，其中<span class="math inline">\(m&gt;n\)</span>；<span class="math inline">\(q_f\)</span>是可接受状态。</p>
+<p>根据鸽笼原理，上面一定有两个状态相同：<span class="math inline">\(q_i = q_j\)</span>，其中<span class="math inline">\(0&lt;i&lt;j\le n\)</span></p>
+<h3 id="一个小例子">4-2 一个小例子</h3>
+<p><strong>证明一个语言不是正则的，可以证明它不满足泵引理。</strong></p>
+<p>题目：Prove <span class="math inline">\(B = \{0^n1^n | n\ge 0\}\)</span> is not regular.</p>
+<p>答：</p>
+<ol type="1">
+<li><p>Assume that B is regular （反证法）</p></li>
+<li><p>Let p be the pumping length, and <span class="math inline">\(s=0^p1^p\in B\)</span>，</p>
+<p><span class="math inline">\(s = xyz = 0^p1^p\)</span>, with <span class="math inline">\(xy^iz\in B\)</span> for all <span class="math inline">\(i\ge 0\)</span>. Three options for y:</p>
+<ol type="1">
+<li><span class="math inline">\(y=0^k\)</span>, hence <span class="math inline">\(xyyz=0^{p+k}1^p\notin B\)</span></li>
+<li><span class="math inline">\(y=1^k\)</span>, hence <span class="math inline">\(xyyz=0^p1^{k+p}\)</span></li>
+<li><span class="math inline">\(y=0^k1^l\)</span>, hence <span class="math inline">\(xyyz=0^p1^l0^k\)</span></li>
+</ol></li>
+<li><p>Conclusion: The pumping result does not hold, the language B is not regular.</p></li>
+</ol>
+<h2 id="正则语言的封闭性">5 正则语言的封闭性</h2>
+<p>定义. 如果属于某个语言类的任何语言在某个特定运算下 所得的结果仍然属于该语言类,则称该语言类对这个运算是封 闭的，并称该语言类对这个运算具有<strong>封闭性</strong>。</p>
+<ul>
+<li>两个正则语言的并是正则语言。</li>
+<li>两个正则语言的连接是正则语言。</li>
+<li>正则语言的闭包是正则语言。</li>
+<li>两个正则语言的交是正则语言。</li>
+<li>正则语言（对全集）的补是正则语言。</li>
+<li>两个正则语言的差是正则语言。</li>
+<li>正则语言的逆转是正则语言。</li>
+<li>正则语言的同态是正则语言。</li>
+<li>正则语言的逆同态是正则语言。</li>
+</ul>
+<h2 id="正则语言的可判定性">6 正则语言的可判定性</h2>
+<p>定理1. 设<span class="math inline">\(DFA\,M=(Q,\Sigma,\delta,q_0,F)\)</span>，<span class="math inline">\(L=L(M)\)</span>非空的充要条件是：存在<span class="math inline">\(x\in \Sigma^*\)</span>，<span class="math inline">\(|x|&lt;|Q|\)</span>，<span class="math inline">\(\delta(q_0,x)\in F\)</span>。</p>
+<p>定理2. 设<span class="math inline">\(DFA\,M=(Q,\Sigma,\delta,q_0,F)\)</span>，<span class="math inline">\(L=L(M)\)</span>为无穷的充要条件是：存在<span class="math inline">\(x\in \Sigma^*\)</span>，<span class="math inline">\(|Q|\le|x|&lt;2|Q|\)</span>，<span class="math inline">\(\delta(q_0,x)\in F\)</span>。</p>
+<p>定理3. 设<span class="math inline">\(DFA\,M_1=(Q_1,\Sigma,\delta_1,q_{01},F_1)\)</span>，<span class="math inline">\(DFA\,M_2=(Q_2,\Sigma,\delta_2,q_{02},F_2)\)</span>，那么存在判定<span class="math inline">\(M_1\)</span>与<span class="math inline">\(M_2\)</span>是否等价的算法</p>
+<p>定理4. 设L是字母表上的RL，对于任意的<span class="math inline">\(x\in \Sigma^*\)</span>，存在判定x是不是L的句子的算法。</p>
+<h2 id="自动机等价性和最小化">7 自动机等价性和最小化</h2>
+<p>对于一些状态比较多的自动机，我们可能会出现冗余状态，这时就会出现化简的问题。但是一旦自动机比较复杂的话，就很难用肉眼来进行化简，所以我们需要用形式化的方法来确定一个化简算法。</p>
+<p>定义. 能引导FA从开始状态<span class="math inline">\(q_0\)</span>到达状态q的字符串集合为：</p>
+<p>​ <span class="math inline">\(set(q)=\{x|x\in \Sigma^*,\delta(q_0,x)=q\}\)</span></p>
+<p>定义. DFA M确定的<span class="math inline">\(\Sigma^*\)</span>上的等价关系<span class="math inline">\(R_M\)</span>，<span class="math inline">\(M=(Q,\Sigma,\delta,q_0,F)\)</span>，对于<span class="math inline">\(\forall x,y\in \Sigma^*\)</span>，<span class="math inline">\(xR_My\Leftrightarrow\delta(q_0,x)=\delta(q_0,y)\)</span>，显然，<span class="math inline">\(xR_My\Leftrightarrow \exists q\in Q,xy\in set(q)\)</span>（根据上面定义得到）。</p>
+<p>两个字符串等价的直观含义就是：从初始状态<span class="math inline">\(q_0\)</span>出发，x和y都能把自动机M引导到相同的状态q，<span class="math inline">\(q\in Q\)</span>。</p>
+<p>定义. 语言L确定的<span class="math inline">\(\Sigma^*\)</span>上的关系<span class="math inline">\(R_L\)</span>，对于<span class="math inline">\(\forall x,y\in\Sigma^*\)</span>，<span class="math inline">\(xR_Ly\Leftrightarrow\)</span>(对<span class="math inline">\(\forall z\in\Sigma^*,xz\in L\Leftrightarrow yz\in L\)</span>)。也就是说对于的<span class="math inline">\(xR_Ly\)</span>，在x和y后面无论接字符串表中的任何串z，xz和yz要么都是L的句子，要么都不是L的句子。（L不一定是正则的）</p>
+<p>我们可以易得，满足<span class="math inline">\(R_M\)</span>就一定满足<span class="math inline">\(R_L\)</span>。</p>
+<p>定义. 右不变（right invariant）等价关系。设R是<span class="math inline">\(\Sigma^*\)</span>上的等价关系，对于<span class="math inline">\(\forall x,y\in\Sigma^*\)</span>，如果<span class="math inline">\(xRy\)</span>，那么必有<span class="math inline">\(xzRyz\)</span>，对于<span class="math inline">\(\forall z\in\Sigma^*\)</span>成立，那么称R是右不变的等价关系。（这里的R不一定是<span class="math inline">\(R_M\)</span>也不一定是<span class="math inline">\(R_L\)</span>）。</p>
+<p>定义. 关系R的指数——设R是<span class="math inline">\(\Sigma^*\)</span>上的等价关系，则称<span class="math inline">\(|\Sigma^*/R|\)</span>是R关于<span class="math inline">\(\Sigma^*\)</span>的指数，简称为R的指数。注意：<span class="math inline">\(|\Sigma^*/R|\)</span>是指关系对<span class="math inline">\(\Sigma^*\)</span>的划分。R的一个等价类——<span class="math inline">\(\Sigma^*\)</span>的关于R的一个等价类，也就是<span class="math inline">\(\Sigma^*/R\)</span>的任意一个元素（集合），简称为R的一个等价类。</p>
+<p>定理. （Myhill-Nerode定理）下列三个命题等价：</p>
+<ul>
+<li><span class="math inline">\(L\subseteq\Sigma^*\)</span>是RL</li>
+<li>L是<span class="math inline">\(\Sigma^*\)</span>上的某一个具有有穷指数的右不变等价关系R的某些等价类的并</li>
+<li><span class="math inline">\(R_L\)</span>具有有穷指数</li>
+</ul>
+<h3 id="极小化算法">7-1 极小化算法</h3>
+<ol type="1">
+<li><p>为所有状态对<span class="math inline">\((p,q)(p,q\in Q)\)</span>画一张表，开始时表中每个格子均为空白（未做任何标记）</p></li>
+<li><p>对<span class="math inline">\(p\in F,q\notin F\)</span>的一切状态对(p,q)，在相应的格子中作出标记（画个x），表示(p,q)是可以区分的</p></li>
+<li><p>重复下述过程，直到表中内容不在改变为止：</p>
+<p>如果存在一个未被标记的状态对(p,q)，且对于某个<span class="math inline">\(a\in\Sigma\)</span>，如果（<span class="math inline">\(r=\delta(p,a),s=\delta(q,a)\)</span>）已做了标记，则在(p,q)相应的格子内做标记</p></li>
+<li><p>在完成123之后，所有未被标记的状态对(p,q)都是等价的，即<span class="math inline">\(p\equiv q\)</span>，状态p和状态q可以合并</p></li>
+</ol>
+<h2 id="知识补充">8 知识补充</h2>
+<h3 id="gnfa">8-1 GNFA</h3>
 <p>广义非确定性有穷自动机定义如下：</p>
 <p>定义3. A Generalized nondeterministic finite automaton(GNFA) is a 5-tuple <span class="math inline">\((Q,\Sigma,\delta,q_{start},F_{accept})\)</span>, where</p>
 <ol type="1">
@@ -583,7 +697,48 @@ L(M)=\underset{q_f\in F}{\cup}R_{1f}^n
 </ol>
 <p>GNFA和一般NFA的唯一区别：GNFA的边推广为RE（子自动机），而不是单个字母或者空转移。</p>
 <p>对GNFA化简，最后化简成只剩下起始状态和接收状态，这个对应的边就是对应的正则表达式。</p>
-<h2 id="reference">5 reference</h2>
+<h3 id="一些术语">8-2 一些术语</h3>
+<p><img src="/picture/terms.png"></p>
+<ul>
+<li>RL: Regular Language</li>
+<li>RG: Regular Grammar</li>
+<li>RE: Regular Expression</li>
+<li>FA: Finite Automaton</li>
+</ul>
+<h3 id="鸽巢原理pigeonhole-principle">8-3 鸽巢原理Pigeonhole principle</h3>
+<p>If m pigeons are placed into fewer than m holes, some hole has to have more than one pigeon in it.</p>
+<h3 id="关系">8-4 关系</h3>
+<ul>
+<li><p>二元关系（是一个集合）</p>
+<ul>
+<li>任意的<span class="math inline">\(R\in A\times B\)</span>，R是A到B的二元关系</li>
+<li><span class="math inline">\((a,b)\in R\)</span>，也可以表示为：<span class="math inline">\(aRb\)</span></li>
+<li>A称为定义域（domain），B称为值域（range）</li>
+<li>当<span class="math inline">\(A=B\)</span>时，称R是A上的二元关系</li>
+</ul></li>
+<li><p>二元关系的性质</p>
+<p>自反性（reflexive），反自反性（irreflexive），对称性（symmetric），反对称性（asymmetric），传递性（transitive）</p></li>
+<li><p>等价关系（equivalence relation）</p>
+<ul>
+<li>具有自反性，对称性，传递性的二元关系</li>
+<li>比如“=”</li>
+</ul></li>
+<li><p>等价类（equivalence class）（由等价关系R决定）</p>
+<p>S要满足如下要求的划分：<span class="math inline">\(S_1,S_2,S_3,...,S_n,...\)</span>称为S关于R的等价划分，<span class="math inline">\(S_1\)</span>称为等价类。</p>
+<ol type="1">
+<li><span class="math inline">\(S=S_1\cup S_2\cup...\cup S_n\cup ...\)</span></li>
+<li>如果<span class="math inline">\(i\ne j\)</span>，那么<span class="math inline">\(S_i\cap S_j=\emptyset\)</span></li>
+<li>对任何的i，<span class="math inline">\(S_i\)</span>中的任意两个元素a，b，<span class="math inline">\(aRb\)</span>恒成立</li>
+<li>对任意的i，j，<span class="math inline">\(i\ne j\)</span>，<span class="math inline">\(S_i\)</span>中的任意元素a和<span class="math inline">\(S_j\)</span>中的任意元素b，<span class="math inline">\(aRb\)</span>横不成立</li>
+</ol>
+<p>等价关系R将S分成的等价类个数称为R在S上的指数</p></li>
+</ul>
+<h3 id="r_lr_lmr_m的关系">8-5 <span class="math inline">\(R_L,R_{L(M)},R_M\)</span>的关系</h3>
+<ol type="1">
+<li>如果<span class="math inline">\(xR_My\)</span>，那么一定<span class="math inline">\(xR_Ly\)</span>，反之不一定。</li>
+<li><span class="math inline">\(R_{L(M)}\)</span>中的M是DFA，<span class="math inline">\(L(M)\)</span>是正则语言，但是<span class="math inline">\(R_L\)</span>中的L不一定是正则的。</li>
+</ol>
+<h2 id="reference">9 reference</h2>
 <ol type="1">
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/shulianghan/article/details/106157619">【计算理论】正则语言 ( 正则语言运算 | 正则语言封闭性 )_让 学习 成为一种 习惯 ( 韩曙亮 の 技术博客 )-CSDN博客_正则语言</a></li>
 <li><a href="file:///C:/Users/86183/Desktop/Learning/形式语言与自动机/形式语言与自动机/第4章%20正则表达式-更新版.pdf">第4章 正则表达式-更新版.pdf</a></li>

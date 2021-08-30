@@ -563,11 +563,11 @@
 <h2 id="补充">7补充</h2>
 <h3 id="对于epsilon的理解">7-1 对于<span class="math inline">\(\epsilon\)</span>的理解：</h3>
 <ul>
-<li><span class="math inline">\(\epsilon\)</span>是空字符串，<span class="math inline">\(|\epsilon|=0\)</span>，$<span class="math inline">\(010=0\)</span><span class="math inline">\(10=010，但是{\)</span><span class="math inline">\(}!=\)</span>$</li>
+<li><span class="math inline">\(\epsilon\)</span>是空字符串，<span class="math inline">\(|\epsilon|=0\)</span>，<span class="math inline">\(\epsilon010=0\epsilon 10=010\)</span>，但是<span class="math inline">\(\{\epsilon\}\ne\emptyset\)</span></li>
 <li>NFA接受空字符串，表示NFA啥也不读，但是可以自动进行状态转移</li>
 </ul>
 <h3 id="即时描述instantaneous-descriptionid">7-2 即时描述（instantaneous description，ID）</h3>
-<p>就是自动机某个时刻的一个快照，保存当前自动机所处状态，磁带内容，读写头位置（格局configuration），一般记作xqy，比如0011$q_3<span class="math inline">\(01100...，其中\)</span>x,y^*<span class="math inline">\(，\)</span>qQ<span class="math inline">\(，并且\)</span>(q_0,x)=q$。</p>
+<p>就是自动机某个时刻的一个快照，保存当前自动机所处状态，磁带内容，读写头位置（格局configuration），一般记作xqy，比如<span class="math inline">\(0011q_301100...\)</span>，其中<span class="math inline">\(x,y\in \Sigma^*\)</span>，<span class="math inline">\(q \in Q\)</span>，并且<span class="math inline">\(\delta(q_0,x)=q\)</span>。</p>
 <h3 id="格局演化">7-3 格局演化</h3>
 <p>从一个格局到另一个格局的变化序列，称为格局演化，也是一个计算过程。记法如下：</p>
 <table>
