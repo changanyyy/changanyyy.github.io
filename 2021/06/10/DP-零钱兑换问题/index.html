@@ -35,7 +35,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
 <!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
-<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css"></head>
+</head>
 
 
 
@@ -252,6 +252,19 @@
     
 
 
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+<!-- 代码语言 -->
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+<!-- 代码块复制 -->
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+<script type="text/javascript" src="/libs/codeBlock/clipboard.min.js"></script>
+<!-- 代码块收缩 -->
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script> 
+<!-- 代码块折行 -->
+<style type="text/css">code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }</style>
+
+
+
 
 <div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/15.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
@@ -322,6 +335,9 @@
         <hr class="clearfix">
 
         
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.css">
+        
 
         
 
@@ -340,9 +356,9 @@
 <li><code>0 &lt;= amount &lt;= 104</code></li>
 </ul>
 <h3 id="测试样例">测试样例</h3>
-<pre><code>输入：coins = [1, 2, 5], amount = 11
+<pre class="line-numbers language-none"><code class="language-none">输入：coins = [1, 2, 5], amount = 11
 输出：3 
-解释：11 = 5 + 5 + 1</code></pre>
+解释：11 = 5 + 5 + 1<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <h3 id="思路">思路</h3>
 <p>我们先从暴力方法入手，我们只需要<code>DFS</code>遍历所有可能的组合数量就可以从中找到一个最优解，但是这样暴力枚举的复杂度相当大，我们需要想一个更加优秀的算法。这种问题我们还是用递归更加恰当，试想我们想知道金额x最少需要多少，那么我只需要知道金额<code>x-coin_i(i&gt;=0 &amp;&amp; i&lt;size)</code>最少需要多少枚硬币，然后找到它们最小那个加一就行了，这样利用了动态规划的思想，站在前人的成果之上来解题，就方便了很多，所以我们只需要从1开始计算到amount分别最少需要多少钱就可以了</p>
 <p>状态转移方程：<code>dp[i]=min(dp[i-coin_j]+1) (j&gt;=0 &amp;&amp; j&lt;coins.size)</code></p>
@@ -350,33 +366,33 @@
 <p>时间复杂度<code>O(amount * size)</code></p>
 <p>空间复杂度<code>O(amount)</code></p>
 <h3 id="代码">代码</h3>
-<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Solution <span class="op">{</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> coinChange<span class="op">(</span>vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;&amp;</span> coins<span class="op">,</span> <span class="dt">int</span> amount<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> dp<span class="op">(</span>amount<span class="op">+</span><span class="dv">1</span><span class="op">,</span>INT_MAX<span class="op">-</span><span class="dv">1</span><span class="op">);</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        dp<span class="op">[</span><span class="dv">0</span><span class="op">]=</span><span class="dv">0</span><span class="op">;</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i<span class="op">=</span><span class="dv">1</span><span class="op">;</span>i<span class="op">&lt;=</span>amount<span class="op">;</span>i<span class="op">++){</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span><span class="op">(</span><span class="kw">auto</span> coin<span class="op">:</span>coins<span class="op">){</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span><span class="op">(</span>i<span class="op">-</span>coin<span class="op">&gt;=</span><span class="dv">0</span><span class="op">){</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>                    dp<span class="op">[</span>i<span class="op">]=</span>min<span class="op">(</span>dp<span class="op">[</span>i<span class="op">],</span>dp<span class="op">[</span>i<span class="op">-</span>coin<span class="op">]+</span><span class="dv">1</span><span class="op">);</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                <span class="op">}</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> dp<span class="op">[</span>amount<span class="op">]&lt;</span>INT_MAX<span class="op">-</span><span class="dv">1</span><span class="op">?</span>dp<span class="op">[</span>amount<span class="op">]:-</span><span class="dv">1</span><span class="op">;</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">class Solution {
+public:
+    int coinChange(vector&lt;int&gt;&amp; coins, int amount) {
+        vector&lt;int&gt; dp(amount+1,INT_MAX-1);
+        dp[0]=0;
+        for(int i=1;i&lt;=amount;i++){
+            for(auto coin:coins){
+                if(i-coin&gt;=0){
+                    dp[i]=min(dp[i],dp[i-coin]+1);
+                }
+            }
+        }
+        
+        return dp[amount]&lt;INT_MAX-1?dp[amount]:-1;
+    }
+};<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h2 id="零钱兑换2">2.零钱兑换2</h2>
 <h3 id="题目-1">题目</h3>
 <p>给定不同面额的硬币和一个总金额。写出函数来计算可以凑成总金额的硬币组合数。假设每一种面额的硬币有无限个。</p>
 <h3 id="测试样例-1">测试样例</h3>
-<pre><code>输入: amount = 5, coins = [1, 2, 5]
+<pre class="line-numbers language-none"><code class="language-none">输入: amount = 5, coins = [1, 2, 5]
 输出: 4
 解释: 有四种方式可以凑成总金额:
 5=5
 5=2+2+1
 5=2+1+1+1
-5=1+1+1+1+1</code></pre>
+5=1+1+1+1+1<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="思路-1">思路</h3>
 <p>这道题跟</p>
 <p>类似，但是他们要求解的东西不一样，那道题要求凑成总金额需要最少的硬币数，这道题要求有多少种可以凑成总金额的组合</p>
@@ -386,19 +402,19 @@
 <p>时间复杂度<code>O(amount * size)</code></p>
 <p>空间复杂度<code>O(amount)</code></p>
 <h3 id="代码-1">代码</h3>
-<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Solution <span class="op">{</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> change<span class="op">(</span><span class="dt">int</span> amount<span class="op">,</span> vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;&amp;</span> coins<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> dp<span class="op">(</span>amount<span class="op">+</span><span class="dv">1</span><span class="op">,</span><span class="dv">0</span><span class="op">);</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        dp<span class="op">[</span><span class="dv">0</span><span class="op">]=</span><span class="dv">1</span><span class="op">;</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span><span class="op">(</span><span class="kw">auto</span> coin<span class="op">:</span>coins<span class="op">){</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i<span class="op">=</span>coin<span class="op">;</span>i<span class="op">&lt;=</span>amount<span class="op">;</span>i<span class="op">++){</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                dp<span class="op">[</span>i<span class="op">]+=</span>dp<span class="op">[</span>i<span class="op">-</span>coin<span class="op">];</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> dp<span class="op">[</span>amount<span class="op">];</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">class Solution {
+public:
+    int change(int amount, vector&lt;int&gt;&amp; coins) {
+        vector&lt;int&gt; dp(amount+1,0);
+        dp[0]=1;
+        for(auto coin:coins){
+            for(int i=coin;i&lt;=amount;i++){
+                dp[i]+=dp[i-coin];
+            }
+        }
+        return dp[amount];
+    }
+};<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
                 
             </div>
@@ -791,6 +807,7 @@
         tex2jax: {inlineMath: [['$', '$'],['\\(', '\\)']]}
     });
 </script>
+
 
 
 

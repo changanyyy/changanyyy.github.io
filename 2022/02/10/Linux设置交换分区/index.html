@@ -35,7 +35,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
 <!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
-<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css"></head>
+</head>
 
 
 
@@ -252,6 +252,19 @@
     
 
 
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+<!-- 代码语言 -->
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+<!-- 代码块复制 -->
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+<script type="text/javascript" src="/libs/codeBlock/clipboard.min.js"></script>
+<!-- 代码块收缩 -->
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script> 
+<!-- 代码块折行 -->
+<style type="text/css">code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }</style>
+
+
+
 
 <div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/14.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
@@ -326,6 +339,9 @@
         <hr class="clearfix">
 
         
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.css">
+        
 
         
 
@@ -334,8 +350,8 @@
                 <h1 id="为虚拟机增加交换分区">为虚拟机增加交换分区</h1>
 <h2 id="背景">背景</h2>
 <p>在我编译LLVM的时候，会有如下报错：</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">C++:</span> fatal error: Killed signal terminated program cc1plus</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">compilation</span> terminated.</span></code></pre></div>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">C++: fatal error: Killed signal terminated program cc1plus
+compilation terminated.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>查阅相关信息后，发现这是由于虚拟机内存不足造成的。通过创建swap分区解决了这个问题，编译成功。 下面总结一下swap分区的创建和激活等操作：</p>
 <h2 id="相关知识">相关知识</h2>
 <blockquote>
@@ -346,33 +362,33 @@
 <p>交换分区（swap）的合理值一般在内存的2倍左右？</p>
 <p>一种流行的、以讹传讹的说法是，安装Linux系统时，交换分区swap的大小应该是内存的两倍。也就是说，如果内存是2G，那么就应该分出4G的硬盘空间作为交换空间。其实这是严重的浪费。真实的情况是：可以根据你系统内存的大小，以及所使用的程序，自行决定交换分区的大小，甚至可以完全不用交换分区！</p>
 <h2 id="创建分区和删除分区">创建分区和删除分区</h2>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#创建分区路径</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mkdir <span class="at">-p</span> /var/cache/swap/</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 设置分区的大小，bs=64M是块大小，count=64是块数量，所以swap空间大小是bs*count=4096MB=4GB</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dd if=/dev/zero of=/var/cache/swap/swap0 bs=64M count=64</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 设置该目录权限</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> chmod 0600 /var/cache/swap/swap0</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 创建SWAP文件</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mkswap /var/cache/swap/swap0</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 激活SWAP文件</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> swapon /var/cache/swap/swap0</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#查看SWAP信息是否正确</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> swapon <span class="at">-s</span></span></code></pre></div>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment">#创建分区路径</span>
+<span class="token function">sudo</span> <span class="token function">mkdir</span> -p /var/cache/swap/
+
+<span class="token comment"># 设置分区的大小，bs=64M是块大小，count=64是块数量，所以swap空间大小是bs*count=4096MB=4GB</span>
+<span class="token function">sudo</span> <span class="token function">dd</span> <span class="token assign-left variable">if</span><span class="token operator">=</span>/dev/zero <span class="token assign-left variable">of</span><span class="token operator">=</span>/var/cache/swap/swap0 <span class="token assign-left variable">bs</span><span class="token operator">=</span>64M <span class="token assign-left variable">count</span><span class="token operator">=</span><span class="token number">64</span>
+
+<span class="token comment"># 设置该目录权限</span>
+<span class="token function">sudo</span> <span class="token function">chmod</span> 0600 /var/cache/swap/swap0
+
+<span class="token comment"># 创建SWAP文件</span>
+<span class="token function">sudo</span> <span class="token function">mkswap</span> /var/cache/swap/swap0
+
+<span class="token comment"># 激活SWAP文件</span>
+<span class="token function">sudo</span> <span class="token function">swapon</span> /var/cache/swap/swap0
+
+<span class="token comment">#查看SWAP信息是否正确</span>
+<span class="token function">sudo</span> <span class="token function">swapon</span> -s<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>swap0文件的路径在/var/cache/swap/下，编译完后, 如果不想要交换分区了, 可以删除。</p>
 <p>删除交换分区的命令：</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> swapoff /var/cache/swap/swap0</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> rm /var/cache/swap/swap0</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#释放空间</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> swapoff <span class="at">-a</span></span></code></pre></div>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">sudo</span> swapoff /var/cache/swap/swap0
+<span class="token function">sudo</span> <span class="token function">rm</span> /var/cache/swap/swap0
+<span class="token comment">#释放空间</span>
+<span class="token function">sudo</span> swapoff -a<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p>详细的用法：</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">swapoff</span> <span class="at">--help</span></span></code></pre></div>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">swapoff --help<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>查看当前内存使用情况</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">free</span> <span class="at">-m</span></span></code></pre></div>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"><span class="token function">free</span> -m<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
                 
             </div>
@@ -608,18 +624,17 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="far fa-dot-circle"></i>&nbsp;本篇
-            </div>
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/2022/02/10/Linux%E8%AE%BE%E7%BD%AE%E4%BA%A4%E6%8D%A2%E5%88%86%E5%8C%BA/">
+                <a href="/2022/02/10/Linux-%E6%B7%BB%E5%8A%A0%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/14.jpg" class="responsive-img" alt="Linux设置交换分区">
+                        <img src="/medias/featureimages/12.jpg" class="responsive-img" alt="Linux 添加环境变量">
                         
-                        <span class="card-title">Linux设置交换分区</span>
+                        <span class="card-title">Linux 添加环境变量</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -629,9 +644,9 @@
                         
                     </div>
                     <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-02-10
-                            </span>
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-02-10
+                        </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -644,7 +659,6 @@
                         </span>
                     </div>
                 </div>
-
                 
                 <div class="card-action article-tags">
                     
@@ -779,6 +793,7 @@
         tex2jax: {inlineMath: [['$', '$'],['\\(', '\\)']]}
     });
 </script>
+
 
 
 

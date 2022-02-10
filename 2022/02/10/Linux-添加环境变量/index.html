@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="计网笔记传输层, yxz的博客">
+    <meta name="keywords" content="Linux 添加环境变量, yxz的博客">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>计网笔记传输层 | yxz的博客</title>
+    <title>Linux 添加环境变量 | yxz的博客</title>
     <link rel="icon" type="image/jpeg" href="/logo.jpg">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -266,12 +266,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/5.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/12.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">计网笔记传输层</h1>
+                    <h1 class="description center-align post-title">Linux 添加环境变量</h1>
                 </div>
             </div>
         </div>
@@ -291,9 +291,13 @@
             <div class="row tag-cate">
                 <div class="col s7">
                     
-                          <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
-                          </div>
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Linux/">
+                                <span class="chip bg-color">Linux</span>
+                            </a>
+                        
+                    </div>
                     
                 </div>
                 <div class="col s5 right-align">
@@ -301,8 +305,8 @@
                     <div class="post-cate">
                         <i class="fas fa-bookmark fa-fw icon-category"></i>
                         
-                            <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="post-category">
-                                计算机网络
+                            <a href="/categories/Linux/" class="post-category">
+                                Linux
                             </a>
                         
                     </div>
@@ -318,14 +322,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    2.2k
+                    2k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    7 分
+                    8 分
                 </div>
                 
 
@@ -343,236 +347,204 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="一.传输层简介transport-layer">一.传输层简介transport layer</h2>
-<h3 id="传输层作用">1.传输层作用</h3>
+                <h1 id="linux环境变量配置全攻略"><a target="_blank" rel="noopener" href="https://www.cnblogs.com/youyoui/p/10680329.html">Linux环境变量配置全攻略</a></h1>
+<p>（摘自博客园）</p>
+<h2 id="linux环境变量配置">Linux环境变量配置</h2>
+<p>在自定义安装软件的时候，经常需要配置环境变量，下面列举出各种对环境变量的配置方法。</p>
+<p>下面所有例子的环境说明如下：</p>
 <ul>
-<li>进程间通信
-<ul>
-<li>应用进程间的多路复用和解复用</li>
-<li>用端口实现</li>
-</ul></li>
-<li>为应用程序提供端到端的服务
-<ul>
-<li>可靠的，按序的数据交付</li>
-<li>很好的交付节奏</li>
-</ul></li>
-<li>TCP和UDP是常用的运输层协议
-<ul>
-<li>还有其他的，就不说了</li>
-</ul></li>
-<li>UDP是极简化的传输层协议
-<ul>
-<li>只提供复用和分解能力</li>
-</ul></li>
-<li>TCP提供可靠的，按序的，字节流的抽象
-<ul>
-<li>有拥塞控制，但是没有性能担保</li>
-</ul></li>
+<li>系统：Ubuntu 20.08</li>
+<li>用户名：uusama</li>
+<li>需要配置MySQL环境变量路径：/home/uusama/mysql/bin</li>
 </ul>
-<h3 id="应用程序和套接字">2.应用程序和套接字</h3>
-<p>套接字（socket）：给应用进程和操作系统之间交换网络消息的一个软件抽象</p>
-<p>传输层寻址：<strong>&lt;HostIP , Port&gt;</strong>，叫做一个套接字</p>
-<p>两个重要的套接字类型：</p>
+<h3 id="linux读取环境变量">Linux读取环境变量</h3>
+<p>读取环境变量的方法：</p>
 <ul>
-<li>UDP套接字：TYPE是SOCK_DGRAM</li>
-<li>TCP套接字：TYPE是SOCK_STREAM</li>
+<li><code>export</code>命令显示当前系统定义的所有环境变量</li>
+<li><code>echo $PATH</code>命令输出当前的<code>PATH</code>环境变量的值</li>
 </ul>
-<h3 id="端口">3.端口</h3>
+<p>这两个命令执行的效果如下</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">uusama@ubuntu:~$ export
+declare -x HOME="/home/uusama"
+declare -x LANG="en_US.UTF-8"
+declare -x LANGUAGE="en_US:"
+declare -x LESSCLOSE="/usr/bin/lesspipe %s %s"
+declare -x LESSOPEN="| /usr/bin/lesspipe %s"
+declare -x LOGNAME="uusama"
+declare -x MAIL="/var/mail/uusama"
+declare -x PATH="/home/uusama/bin:/home/uusama/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+declare -x SSH_TTY="/dev/pts/0"
+declare -x TERM="xterm"
+declare -x USER="uusama"
+
+uusama@ubuntu:~$ echo $PATH
+/home/uusama/bin:/home/uusama/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中<code>PATH</code>变量定义了运行命令的查找路径，以冒号<code>:</code>分割不同的路径，使用<code>export</code>定义的时候可加双引号也可不加。</p>
+<h3 id="linux环境变量配置方法一export-path">Linux环境变量配置方法一：<code>export PATH</code></h3>
+<p>使用<code>export</code>命令直接修改<code>PATH</code>的值，配置MySQL进入环境变量的方法:</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">export PATH=/home/uusama/mysql/bin:$PATH
+
+# 或者把PATH放在前面
+export PATH=$PATH:/home/uusama/mysql/bin<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意事项：</p>
 <ul>
-<li>帮助区别APP的16比特的数字
-<ul>
-<li>分组在传输层头带着src和dst端口号</li>
-<li>有常用端口（0-1023）和临时端口</li>
-</ul></li>
-<li>OS存储套接字和端口的映射
-<ul>
-<li>端口在分组里面，套接字在OS里</li>
-<li>对于UDP端口，OS存储（local port，local IP）来映射套接字</li>
-<li>对于TCP端口，OS存储（local port，local IP，remote port， remote IP）来映射套接字</li>
-</ul></li>
+<li>生效时间：立即生效</li>
+<li>生效期限：当前终端有效，窗口关闭后无效</li>
+<li>生效范围：仅对当前用户有效</li>
+<li>配置的环境变量中不要忘了加上原来的配置，即<code>$PATH</code>部分，避免覆盖原来配置</li>
 </ul>
-<h3 id="多路复用和多路分解">4.多路复用和多路分解</h3>
-<p>在发送方：处理来自多个套接字的数据，添加传输层头。</p>
-<p>在接收方：用header信息来把收到的传输层报文段交付给正确的套接字。</p>
-<h4 id="如何多路分解">4-1 如何多路分解</h4>
-<p>主机收到IP数据报，里面有源和目的IP，数据报携带传输层报文段，保温段里面有源和目的端口</p>
-<p>主机用IP地址和端口号来把报文段导向正确的套接字</p>
-<p><img src="/picture/format.png"></p>
-<h5 id="无连接的多路分解">4-1-1 无连接的多路分解</h5>
-<p>对于UDP协议，当我们收到了目的端口相同，但是源端口或源IP不同的报文段，仍然要引导向同一个目的套接字</p>
-<p>4-1-2基于连接的多路分解</p>
-<p><strong>对于TCP协议，我们确定一个套接字通过一个4元组</strong></p>
+<h3 id="linux环境变量配置方法二vim-.bashrc">Linux环境变量配置方法二：<code>vim ~/.bashrc</code></h3>
+<p>通过修改用户目录下的<code>~/.bashrc</code>文件进行配置：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">vim ~/.bashrc
+
+# 在最后一行加上
+export PATH=$PATH:/home/uusama/mysql/bin<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意事项：</p>
 <ul>
-<li>源IP地址</li>
-<li>源端口号</li>
-<li>目的IP地址</li>
-<li>目的端口号</li>
+<li>生效时间：使用相同的用户打开新的终端时生效，或者手动<code>source ~/.bashrc</code>生效</li>
+<li>生效期限：永久有效</li>
+<li>生效范围：仅对当前用户有效</li>
+<li>如果有后续的环境变量加载文件覆盖了<code>PATH</code>定义，则可能不生效</li>
 </ul>
-<p>多路分解：接收方用四元组来导向正确的套接字</p>
-<p>服务器主机或许支持许多同时的TCP套接字：每个套接字通过4元组来确定</p>
-<p>下面是一个例子：</p>
-<p><img src="/picture/socket.png"></p>
-<h2 id="二.传输层设计">二.传输层设计</h2>
-<p>为什么要用传输层？</p>
+<h3 id="linux环境变量配置方法三vim-.bash_profile">Linux环境变量配置方法三：<code>vim ~/.bash_profile</code></h3>
+<p>和修改<code>~/.bashrc</code>文件类似，也是要在文件最后加上新的路径即可：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">vim ~/.bash_profile
+
+# 在最后一行加上
+export PATH=$PATH:/home/uusama/mysql/bin<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意事项：</p>
+<ul>
+<li>生效时间：使用相同的用户打开新的终端时生效，或者手动<code>source ~/.bash_profile</code>生效</li>
+<li>生效期限：永久有效</li>
+<li>生效范围：仅对当前用户有效</li>
+<li>如果没有<code>~/.bash_profile</code>文件，则可以编辑<code>~/.profile</code>文件或者新建一个</li>
+</ul>
+<h3 id="linux环境变量配置方法四vim-etcbashrc">Linux环境变量配置方法四：<code>vim /etc/bashrc</code></h3>
+<p>该方法是修改系统配置，需要管理员权限（如root）或者对该文件的写入权限：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 如果/etc/bashrc文件不可编辑，需要修改为可编辑
+chmod -v u+w /etc/bashrc
+
+vim /etc/bashrc
+
+# 在最后一行加上
+export PATH=$PATH:/home/uusama/mysql/bin<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意事项：</p>
+<ul>
+<li>生效时间：新开终端生效，或者手动<code>source /etc/bashrc</code>生效</li>
+<li>生效期限：永久有效</li>
+<li>生效范围：对所有用户有效</li>
+</ul>
+<h3 id="linux环境变量配置方法五vim-etcprofile">Linux环境变量配置方法五：<code>vim /etc/profile</code></h3>
+<p>该方法修改系统配置，需要管理员权限或者对该文件的写入权限，和<code>vim /etc/bashrc</code>类似：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 如果/etc/profile文件不可编辑，需要修改为可编辑
+chmod -v u+w /etc/profile
+
+vim /etc/profile
+
+# 在最后一行加上
+export PATH=$PATH:/home/uusama/mysql/bin<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意事项：</p>
+<ul>
+<li>生效时间：新开终端生效，或者手动<code>source /etc/profile</code>生效</li>
+<li>生效期限：永久有效</li>
+<li>生效范围：对所有用户有效</li>
+</ul>
+<h3 id="linux环境变量配置方法六vim-etcenvironment">Linux环境变量配置方法六：<code>vim /etc/environment</code></h3>
+<p>该方法是修改系统环境配置文件，需要管理员权限或者对该文件的写入权限：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 如果/etc/bashrc文件不可编辑，需要修改为可编辑
+chmod -v u+w /etc/environment
+
+vim /etc/profile
+
+# 在最后一行加上
+export PATH=$PATH:/home/uusama/mysql/bin<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意事项：</p>
+<ul>
+<li>生效时间：新开终端生效，或者手动<code>source /etc/environment</code>生效</li>
+<li>生效期限：永久有效</li>
+<li>生效范围：对所有用户有效</li>
+</ul>
+<h2 id="linux环境变量加载原理解析">Linux环境变量加载原理解析</h2>
+<p>上面列出了环境变量的各种配置方法，那么Linux是如何加载这些配置的呢？是以什么样的顺序加载的呢？</p>
+<p>特定的加载顺序会导致相同名称的环境变量定义被覆盖或者不生效。</p>
+<h3 id="环境变量的分类">环境变量的分类</h3>
+<p>环境变量可以简单的分成用户自定义的环境变量以及系统级别的环境变量。</p>
+<ul>
+<li>用户级别环境变量定义文件：<code>~/.bashrc</code>、<code>~/.profile</code>（部分系统为：<code>~/.bash_profile</code>）</li>
+<li>系统级别环境变量定义文件：<code>/etc/bashrc</code>、<code>/etc/profile</code>(部分系统为：<code>/etc/bash_profile</code>）、<code>/etc/environment</code></li>
+</ul>
+<p>另外在用户环境变量中，系统会首先读取<code>~/.bash_profile</code>（或者<code>~/.profile</code>）文件，如果没有该文件则读取<code>~/.bash_login</code>，根据这些文件中内容再去读取<code>~/.bashrc</code>。</p>
+<h3 id="测试linux环境变量加载顺序的方法">测试Linux环境变量加载顺序的方法</h3>
+<p>为了测试各个不同文件的环境变量加载顺序，我们在每个环境变量定义文件中的第一行都定义相同的环境变量<code>UU_ORDER</code>，该变量的值为本身的值连接上当前文件名称。</p>
+<p>需要修改的文件如下：</p>
+<ul>
+<li><code>/etc/environment</code></li>
+<li><code>/etc/profile</code></li>
+<li><code>/etc/profile.d/test.sh</code>，新建文件，没有文件夹可略过</li>
+<li><code>/etc/bashrc</code>，或者<code>/etc/bash.bashrc</code></li>
+<li><code>~/.bash_profile</code>，或者<code>~/.profile</code></li>
+<li><code>~/.bashrc</code></li>
+</ul>
+<p>在每个文件中的第一行都加上下面这句代码，并相应的把冒号后的内容修改为当前文件的绝对文件名。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">export UU_ORDER="$UU_ORDER:~/.bash_profile"<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>修改完之后保存，新开一个窗口，然后<code>echo $UU_ORDER</code>观察变量的值：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">uusama@ubuntu:~$ echo $UU_ORDER
+$UU_ORDER:/etc/environment:/etc/profile:/etc/bash.bashrc:/etc/profile.d/test.sh:~/.profile:~/.bashrc<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>可以推测出Linux加载环境变量的顺序如下：</p>
 <ol type="1">
-<li>IP分组寻址到一个主机，但是端到端的交流是介于进程之间的，需要一种方式（多路复用和分解）来定位到应用进程</li>
-<li>IP提供很弱的服务模型（尽力而为）
-<ul>
-<li>分组可能错误，延迟，丢包...</li>
-<li>对拥塞情况没有控制</li>
-<li>这些事情还不能让应用程序来处理</li>
-</ul></li>
+<li><code>/etc/environment</code></li>
+<li><code>/etc/profile</code></li>
+<li><code>/etc/bash.bashrc</code></li>
+<li><code>/etc/profile.d/test.sh</code></li>
+<li><code>~/.profile</code></li>
+<li><code>~/.bashrc</code></li>
 </ol>
-<p>尽力而为协议可能做很多很不好的事情，所以我们需要可靠传输</p>
-<p>我们处理这些不好事情需要一些机制：</p>
-<ul>
-<li>检验和：来检测错误</li>
-<li>ACK：接受者告诉发送者收到了包</li>
-<li>NACK：接受者告诉发送者没有收到包</li>
-<li>序号：一种识别分组的方式</li>
-<li>重传</li>
-<li>超时</li>
-<li>发送纠正后的包</li>
-<li>网络编码</li>
-</ul>
-<h3 id="停等协议">停等协议</h3>
-<p><img src="/picture/sw.png"></p>
-<p>这个协议比较可靠，但是比较低效，浪费带宽。</p>
-<p><img src="/picture/ine.png"></p>
-<p><img src="/picture/ine1.png"></p>
-<h3 id="流水线协议">流水线协议</h3>
-<p>流水线：发送方允许多个飞行中的等待“被ACK“的分组。序号的必须增加，在接收方和发送方缓存。</p>
-<p><img src="/picture/uti.png"></p>
-<h4 id="三种设计决策">三种设计决策</h4>
-<p>哪一个包可以发送根据<strong>滑动窗口</strong></p>
-<p>接收方如何发送ACK？有两种，积累的，选择性的</p>
-<p>发送方需要重传哪些包？Go-Back N（GBN）回退n帧，Selective Repeat(SR)选择重传</p>
-<h5 id="滑动窗口">滑动窗口</h5>
-<p>窗口就是一些相邻的序号的集合，集合的大小是窗口大小，假定窗口大小是n</p>
-<p>一次发送n个包：</p>
-<ul>
-<li>发送者可以发送窗口里的包</li>
-<li>接受者可以接受窗口里的包</li>
-<li>当收到ACK，可接受的包的窗口滑动</li>
-</ul>
-<p><img src="/picture/slide.png"></p>
-<h5 id="积累确认">积累确认</h5>
-<p>累计确认永远确认的是还没有收到的序列号最小的那个</p>
-<p><img src="/picture/ca.png"></p>
-<p><img src="/picture/ca1.png"></p>
-<h5 id="选择性确认">选择性确认</h5>
-<p>选择确认确认的是收到的包本身的序列！！！</p>
-<p>收到一个正确的包就进行确认，这样需要记录下来哪些已经收到了</p>
-<h4 id="滑动窗口协议">滑动窗口协议</h4>
-<p>重传包：两种标准的方法：回退n帧GBN和选择重传SR</p>
-<h5 id="回退n帧">回退N帧</h5>
-<p>发送方发送最多n个没有被ACK的包</p>
-<p>接收方只按序接收，时序的分组会被丢弃</p>
-<p>接收方用积累确认：ACK的序号等于下一个被期待的正确顺序的序号</p>
-<p>发送方为第一个未完成的ack设置定时器（A+1），如果超时就重传A+1，A+2......</p>
-<h5 id="gbn的滑动窗口">GBN的滑动窗口</h5>
-<p><img src="/picture/gbn.png"></p>
-<p>下面是没有出错的GBN滑动窗口</p>
-<p><img src="/picture/gbn1.png"></p>
-<p>下面是出错的GBN滑动窗口，可以看出4在传输图中丢失了，那么5和6倍接收方丢弃，而4超时没收到ACK之后发送方重传456！！！</p>
-<p><img src="/picture/gbn2.png"></p>
-<h5 id="选择重传">选择重传</h5>
-<p>发送方发送最多n个没有被ACK的包</p>
-<p>假定分组k丢掉了，<code>K+1</code>没有丢掉</p>
-<ul>
-<li>那么接收方：发送k+1的ACK</li>
-<li>发送方：k超时，只重传k</li>
-</ul>
-<p>高效重传但是记账很复杂，<strong>对于每个包都要一个定时器</strong>！！！</p>
-<p><img src="/picture/sr.png"></p>
-<h5 id="gbn-vs-sr">GBN vs SR</h5>
-<p>什么时候GBN更好？错误率低，否则重传多余的包会浪费带宽</p>
-<p>什么时候SR更好？错误率高，否则会搞得很复杂</p>
-<p>对于滑动窗口，只要窗口大小足够大，就可以充分利用链接。</p>
-<p>发送方不得不缓存所有没有被ACK的包，因为可能需要重传</p>
-<p>接收方或许能够接收失序的包，但是不能超过缓存大小！</p>
-<p>实现的复杂度取决于协议的细节！！！</p>
-<h2 id="三.udp">三.UDP</h2>
-<p>UDP是User Datagram Protocol（用户数据报协议）</p>
-<p>TCP是Transmission Control Protocol（传输控制协议）</p>
-<ul>
-<li>进程之间的轻量级交流，避免了额外开销</li>
-<li>目的IP地址和端口来支撑多路分解</li>
-<li>尽力而为服务，UDP报文段或许会丢失，失序交付给app</li>
-<li>无连接的，没有握手，每个UDP报文段都独立被处理</li>
-</ul>
-<p>UDP用：</p>
-<ul>
-<li>流多媒体APP</li>
-<li>DNS</li>
-<li>SNMP</li>
-</ul>
-<p>为什么要有UDP？</p>
-<ol type="1">
-<li>不需要连接建立（没有额外时间开销）</li>
-<li>简单：收发方都没有连接状态</li>
-<li>header比较小</li>
-<li>没有拥塞控制：UDP速度可以爆炸增长</li>
-</ol>
-<h3 id="udp报文段的格式">UDP报文段的格式</h3>
-<p><img src="/picture/udp.png"></p>
-<h4 id="checksum">checksum</h4>
-<p>检测传输地报文段的错误</p>
-<p>进行16bit和的反码运算，值得注意的是，在进行16bit加法运算的时候如果有溢出就要进行回卷（把溢出位加到后面！！！），对最后的和进行反码运算</p>
-<p>检验和字段是0意味着没有用检验和</p>
-<h2 id="四.tcp">四.TCP</h2>
-<p>TCP交付可靠的，按序的字节流</p>
-<h3 id="tcp头">TCP头</h3>
-<p><img src="/picture/TCP.png"></p>
-<p>用源端口和目的端口来进行多路复用和分解</p>
-<p>checksum用来计算数据和伪头</p>
-<p>序列号是字节偏移量（因为TCP是一个字节流）</p>
-<h3 id="tcp做什么">TCP做什么</h3>
-<ol type="1">
-<li>检验和</li>
-<li>序号是字节偏移量</li>
-<li>接收方发送积累确认（像GBN）</li>
-<li>接收方缓存时序分组（像SR）</li>
-</ol>
-<h3 id="tcp引入什么">TCP引入什么</h3>
-<p>引入了快速重传机制：冗余的ACK触发早期重传</p>
-<p>发送方维护一个单独的重传计时器，当超时就重传</p>
-<p>那么我们如何确定超时时间是多少呢？</p>
-<p>要跟RTT成一定比例，我们怎么知道RTT呢</p>
-<p>RTT样本的指数加权平均值</p>
-<p><img src="/picture/exp.png"></p>
-<p>我们如何区分真的ACK和重传分组的ACK呢？</p>
-<p><img src="/picture/ACK.png"></p>
-<h4 id="karnpartridge算法">Karn/Partridge算法</h4>
-<p>不用来自重传的ACK，一旦重传就忽略后面的ACK报文段</p>
-<p>用α=0.125来计算<code>EstimatedRTT</code></p>
-<p>超时的值设置成<code>EstimatedRTT</code>的2倍</p>
-<p>使用指数回退：当超时就让<code>RTO=2* RTO</code>。每次新的估计值（收到不是重传的ACK）出现，就回退到<code>2*EstimatedRTT</code></p>
-<h4 id="jacobsonkarels算法">Jacobson/Karels算法</h4>
-<p><img src="/picture/JK.png"></p>
-<h3 id="连接建立">连接建立</h3>
-<h4 id="双向握手">双向握手</h4>
-<p>A发送SYN，B回复SYN</p>
-<p>如何识别就连接中的报文段</p>
-<p>如何识别冗余过期的SYN</p>
-<h5 id="初始化序列号">初始化序列号</h5>
-<p>用一个和之前连接不同的初始化序列号开始每段新连接</p>
-<p>连接请求的形式为SYN i+1，其中i是将在此连接上发送的第一个数据段的序列号。</p>
-<h4 id="三次握手">三次握手</h4>
-<p><img src="/picture/3.png"></p>
-<p><img src="/picture/shake.png"></p>
-<h3 id="关闭连接">关闭连接</h3>
-<h4 id="四次挥手">四次挥手</h4>
-<p>正常的终止，一次一边</p>
-<p><img src="/picture/fin1.png"></p>
-<p>正常的终止，两边同时</p>
-<p><img src="/picture/fin2.png"></p>
-<p>意外终止</p>
-<p><img src="/picture/fin3.png"></p>
-<p>下面是客户机的生命周期</p>
-<p><img src="/picture/client.png"></p>
-<p>下面是服务器的生命周期</p>
-<p><img src="/picture/server.png"></p>
+<h3 id="linux环境变量文件加载详解">Linux环境变量文件加载详解</h3>
+<p>由上面的测试可容易得出Linux加载环境变量的顺序如下，：</p>
+<p>系统环境变量 -&gt; 用户自定义环境变量 <code>/etc/environment</code> -&gt; <code>/etc/profile</code> -&gt; <code>~/.profile</code></p>
+<p>打开<code>/etc/profile</code>文件你会发现，该文件的代码中会加载<code>/etc/bash.bashrc</code>文件，然后检查<code>/etc/profile.d/</code>目录下的<code>.sh</code>文件并加载。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
+# and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
+
+if [ "$PS1" ]; then
+  if [ "$BASH" ] &amp;&amp; [ "$BASH" != "/bin/sh" ]; then
+    # The file bash.bashrc already sets the default PS1.
+    # PS1='\h:\w\$ '
+    if [ -f /etc/bash.bashrc ]; then
+      . /etc/bash.bashrc
+    fi
+  else
+    if [ "`id -u`" -eq 0 ]; then
+      PS1='# '
+    else
+      PS1='$ '
+    fi
+  fi
+fi
+
+if [ -d /etc/profile.d ]; then
+  for i in /etc/profile.d/*.sh; do
+    if [ -r $i ]; then
+      . $i
+    fi
+  done
+  unset i
+fi<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其次再打开<code>~/.profile</code>文件，会发现该文件中加载了<code>~/.bashrc</code>文件。</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># if running bash
+if [ -n "$BASH_VERSION" ]; then
+    # include .bashrc if it exists
+    if [ -f "$HOME/.bashrc" ]; then
+	. "$HOME/.bashrc"
+    fi
+fi
+
+# set PATH so it includes user's private bin directories
+PATH="$HOME/bin:$HOME/.local/bin:$PATH"<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>从<code>~/.profile</code>文件中代码不难发现，<code>/.profile</code>文件<strong>只在用户登录的时候读取一次</strong>，而<code>/.bashrc</code>会在每次运行<code>Shell</code>脚本的时候读取一次。</p>
+<h3 id="一些小技巧">一些小技巧</h3>
+<p>可以自定义一个环境变量文件，比如在某个项目下定义<code>uusama.profile</code>，在这个文件中使用<code>export</code>定义一系列变量，然后在<code>~/.profile</code>文件后面加上：<code>sourc uusama.profile</code>，这样你每次登陆都可以在Shell脚本中使用自己定义的一系列变量。</p>
+<p>也可以使用<code>alias</code>命令定义一些命令的别名，比如<code>alias rm="rm -i"</code>（双引号必须），并把这个代码加入到<code>~/.profile</code>中，这样你每次使用<code>rm</code>命令的时候，都相当于使用<code>rm -i</code>命令，非常方便。</p>
 
                 
             </div>
@@ -599,7 +571,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://changanyyy.github.io/2021/06/16/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E4%BC%A0%E8%BE%93%E5%B1%82/">http://changanyyy.github.io/2021/06/16/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E4%BC%A0%E8%BE%93%E5%B1%82/</a>
+                    <a href="http://changanyyy.github.io/2022/02/10/Linux-%E6%B7%BB%E5%8A%A0%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F/">http://changanyyy.github.io/2022/02/10/Linux-%E6%B7%BB%E5%8A%A0%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -636,7 +608,11 @@
                 <div class="post-meta__tag-list" style="display: inline-block;">
                     
                         <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
+                            
+                                <a href="/tags/Linux/">
+                                    <span class="chip bg-color">Linux</span>
+                                </a>
+                            
                         </div>
                     
                 </div>
@@ -804,46 +780,48 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
-                <a href="/2021/07/12/MIT6-828-note-lab1/">
+                <a href="/2022/02/10/Linux-%E6%B7%BB%E5%8A%A0%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/1.jpg" class="responsive-img" alt="MIT6-828-note-lab1">
+                        <img src="/medias/featureimages/12.jpg" class="responsive-img" alt="Linux 添加环境变量">
                         
-                        <span class="card-title">MIT6-828-note-lab1</span>
+                        <span class="card-title">Linux 添加环境变量</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            操作系统
+                            Linux
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2021-07-12
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-02-10
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="post-category">
-                                    操作系统
+                            <a href="/categories/Linux/" class="post-category">
+                                    Linux
                                 </a>
                             
                             
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">操作系统</span>
+                    <a href="/tags/Linux/">
+                        <span class="chip bg-color">Linux</span>
                     </a>
                     
                 </div>
@@ -857,36 +835,44 @@
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2021/06/14/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E5%BA%94%E7%94%A8%E5%B1%82/">
+                <a href="/2022/02/10/Linux%E8%AE%BE%E7%BD%AE%E4%BA%A4%E6%8D%A2%E5%88%86%E5%8C%BA/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/22.jpg" class="responsive-img" alt="计网笔记应用层">
+                        <img src="/medias/featureimages/14.jpg" class="responsive-img" alt="Linux设置交换分区">
                         
-                        <span class="card-title">计网笔记应用层</span>
+                        <span class="card-title">Linux设置交换分区</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            
+                            Linux
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-14
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-02-10
                             </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="post-category">
-                                    计算机网络
+                            <a href="/categories/Linux/" class="post-category">
+                                    Linux
                                 </a>
                             
                             
                         </span>
                     </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Linux/">
+                        <span class="chip bg-color">Linux</span>
+                    </a>
+                    
                 </div>
                 
             </div>

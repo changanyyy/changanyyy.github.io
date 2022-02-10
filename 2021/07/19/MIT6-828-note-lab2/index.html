@@ -35,7 +35,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
 <!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
-<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css"></head>
+</head>
 
 
 
@@ -252,6 +252,19 @@
     
 
 
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+<!-- 代码语言 -->
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+<!-- 代码块复制 -->
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+<script type="text/javascript" src="/libs/codeBlock/clipboard.min.js"></script>
+<!-- 代码块收缩 -->
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script> 
+<!-- 代码块折行 -->
+<style type="text/css">code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }</style>
+
+
+
 
 <div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/2.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
@@ -326,6 +339,9 @@
         <hr class="clearfix">
 
         
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.css">
+        
 
         
 
@@ -338,16 +354,16 @@
 <h4 id="怎么开的保护模式">1-1怎么开的保护模式？</h4>
 <p>我们在合并了<code>Lab1</code>之后，先来回顾一下操作系统启动的过程。</p>
 <p>我们从<code>Kernel</code>开始，首先进入<code>entry.S</code>，然后把一个简易的页表加载上<code>cr3</code>去，这个页表的作用是把内存的<code>[KERNBASE, KERNBASE+4MB)</code>和<code>[0, 4MB)</code>都映射到物理地址<code>[0, 4MB)</code>上去！为什么要把虚拟地址<code>[0, 4MB)</code>也映射上去呢？原因是在我开启分页之后，就从实地址模式变成了保护模式，<code>CPU</code>解析地址的方式就变化了。而我们下面还有两行汇编指令的地址位于低地址，而此时的<code>EIP</code>仍然位于低地址部分！这样开启分页之后，才可以获取到正确的指令！然后通过<code>jmp</code>指令跳转到虚拟地址<code>0xf0000000</code>地址的位置！</p>
-<pre class="assembly"><code>mov $relocated, %eax
-    jmp *%eax</code></pre>
+<pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">mov	$relocated, %eax
+	jmp	*%eax<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <h4 id="设置简易的栈">1-2设置简易的栈</h4>
 <p>下面<code>relocated</code>的作用是初始化一下栈区，从下面的代码可以看出，栈区的大小是<code>KSTKSIZE</code>，栈区的栈顶位于高地址，即<code>bootstacktop</code></p>
-<pre class="assembly"><code>    .p2align    PGSHIFT     # force page alignment
-    .globl      bootstack
+<pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">	.p2align	PGSHIFT		# force page alignment
+	.globl		bootstack
 bootstack:
-    .space      KSTKSIZE
-    .globl      bootstacktop   
-bootstacktop:</code></pre>
+	.space		KSTKSIZE
+	.globl		bootstacktop   
+bootstacktop:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>随即把栈顶指针赋值给<code>esp</code>，调用<code>i386_init</code>函数进行进一步初始化！</p>
 <h4 id="初始化函数">1-3初始化函数</h4>
 <p>进入初始化函数，我们看见第一件事情就是初始化<code>.bss</code>段，初始化为0，因为在<code>ELF</code>文件里面，这个段只标出了大小，并不分配空间。</p>
@@ -358,15 +374,16 @@ bootstacktop:</code></pre>
 <h4 id="为必要的ds分配内存">2-2为必要的DS分配内存</h4>
 <p>继续往下看，看见是给<code>kern_pgdir</code>变量赋值，我们可以看见它的定义是一个全局变量，表示的是页目录的首地址！我们可以知道，页目录所对应逻辑地址中的10比特，那么一共有页目录<code>2^10=1024</code>个！而一个页目录项的大小是4字节，所以一个页目录占用的大小刚好是一个页面的大小！所以我们用<code>boot_alloc</code>函数来对页目录进行分配空间（后面会提到这个函数具体干啥的）。分配完之后，还要清零。</p>
 <p>下面一步是分配一个<code>pages</code>数组，每一项对应一个物理页框，我们可以得知一共有<code>npages</code>个物理页框，所以代码如下：</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>    <span class="co">//////////////////////////////////////////////////////////////////////</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Allocate an array of npages 'struct PageInfo's and store it in 'pages'.</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// The kernel uses this array to keep track of physical pages: for</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// each physical page, there is a corresponding struct PageInfo in this</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// array.  'npages' is the number of physical pages in memory.  Use memset</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// to initialize all fields of each struct PageInfo to 0.</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Your code goes here:</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    pages<span class="op">=(</span><span class="kw">struct</span> PageInfo <span class="op">*)</span>boot_alloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> PageInfo<span class="op">)</span> <span class="op">*</span> npages<span class="op">);</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    memset<span class="op">(</span>pages<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> PageInfo<span class="op">)</span> <span class="op">*</span> npages<span class="op">);</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">//////////////////////////////////////////////////////////////////////</span>
+<span class="token comment">// Allocate an array of npages 'struct PageInfo's and store it in 'pages'.</span>
+<span class="token comment">// The kernel uses this array to keep track of physical pages: for</span>
+<span class="token comment">// each physical page, there is a corresponding struct PageInfo in this</span>
+<span class="token comment">// array.  'npages' is the number of physical pages in memory.  Use memset</span>
+<span class="token comment">// to initialize all fields of each struct PageInfo to 0.</span>
+<span class="token comment">// Your code goes here:</span>
+pages<span class="token operator">=</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">PageInfo</span> <span class="token operator">*</span><span class="token punctuation">)</span><span class="token function">boot_alloc</span><span class="token punctuation">(</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">PageInfo</span><span class="token punctuation">)</span> <span class="token operator">*</span> npages<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">memset</span><span class="token punctuation">(</span>pages<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">PageInfo</span><span class="token punctuation">)</span> <span class="token operator">*</span> npages<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>现在既然关于页面和页目录的数据结构分配完了，我们就对这些内存进行初始化！</p>
 <h4 id="初始化分页">2-3初始化分页</h4>
 <p>对于<code>page_init</code>函数，我们要做的是把已经分配出去的页框和空闲页框分类，空闲页框用一个链表串起来！</p>
@@ -384,269 +401,269 @@ bootstacktop:</code></pre>
 </figure>
 <p>根据上面的提示，我们对物理内存进行了庖丁解牛。于是，我写出了如下优美的代码（x）：</p>
 <p>需要注意的是空闲页面链表使用的是头插法！</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>    page_free_list <span class="op">=</span> NULL<span class="op">;</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> i<span class="op">;</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span>i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> npages<span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>            i<span class="op">==</span><span class="dv">0</span> </span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">||</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>            <span class="op">(</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                page2pa<span class="op">(&amp;</span>pages<span class="op">[</span>i<span class="op">])</span> <span class="op">&gt;=</span> IOPHYSMEM </span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>                <span class="op">&amp;&amp;</span> </span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>                page2pa<span class="op">(&amp;</span>pages<span class="op">[</span>i<span class="op">])</span> <span class="op">&lt;</span> EXTPHYSMEM</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>            <span class="op">)</span> </span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">||</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>            <span class="op">(</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>                page2pa<span class="op">(&amp;</span>pages<span class="op">[</span>i<span class="op">])</span> <span class="op">&gt;=</span> EXTPHYSMEM </span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>                <span class="op">&amp;&amp;</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>                page2kva<span class="op">(&amp;</span>pages<span class="op">[</span>i<span class="op">])</span> <span class="op">&lt;</span> boot_alloc<span class="op">(</span><span class="dv">0</span><span class="op">)</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>            <span class="op">)</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>        <span class="op">){</span></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>            pages<span class="op">[</span>i<span class="op">].</span>pp_ref <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>            pages<span class="op">[</span>i<span class="op">].</span>pp_link <span class="op">=</span> NULL<span class="op">;</span></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span><span class="op">;</span></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>        pages<span class="op">[</span>i<span class="op">].</span>pp_ref <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>        pages<span class="op">[</span>i<span class="op">].</span>pp_link <span class="op">=</span> page_free_list<span class="op">;</span></span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>        page_free_list <span class="op">=</span> <span class="op">&amp;</span>pages<span class="op">[</span>i<span class="op">];</span></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>        <span class="co">//cprintf("pagefree %d",i);</span></span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c">page_free_list <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+<span class="token class-name">size_t</span> i<span class="token punctuation">;</span>
+<span class="token keyword">for</span> <span class="token punctuation">(</span>i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> npages<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span>
+		i<span class="token operator">==</span><span class="token number">0</span> 
+	<span class="token operator">||</span>
+		<span class="token punctuation">(</span>
+			<span class="token function">page2pa</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">&gt;=</span> IOPHYSMEM 
+			<span class="token operator">&amp;&amp;</span> 
+			<span class="token function">page2pa</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> EXTPHYSMEM
+		<span class="token punctuation">)</span> 
+	<span class="token operator">||</span>
+		<span class="token punctuation">(</span>
+			<span class="token function">page2pa</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">&gt;=</span> EXTPHYSMEM 
+			<span class="token operator">&amp;&amp;</span>
+			<span class="token function">page2kva</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token function">boot_alloc</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span>
+		<span class="token punctuation">)</span>
+	<span class="token punctuation">)</span><span class="token punctuation">{</span>
+		pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>pp_ref <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+		pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>pp_link <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+		<span class="token keyword">continue</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>pp_ref <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>pp_link <span class="token operator">=</span> page_free_list<span class="token punctuation">;</span>
+	page_free_list <span class="token operator">=</span> <span class="token operator">&amp;</span>pages<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
+	<span class="token comment">//cprintf("pagefree %d",i);</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h4 id="关于物理页的操作">2-4关于物理页的操作</h4>
 <h5 id="page_alloc">2-4-1 page_alloc</h5>
 <p>这个函数就是为了分配一个物理页，从今往后代替<code>boot_alloc</code>函数。</p>
 <p>我们已经在<code>page_init</code>函数里面初始化了空闲物理页链表，这就说明我们如果要分配一个物理页面，就要在空闲页面链表里面找。当链表头是<code>NULL</code>的时候，就说明页面分配完了。还有如果置零标志位为1，那么要初始清零！</p>
 <p>分配物理页的时候并不需要给<code>ref+1</code>，因为它还没有和一个虚拟页面进行关联！</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Allocates a physical page.  If (alloc_flags &amp; ALLOC_ZERO), fills the entire</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">// returned physical page with '\0' bytes.  Does NOT increment the reference</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">// count of the page - the caller must do these if necessary (either explicitly</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">// or via page_insert).</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Be sure to set the pp_link field of the allocated page to NULL so</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">// page_free can check for double-free bugs.</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">// Returns NULL if out of free memory.</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">// Hint: use page2kva and memset</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> PageInfo <span class="op">*</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>page_alloc<span class="op">(</span><span class="dt">int</span> alloc_flags<span class="op">)</span></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">//cprintf("Entry page alloc\n");</span></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">//out of memory</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>page_free_list <span class="op">==</span> NULL<span class="op">)</span><span class="cf">return</span> NULL<span class="op">;</span></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> PageInfo<span class="op">*</span> ret <span class="op">=</span> page_free_list<span class="op">;</span></span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    page_free_list <span class="op">=</span> page_free_list <span class="op">-&gt;</span> pp_link<span class="op">;</span></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    ret <span class="op">-&gt;</span> pp_link <span class="op">=</span> NULL<span class="op">;</span></span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Fill this function in</span></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>alloc_flags <span class="op">&amp;</span> ALLOC_ZERO<span class="op">){</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>        memset<span class="op">(</span>page2kva<span class="op">(</span>ret<span class="op">),</span> <span class="ch">'\0'</span><span class="op">,</span> PGSIZE<span class="op">);</span></span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ret<span class="op">;</span></span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">//</span>
+<span class="token comment">// Allocates a physical page.  If (alloc_flags &amp; ALLOC_ZERO), fills the entire</span>
+<span class="token comment">// returned physical page with '\0' bytes.  Does NOT increment the reference</span>
+<span class="token comment">// count of the page - the caller must do these if necessary (either explicitly</span>
+<span class="token comment">// or via page_insert).</span>
+<span class="token comment">//</span>
+<span class="token comment">// Be sure to set the pp_link field of the allocated page to NULL so</span>
+<span class="token comment">// page_free can check for double-free bugs.</span>
+<span class="token comment">//</span>
+<span class="token comment">// Returns NULL if out of free memory.</span>
+<span class="token comment">//</span>
+<span class="token comment">// Hint: use page2kva and memset</span>
+<span class="token keyword">struct</span> <span class="token class-name">PageInfo</span> <span class="token operator">*</span>
+<span class="token function">page_alloc</span><span class="token punctuation">(</span><span class="token keyword">int</span> alloc_flags<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+	<span class="token comment">//cprintf("Entry page alloc\n");</span>
+	<span class="token comment">//out of memory</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span>page_free_list <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token keyword">return</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+
+	<span class="token keyword">struct</span> <span class="token class-name">PageInfo</span><span class="token operator">*</span> ret <span class="token operator">=</span> page_free_list<span class="token punctuation">;</span>
+	page_free_list <span class="token operator">=</span> page_free_list <span class="token operator">-&gt;</span> pp_link<span class="token punctuation">;</span>
+	ret <span class="token operator">-&gt;</span> pp_link <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+	<span class="token comment">// Fill this function in</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span>alloc_flags <span class="token operator">&amp;</span> ALLOC_ZERO<span class="token punctuation">)</span><span class="token punctuation">{</span>
+		<span class="token function">memset</span><span class="token punctuation">(</span><span class="token function">page2kva</span><span class="token punctuation">(</span>ret<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">'\0'</span><span class="token punctuation">,</span> PGSIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h5 id="page_free">2-4-2 page_free</h5>
 <p>这个函数用来把物理页框归还到空闲页框链表中。使用头插法！</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Return a page to the free list.</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">// (This function should only be called when pp-&gt;pp_ref reaches 0.)</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>page_free<span class="op">(</span><span class="kw">struct</span> PageInfo <span class="op">*</span>pp<span class="op">)</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Fill this function in</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Hint: You may want to panic if pp-&gt;pp_ref is nonzero or</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// pp-&gt;pp_link is not NULL.</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>pp<span class="op">-&gt;</span>pp_ref <span class="op">!=</span> <span class="dv">0</span> <span class="op">||</span> pp<span class="op">-&gt;</span>pp_link <span class="op">!=</span> NULL<span class="op">)</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        panic<span class="op">(</span><span class="st">"page_free: pp is not a page in use</span><span class="sc">\n</span><span class="st">"</span><span class="op">);</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    pp<span class="op">-&gt;</span>pp_link <span class="op">=</span> page_free_list<span class="op">;</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    page_free_list <span class="op">=</span> pp<span class="op">;</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span><span class="op">;</span></span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="op">}.</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">//</span>
+<span class="token comment">// Return a page to the free list.</span>
+<span class="token comment">// (This function should only be called when pp-&gt;pp_ref reaches 0.)</span>
+<span class="token comment">//</span>
+<span class="token keyword">void</span>
+<span class="token function">page_free</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">PageInfo</span> <span class="token operator">*</span>pp<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+	<span class="token comment">// Fill this function in</span>
+	<span class="token comment">// Hint: You may want to panic if pp-&gt;pp_ref is nonzero or</span>
+	<span class="token comment">// pp-&gt;pp_link is not NULL.</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span>pp<span class="token operator">-&gt;</span>pp_ref <span class="token operator">!=</span> <span class="token number">0</span> <span class="token operator">||</span> pp<span class="token operator">-&gt;</span>pp_link <span class="token operator">!=</span> <span class="token constant">NULL</span><span class="token punctuation">)</span>
+		<span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"page_free: pp is not a page in use\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	pp<span class="token operator">-&gt;</span>pp_link <span class="token operator">=</span> page_free_list<span class="token punctuation">;</span>
+	page_free_list <span class="token operator">=</span> pp<span class="token punctuation">;</span>
+	<span class="token keyword">return</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h5 id="page_decref">2-4-3 page_decref</h5>
 <p>这个函数用来在删除映射过程中，衰减页框的引用位，当没有被引用时，就释放这个页框！</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Decrement the reference count on a page,</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">// freeing it if there are no more refs.</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>page_decref<span class="op">(</span><span class="kw">struct</span> PageInfo<span class="op">*</span> pp<span class="op">)</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(--</span>pp<span class="op">-&gt;</span>pp_ref <span class="op">==</span> <span class="dv">0</span><span class="op">)</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        page_free<span class="op">(</span>pp<span class="op">);</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">//</span>
+<span class="token comment">// Decrement the reference count on a page,</span>
+<span class="token comment">// freeing it if there are no more refs.</span>
+<span class="token comment">//</span>
+<span class="token keyword">void</span>
+<span class="token function">page_decref</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">PageInfo</span><span class="token operator">*</span> pp<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">--</span>pp<span class="token operator">-&gt;</span>pp_ref <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span>
+		<span class="token function">page_free</span><span class="token punctuation">(</span>pp<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h4 id="关于映射">2-5关于映射</h4>
 <h5 id="page_walk">2-5-1 page_walk</h5>
 <p>这个函数刚开始我没有理解，后来在一遍遍反复阅读中我知道了它的作用：返回值是虚拟地址<code>va</code>对应的页表项的地址！（虚拟地址）</p>
 <p>因为这个虚拟地址对应的页表页可能还没有用到，所以就没有被映射，所以需要对它分配一个物理页框，同时让页目录表项填写这个物理页框的物理地址，然后把物理页框中对应页表项的地址作为返回值。</p>
 <p>那么如何判断页表项对应的物理页框是否存在呢，那就是通过<code>present</code>位来进行判断！当对应页目录项的存在位为0，说明对应页目录表项还不存在。这时再根据<code>create</code>位来确认是否要创建新的表项。</p>
 <p>如果存在的话，那就直接返回对应的页表项地址即可！</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Given 'pgdir', a pointer to a page directory, pgdir_walk returns</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">// a pointer to the page table entry (PTE) for linear address 'va'.</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">// This requires walking the two-level page table structure.</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">// The relevant page table page might not exist yet.</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">// If this is true, and create == false, then pgdir_walk returns NULL.</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Otherwise, pgdir_walk allocates a new page table page with page_alloc.</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">//    - If the allocation fails, pgdir_walk returns NULL.</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">//    - Otherwise, the new page's reference count is incremented,</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co">//  the page is cleared,</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co">//  and pgdir_walk returns a pointer into the new page table page.</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>pte_t <span class="op">*</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>pgdir_walk<span class="op">(</span>pde_t <span class="op">*</span>pgdir<span class="op">,</span> <span class="dt">const</span> <span class="dt">void</span> <span class="op">*</span>va<span class="op">,</span> <span class="dt">int</span> create<span class="op">)</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Fill this function in</span></span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> pde_idx <span class="op">=</span> PDX<span class="op">(</span>va<span class="op">);</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> pte_idx <span class="op">=</span> PTX<span class="op">(</span>va<span class="op">);</span></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    pte_t <span class="op">*</span>ptep <span class="op">=</span> NULL<span class="op">;</span></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> present <span class="op">=</span> pgdir<span class="op">[</span>pde_idx<span class="op">]</span> <span class="op">&amp;</span> PTE_P<span class="op">;</span></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(!</span>present <span class="op">&amp;&amp;</span> create <span class="op">==</span> <span class="dv">0</span><span class="op">){</span></span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>        <span class="co">//cprintf("ptep ");</span></span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> NULL<span class="op">;</span></span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="cf">if</span><span class="op">(!</span>present <span class="op">&amp;&amp;</span> create <span class="op">==</span> <span class="dv">1</span><span class="op">){</span></span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>        <span class="kw">struct</span> PageInfo<span class="op">*</span> pg <span class="op">=</span> page_alloc<span class="op">(</span>ALLOC_ZERO<span class="op">);</span></span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>        <span class="co">//cprintf("ptep ");</span></span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(</span>pg <span class="op">==</span> NULL<span class="op">)</span><span class="cf">return</span> NULL<span class="op">;</span></span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span><span class="op">{</span></span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>            pg<span class="op">-&gt;</span>pp_ref<span class="op">++;</span></span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>            ptep <span class="op">=</span> <span class="op">(</span>pte_t <span class="op">*)</span> KADDR<span class="op">(</span>page2pa<span class="op">(</span>pg<span class="op">));</span></span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>            <span class="co">//cprintf("ptep = %x\n", ptep);</span></span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>            pgdir<span class="op">[</span>PDX<span class="op">(</span>va<span class="op">)]</span> <span class="op">=</span> page2pa<span class="op">(</span>pg<span class="op">)</span> <span class="op">|</span> PTE_W <span class="op">|</span> PTE_U <span class="op">|</span> PTE_P<span class="op">;</span></span>
-<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="op">&amp;</span>ptep<span class="op">[</span>PTX<span class="op">(</span>va<span class="op">)];</span></span>
-<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span><span class="op">{</span></span>
-<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>        ptep <span class="op">=</span> <span class="op">(</span>pte_t <span class="op">*)</span>KADDR<span class="op">(</span>PTE_ADDR<span class="op">(</span>pgdir<span class="op">[</span>pde_idx<span class="op">]));</span> </span>
-<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>        <span class="co">//cprintf("ptep = %x\n", ptep);</span></span>
-<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">&amp;</span>ptep<span class="op">[</span>PTX<span class="op">(</span>va<span class="op">)];</span></span>
-<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">// Given 'pgdir', a pointer to a page directory, pgdir_walk returns</span>
+<span class="token comment">// a pointer to the page table entry (PTE) for linear address 'va'.</span>
+<span class="token comment">// This requires walking the two-level page table structure.</span>
+<span class="token comment">//</span>
+<span class="token comment">// The relevant page table page might not exist yet.</span>
+<span class="token comment">// If this is true, and create == false, then pgdir_walk returns NULL.</span>
+<span class="token comment">// Otherwise, pgdir_walk allocates a new page table page with page_alloc.</span>
+<span class="token comment">//    - If the allocation fails, pgdir_walk returns NULL.</span>
+<span class="token comment">//    - Otherwise, the new page's reference count is incremented,</span>
+<span class="token comment">//	the page is cleared,</span>
+<span class="token comment">//	and pgdir_walk returns a pointer into the new page table page.</span>
+<span class="token class-name">pte_t</span> <span class="token operator">*</span>
+<span class="token function">pgdir_walk</span><span class="token punctuation">(</span><span class="token class-name">pde_t</span> <span class="token operator">*</span>pgdir<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">void</span> <span class="token operator">*</span>va<span class="token punctuation">,</span> <span class="token keyword">int</span> create<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+	<span class="token comment">// Fill this function in</span>
+	<span class="token keyword">int</span> pde_idx <span class="token operator">=</span> <span class="token function">PDX</span><span class="token punctuation">(</span>va<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword">int</span> pte_idx <span class="token operator">=</span> <span class="token function">PTX</span><span class="token punctuation">(</span>va<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token class-name">pte_t</span> <span class="token operator">*</span>ptep <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+	<span class="token keyword">int</span> present <span class="token operator">=</span> pgdir<span class="token punctuation">[</span>pde_idx<span class="token punctuation">]</span> <span class="token operator">&amp;</span> PTE_P<span class="token punctuation">;</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>present <span class="token operator">&amp;&amp;</span> create <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+		<span class="token comment">//cprintf("ptep ");</span>
+		<span class="token keyword">return</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>present <span class="token operator">&amp;&amp;</span> create <span class="token operator">==</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+		<span class="token keyword">struct</span> <span class="token class-name">PageInfo</span><span class="token operator">*</span> pg <span class="token operator">=</span> <span class="token function">page_alloc</span><span class="token punctuation">(</span>ALLOC_ZERO<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token comment">//cprintf("ptep ");</span>
+		<span class="token keyword">if</span><span class="token punctuation">(</span>pg <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token keyword">return</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+		<span class="token keyword">else</span><span class="token punctuation">{</span>
+			pg<span class="token operator">-&gt;</span>pp_ref<span class="token operator">++</span><span class="token punctuation">;</span>
+			ptep <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">pte_t</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token function">KADDR</span><span class="token punctuation">(</span><span class="token function">page2pa</span><span class="token punctuation">(</span>pg<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token comment">//cprintf("ptep = %x\n", ptep);</span>
+			pgdir<span class="token punctuation">[</span><span class="token function">PDX</span><span class="token punctuation">(</span>va<span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">page2pa</span><span class="token punctuation">(</span>pg<span class="token punctuation">)</span> <span class="token operator">|</span> PTE_W <span class="token operator">|</span> PTE_U <span class="token operator">|</span> PTE_P<span class="token punctuation">;</span>
+			<span class="token keyword">return</span> <span class="token operator">&amp;</span>ptep<span class="token punctuation">[</span><span class="token function">PTX</span><span class="token punctuation">(</span>va<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+		<span class="token punctuation">}</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword">else</span><span class="token punctuation">{</span>
+		ptep <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">pte_t</span> <span class="token operator">*</span><span class="token punctuation">)</span><span class="token function">KADDR</span><span class="token punctuation">(</span><span class="token function">PTE_ADDR</span><span class="token punctuation">(</span>pgdir<span class="token punctuation">[</span>pde_idx<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+		<span class="token comment">//cprintf("ptep = %x\n", ptep);</span>
+		<span class="token keyword">return</span> <span class="token operator">&amp;</span>ptep<span class="token punctuation">[</span><span class="token function">PTX</span><span class="token punctuation">(</span>va<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h5 id="page_insert">2-5-2 page_insert</h5>
 <p>这个函数用来进行一个映射，给定页目录表项，给定物理页框（当然是<code>page_alloc</code>分配出来的），还有保护位的参数。我们需要做的是把虚拟地址对应的页面映射到物理页框上！</p>
 <p>我们首先要做的就是先获取对应页表项的地址，然后看看是否已经映射了，如果这片虚拟地址已经映射在同一个物理页框上，那么就不可以<code>remove</code>掉，因为一旦<code>remove</code>掉就可能分配不到同一个页框！！！（因为如果有多个进程占用页框）但是可能需要更改标志位，所以先把标志位清零再更改标志位。</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>page_insert<span class="op">(</span>pde_t <span class="op">*</span>pgdir<span class="op">,</span> <span class="kw">struct</span> PageInfo <span class="op">*</span>pp<span class="op">,</span> <span class="dt">void</span> <span class="op">*</span>va<span class="op">,</span> <span class="dt">int</span> perm<span class="op">)</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Fill this function in</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    pte_t <span class="op">*</span>ptep <span class="op">=</span> pgdir_walk<span class="op">(</span>pgdir<span class="op">,</span> va<span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>ptep <span class="op">==</span> NULL<span class="op">)</span><span class="cf">return</span> <span class="op">-</span>E_NO_MEM<span class="op">;</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">((*</span>ptep<span class="op">)</span> <span class="op">&amp;</span> PTE_P<span class="op">){</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(</span>PTE_ADDR<span class="op">(*</span>ptep<span class="op">)==</span>page2pa<span class="op">(</span>pp<span class="op">)){</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>            <span class="op">*</span>ptep <span class="op">&amp;=</span> <span class="op">~</span><span class="bn">0xffe</span><span class="op">;</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>            <span class="op">*</span>ptep <span class="op">|=</span> perm <span class="op">|</span> PTE_P<span class="op">;</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>            page_remove<span class="op">(</span>pgdir<span class="op">,</span> va<span class="op">);</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>ptep <span class="op">=</span> page2pa<span class="op">(</span>pp<span class="op">)</span> <span class="op">|</span> perm <span class="op">|</span> PTE_P<span class="op">;</span></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    pp <span class="op">-&gt;</span> pp_ref<span class="op">++;</span></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword">int</span>
+<span class="token function">page_insert</span><span class="token punctuation">(</span><span class="token class-name">pde_t</span> <span class="token operator">*</span>pgdir<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">PageInfo</span> <span class="token operator">*</span>pp<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>va<span class="token punctuation">,</span> <span class="token keyword">int</span> perm<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+	<span class="token comment">// Fill this function in</span>
+	<span class="token class-name">pte_t</span> <span class="token operator">*</span>ptep <span class="token operator">=</span> <span class="token function">pgdir_walk</span><span class="token punctuation">(</span>pgdir<span class="token punctuation">,</span> va<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span>ptep <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token keyword">return</span> <span class="token operator">-</span>E_NO_MEM<span class="token punctuation">;</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token operator">*</span>ptep<span class="token punctuation">)</span> <span class="token operator">&amp;</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">{</span>
+		<span class="token keyword">if</span><span class="token punctuation">(</span><span class="token function">PTE_ADDR</span><span class="token punctuation">(</span><span class="token operator">*</span>ptep<span class="token punctuation">)</span><span class="token operator">==</span><span class="token function">page2pa</span><span class="token punctuation">(</span>pp<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+			<span class="token operator">*</span>ptep <span class="token operator">&amp;=</span> <span class="token operator">~</span><span class="token number">0xffe</span><span class="token punctuation">;</span>
+			<span class="token operator">*</span>ptep <span class="token operator">|=</span> perm <span class="token operator">|</span> PTE_P<span class="token punctuation">;</span>
+			<span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+		<span class="token punctuation">}</span>
+		<span class="token keyword">else</span>
+			<span class="token function">page_remove</span><span class="token punctuation">(</span>pgdir<span class="token punctuation">,</span> va<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	<span class="token operator">*</span>ptep <span class="token operator">=</span> <span class="token function">page2pa</span><span class="token punctuation">(</span>pp<span class="token punctuation">)</span> <span class="token operator">|</span> perm <span class="token operator">|</span> PTE_P<span class="token punctuation">;</span>
+	pp <span class="token operator">-&gt;</span> pp_ref<span class="token operator">++</span><span class="token punctuation">;</span>
+	<span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h5 id="page_lookup">2-5-3 page_lookup</h5>
 <p>这个函数是用来查找对应虚拟地址是否已经映射到对应的物理页框中去，如果已经映射返回对应的<code>PageInfo</code>结构，否则返回<code>NULL</code>，并且把<code>pte</code>存入<code>pte_store</code>中去。</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> PageInfo <span class="op">*</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>page_lookup<span class="op">(</span>pde_t <span class="op">*</span>pgdir<span class="op">,</span> <span class="dt">void</span> <span class="op">*</span>va<span class="op">,</span> pte_t <span class="op">**</span>pte_store<span class="op">)</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Fill this function in</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    pte_t<span class="op">*</span> ptep <span class="op">=</span> pgdir_walk<span class="op">(</span>pgdir<span class="op">,</span> <span class="op">(</span><span class="dt">void</span> <span class="op">*)</span>va<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>ptep <span class="op">==</span> NULL<span class="op">)</span><span class="cf">return</span> NULL<span class="op">;</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>pte_store<span class="op">)*</span>pte_store <span class="op">=</span> ptep<span class="op">;</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">//cprintf("%x\n", PTE_ADDR(*ptep));</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(!((*</span>ptep<span class="op">)</span> <span class="op">&amp;</span> PTE_P<span class="op">))</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> NULL<span class="op">;</span></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> </span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> pa2page<span class="op">(</span>PTE_ADDR<span class="op">(*</span>ptep<span class="op">));</span></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword">struct</span> <span class="token class-name">PageInfo</span> <span class="token operator">*</span>
+<span class="token function">page_lookup</span><span class="token punctuation">(</span><span class="token class-name">pde_t</span> <span class="token operator">*</span>pgdir<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>va<span class="token punctuation">,</span> <span class="token class-name">pte_t</span> <span class="token operator">*</span><span class="token operator">*</span>pte_store<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+	<span class="token comment">// Fill this function in</span>
+	<span class="token class-name">pte_t</span><span class="token operator">*</span> ptep <span class="token operator">=</span> <span class="token function">pgdir_walk</span><span class="token punctuation">(</span>pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>va<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span>ptep <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token keyword">return</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span>pte_store<span class="token punctuation">)</span><span class="token operator">*</span>pte_store <span class="token operator">=</span> ptep<span class="token punctuation">;</span>
+	<span class="token comment">//cprintf("%x\n", PTE_ADDR(*ptep));</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token operator">*</span>ptep<span class="token punctuation">)</span> <span class="token operator">&amp;</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">)</span>
+		<span class="token keyword">return</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+	<span class="token keyword">else</span> 
+		<span class="token keyword">return</span> <span class="token function">pa2page</span><span class="token punctuation">(</span><span class="token function">PTE_ADDR</span><span class="token punctuation">(</span><span class="token operator">*</span>ptep<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h5 id="page_remove">2-5-4 page_remove</h5>
 <p>这个函数是移去映射，先关闭<code>va</code>对应的<code>tlb</code>，再对对应的<code>PTE</code>清零！最后别忘了减小<code>ref</code>。</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>page_remove<span class="op">(</span>pde_t <span class="op">*</span>pgdir<span class="op">,</span> <span class="dt">void</span> <span class="op">*</span>va<span class="op">)</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Fill this function in</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    tlb_invalidate<span class="op">(</span>pgdir<span class="op">,</span>va<span class="op">);</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    pte_t <span class="op">*</span>ptep <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> PageInfo <span class="op">*</span>pg <span class="op">=</span> page_lookup<span class="op">(</span>pgdir<span class="op">,</span> va<span class="op">,</span> <span class="op">&amp;</span>ptep<span class="op">);</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span><span class="op">(</span>pg <span class="op">==</span> NULL<span class="op">)</span><span class="cf">return</span><span class="op">;</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>ptep <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    page_decref<span class="op">(</span>pg<span class="op">);</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword">void</span>
+<span class="token function">page_remove</span><span class="token punctuation">(</span><span class="token class-name">pde_t</span> <span class="token operator">*</span>pgdir<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>va<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+	<span class="token comment">// Fill this function in</span>
+	<span class="token function">tlb_invalidate</span><span class="token punctuation">(</span>pgdir<span class="token punctuation">,</span>va<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token class-name">pte_t</span> <span class="token operator">*</span>ptep <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	<span class="token keyword">struct</span> <span class="token class-name">PageInfo</span> <span class="token operator">*</span>pg <span class="token operator">=</span> <span class="token function">page_lookup</span><span class="token punctuation">(</span>pgdir<span class="token punctuation">,</span> va<span class="token punctuation">,</span> <span class="token operator">&amp;</span>ptep<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span>pg <span class="token operator">==</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token keyword">return</span><span class="token punctuation">;</span>
+	<span class="token operator">*</span>ptep <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	<span class="token function">page_decref</span><span class="token punctuation">(</span>pg<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h5 id="boot_map_region">2-5-5 boot_map_region</h5>
 <p>映射函数，把<code>[va, va + size)</code>对应的虚拟内存映射到<code>[pa, pa + size)</code>物理内存上。我最开始采用的方法是对内存直接比较，但是会出bug，后来改成按照页面的个数进行映射，这样就不会出现问题（并且<code>va</code>，<code>pa</code>，<code>size</code>都是按照页面大小对齐的）。</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Map [va, va+size) of virtual address space to physical [pa, pa+size)</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">// in the page table rooted at pgdir.  Size is a multiple of PGSIZE, and</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">// va and pa are both page-aligned.</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Use permission bits perm|PTE_P for the entries.</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co">// This function is only intended to set up the ``static'' mappings</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">// above UTOP. As such, it should *not* change the pp_ref field on the</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">// mapped pages.</span></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co">// Hint: the TA solution uses pgdir_walk</span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">void</span></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>boot_map_region<span class="op">(</span>pde_t <span class="op">*</span>pgdir<span class="op">,</span> <span class="dt">uintptr_t</span> va<span class="op">,</span> <span class="dt">size_t</span> size<span class="op">,</span> physaddr_t pa<span class="op">,</span> <span class="dt">int</span> perm<span class="op">)</span></span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Fill this function in</span></span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> pgn <span class="op">=</span> size <span class="op">/</span> PGSIZE<span class="op">;</span></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    pte_t <span class="op">*</span>ptep<span class="op">;</span></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> pgn<span class="op">;</span> i<span class="op">++){</span></span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>        ptep <span class="op">=</span> pgdir_walk<span class="op">(</span>pgdir<span class="op">,</span> <span class="op">(</span><span class="dt">void</span> <span class="op">*)</span>va<span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(!</span>ptep<span class="op">){</span></span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>            <span class="co">//cprintf("success map\n");</span></span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span><span class="op">;</span></span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>        <span class="op">*</span>ptep <span class="op">=</span> pa <span class="op">|</span> perm <span class="op">|</span> PTE_P<span class="op">;</span></span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>        va <span class="op">+=</span> PGSIZE<span class="op">;</span> </span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>        pa <span class="op">+=</span> PGSIZE<span class="op">;</span></span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">//cprintf("success map\n");</span></span>
-<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span><span class="op">;</span></span>
-<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">// Map [va, va+size) of virtual address space to physical [pa, pa+size)</span>
+<span class="token comment">// in the page table rooted at pgdir.  Size is a multiple of PGSIZE, and</span>
+<span class="token comment">// va and pa are both page-aligned.</span>
+<span class="token comment">// Use permission bits perm|PTE_P for the entries.</span>
+<span class="token comment">//</span>
+<span class="token comment">// This function is only intended to set up the ``static'' mappings</span>
+<span class="token comment">// above UTOP. As such, it should *not* change the pp_ref field on the</span>
+<span class="token comment">// mapped pages.</span>
+<span class="token comment">//</span>
+<span class="token comment">// Hint: the TA solution uses pgdir_walk</span>
+<span class="token keyword">static</span> <span class="token keyword">void</span>
+<span class="token function">boot_map_region</span><span class="token punctuation">(</span><span class="token class-name">pde_t</span> <span class="token operator">*</span>pgdir<span class="token punctuation">,</span> <span class="token class-name">uintptr_t</span> va<span class="token punctuation">,</span> <span class="token class-name">size_t</span> size<span class="token punctuation">,</span> <span class="token class-name">physaddr_t</span> pa<span class="token punctuation">,</span> <span class="token keyword">int</span> perm<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+	<span class="token comment">// Fill this function in</span>
+	<span class="token keyword">int</span> pgn <span class="token operator">=</span> size <span class="token operator">/</span> PGSIZE<span class="token punctuation">;</span>
+	<span class="token class-name">pte_t</span> <span class="token operator">*</span>ptep<span class="token punctuation">;</span>
+	<span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> pgn<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+		ptep <span class="token operator">=</span> <span class="token function">pgdir_walk</span><span class="token punctuation">(</span>pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>va<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>ptep<span class="token punctuation">)</span><span class="token punctuation">{</span>
+			<span class="token comment">//cprintf("success map\n");</span>
+			<span class="token keyword">return</span><span class="token punctuation">;</span>
+		<span class="token punctuation">}</span>
+		<span class="token operator">*</span>ptep <span class="token operator">=</span> pa <span class="token operator">|</span> perm <span class="token operator">|</span> PTE_P<span class="token punctuation">;</span>
+		va <span class="token operator">+=</span> PGSIZE<span class="token punctuation">;</span> 
+		pa <span class="token operator">+=</span> PGSIZE<span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	<span class="token comment">//cprintf("success map\n");</span>
+	<span class="token keyword">return</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h4 id="虚拟空间映射">2-6虚拟空间映射</h4>
 <p>下面在<code>mem_init</code>里面，我们映射了三个不同的区域。</p>
 <p>先映射页目录，对于应用程序的内核和用户空间，都是只读的权限，所以是<code>PTE_U</code>（这段代码是给出来的，并不是自己写的）</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>kern_pgdir<span class="op">[</span>PDX<span class="op">(</span>UVPT<span class="op">)]</span> <span class="op">=</span> PADDR<span class="op">(</span>kern_pgdir<span class="op">)</span> <span class="op">|</span> PTE_U <span class="op">|</span> PTE_P<span class="op">;</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c">kern_pgdir<span class="token punctuation">[</span><span class="token function">PDX</span><span class="token punctuation">(</span>UVPT<span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">PADDR</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">)</span> <span class="token operator">|</span> PTE_U <span class="token operator">|</span> PTE_P<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>映射页框数据结构<code>PageInfo</code>，把虚拟地址空间<code>UPAGES</code>映射到<code>pages</code>所在数组的地址空间，这样<code>kernel</code>可以通过内核空间对它可以修改。但是用户却不可以通过用户进行修改，只能读！</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">//////////////////////////////////////////////////////////////////////</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Now we set up virtual memory</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">//////////////////////////////////////////////////////////////////////</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Map 'pages' read-only by the user at linear address UPAGES</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Permissions:</span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">//    - the new image at UPAGES -- kernel R, user R</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">//      (ie. perm = PTE_U | PTE_P)</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">//    - pages itself -- kernel RW, user NONE</span></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Your code goes here:</span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    boot_map_region<span class="op">(</span>kern_pgdir<span class="op">,</span> <span class="op">(</span><span class="dt">uintptr_t</span><span class="op">)</span>UPAGES<span class="op">,</span> PTSIZE<span class="op">,</span> <span class="op">(</span>physaddr_t<span class="op">)</span>PADDR<span class="op">(</span>pages<span class="op">),</span> PTE_U <span class="op">|</span> PTE_P<span class="op">);</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">//////////////////////////////////////////////////////////////////////</span>
+	<span class="token comment">// Now we set up virtual memory</span>
+
+	<span class="token comment">//////////////////////////////////////////////////////////////////////</span>
+	<span class="token comment">// Map 'pages' read-only by the user at linear address UPAGES</span>
+	<span class="token comment">// Permissions:</span>
+	<span class="token comment">//    - the new image at UPAGES -- kernel R, user R</span>
+	<span class="token comment">//      (ie. perm = PTE_U | PTE_P)</span>
+	<span class="token comment">//    - pages itself -- kernel RW, user NONE</span>
+	<span class="token comment">// Your code goes here:</span>
+	<span class="token function">boot_map_region</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token class-name">uintptr_t</span><span class="token punctuation">)</span>UPAGES<span class="token punctuation">,</span> PTSIZE<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token class-name">physaddr_t</span><span class="token punctuation">)</span><span class="token function">PADDR</span><span class="token punctuation">(</span>pages<span class="token punctuation">)</span><span class="token punctuation">,</span> PTE_U <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>下面是映射内核栈，让<code>KSTACKTOP-KSTKSIZE</code>以下的地区不被映射，这样如果栈区越界就会报错，所以如下面的代码。</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">//////////////////////////////////////////////////////////////////////</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Use the physical memory that 'bootstack' refers to as the kernel</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// stack.  The kernel stack grows down from virtual address KSTACKTOP.</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// We consider the entire range from [KSTACKTOP-PTSIZE, KSTACKTOP)</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// to be the kernel stack, but break this into two pieces:</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">//     * [KSTACKTOP-KSTKSIZE, KSTACKTOP) -- backed by physical memory</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">//     * [KSTACKTOP-PTSIZE, KSTACKTOP-KSTKSIZE) -- not backed; so if</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">//       the kernel overflows its stack, it will fault rather than</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">//       overwrite memory.  Known as a "guard page".</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">//     Permissions: kernel RW, user NONE</span></span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Your code goes here:</span></span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    boot_map_region<span class="op">(</span>kern_pgdir<span class="op">,</span> <span class="op">(</span><span class="dt">uintptr_t</span><span class="op">)</span>KSTACKTOP <span class="op">-</span> KSTKSIZE<span class="op">,</span> KSTKSIZE<span class="op">,</span> PADDR<span class="op">(</span>bootstack<span class="op">),</span> PTE_W <span class="op">|</span> PTE_P<span class="op">);</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">//////////////////////////////////////////////////////////////////////</span>
+	<span class="token comment">// Use the physical memory that 'bootstack' refers to as the kernel</span>
+	<span class="token comment">// stack.  The kernel stack grows down from virtual address KSTACKTOP.</span>
+	<span class="token comment">// We consider the entire range from [KSTACKTOP-PTSIZE, KSTACKTOP)</span>
+	<span class="token comment">// to be the kernel stack, but break this into two pieces:</span>
+	<span class="token comment">//     * [KSTACKTOP-KSTKSIZE, KSTACKTOP) -- backed by physical memory</span>
+	<span class="token comment">//     * [KSTACKTOP-PTSIZE, KSTACKTOP-KSTKSIZE) -- not backed; so if</span>
+	<span class="token comment">//       the kernel overflows its stack, it will fault rather than</span>
+	<span class="token comment">//       overwrite memory.  Known as a "guard page".</span>
+	<span class="token comment">//     Permissions: kernel RW, user NONE</span>
+	<span class="token comment">// Your code goes here:</span>
+	<span class="token function">boot_map_region</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token class-name">uintptr_t</span><span class="token punctuation">)</span>KSTACKTOP <span class="token operator">-</span> KSTKSIZE<span class="token punctuation">,</span> KSTKSIZE<span class="token punctuation">,</span> <span class="token function">PADDR</span><span class="token punctuation">(</span>bootstack<span class="token punctuation">)</span><span class="token punctuation">,</span> PTE_W <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>最后映射<code>KERNBASE</code>之后的所有虚拟空间！，映射到物理内存最低位</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>    <span class="co">//////////////////////////////////////////////////////////////////////</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Map all of physical memory at KERNBASE.</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Ie.  the VA range [KERNBASE, 2^32) should map to</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">//      the PA range [0, 2^32 - KERNBASE)</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// We might not have 2^32 - KERNBASE bytes of physical memory, but</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// we just set up the mapping anyway.</span></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Permissions: kernel RW, user NONE</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Your code goes here:</span></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    boot_map_region<span class="op">(</span>kern_pgdir<span class="op">,</span> <span class="op">(</span><span class="dt">uintptr_t</span><span class="op">)</span>KERNBASE<span class="op">,</span> <span class="bn">0xffffffff</span> <span class="op">-</span> KERNBASE<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> PTE_W <span class="op">|</span> PTE_P<span class="op">);</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">//////////////////////////////////////////////////////////////////////</span>
+<span class="token comment">// Map all of physical memory at KERNBASE.</span>
+<span class="token comment">// Ie.  the VA range [KERNBASE, 2^32) should map to</span>
+<span class="token comment">//      the PA range [0, 2^32 - KERNBASE)</span>
+<span class="token comment">// We might not have 2^32 - KERNBASE bytes of physical memory, but</span>
+<span class="token comment">// we just set up the mapping anyway.</span>
+<span class="token comment">// Permissions: kernel RW, user NONE</span>
+<span class="token comment">// Your code goes here:</span>
+<span class="token function">boot_map_region</span><span class="token punctuation">(</span>kern_pgdir<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token class-name">uintptr_t</span><span class="token punctuation">)</span>KERNBASE<span class="token punctuation">,</span> <span class="token number">0xffffffff</span> <span class="token operator">-</span> KERNBASE<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> PTE_W <span class="token operator">|</span> PTE_P<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h2 id="三.下面回答几个问题">三.下面回答几个问题：</h2>
 <p>1.<strong>Assuming that the following JOS kernel code is correct, what type should variable <code>x</code> have, <code>uintptr_t</code> or <code>physaddr_t</code>?</strong></p>
-<pre><code>    mystery_t x;
-    char* value = return_a_pointer();
-    *value = 10;
-    x = (mystery_t) value;</code></pre>
+<pre class="line-numbers language-none"><code class="language-none">mystery_t x;
+char* value = return_a_pointer();
+*value = 10;
+x = (mystery_t) value;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p>答：</p>
 <p>2.填下面的表：</p>
 <table>
@@ -709,17 +726,17 @@ bootstacktop:</code></pre>
 <p>当达到最大的物理内存的话，所有的页目录页表和<code>pages</code>数组都在工作。</p>
 <p>页目录占用空间<code>4KB</code>，页表占用<code>1024*4KB=4096KB</code>，<code>pages</code>占用<code>4KB*1024=4MB</code>，加起来大约<code>8MB</code></p>
 <p><img src="/picture/szo.png"></p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> PageInfo <span class="op">{</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Next page on the free list.</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> PageInfo <span class="op">*</span>pp_link<span class="op">;</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// pp_ref is the count of pointers (usually in page table entries)</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// to this page, for pages allocated using page_alloc.</span></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Pages allocated at boot time using pmap.c's</span></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// boot_alloc do not have valid reference count fields.</span></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> pp_ref<span class="op">;</span></span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword">struct</span> <span class="token class-name">PageInfo</span> <span class="token punctuation">{</span>
+	<span class="token comment">// Next page on the free list.</span>
+	<span class="token keyword">struct</span> <span class="token class-name">PageInfo</span> <span class="token operator">*</span>pp_link<span class="token punctuation">;</span>
+
+	<span class="token comment">// pp_ref is the count of pointers (usually in page table entries)</span>
+	<span class="token comment">// to this page, for pages allocated using page_alloc.</span>
+	<span class="token comment">// Pages allocated at boot time using pmap.c's</span>
+	<span class="token comment">// boot_alloc do not have valid reference count fields.</span>
+
+	<span class="token class-name">uint16_t</span> pp_ref<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>6.<strong>Revisit the page table setup in <code>kern/entry.S</code> and <code>kern/entrypgdir.c</code>. Immediately after we turn on paging, EIP is still a low number (a little over 1MB). At what point do we transition to running at an EIP above KERNBASE? What makes it possible for us to continue executing at a low EIP between when we enable paging and when we begin running at an EIP above KERNBASE? Why is this transition necessary?</strong></p>
 <p>答：上面的回顾里面已经解释过了，<code>jmp</code>指令完成了到高地址的跳转。</p>
 <h2 id="三.附录">三.附录</h2>
@@ -1135,6 +1152,7 @@ bootstacktop:</code></pre>
         tex2jax: {inlineMath: [['$', '$'],['\\(', '\\)']]}
     });
 </script>
+
 
 
 

@@ -35,7 +35,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
 <!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
-<link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css"></head>
+</head>
 
 
 
@@ -252,6 +252,19 @@
     
 
 
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+<!-- 代码语言 -->
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+<!-- 代码块复制 -->
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+<script type="text/javascript" src="/libs/codeBlock/clipboard.min.js"></script>
+<!-- 代码块收缩 -->
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script> 
+<!-- 代码块折行 -->
+<style type="text/css">code[class*="language-"], pre[class*="language-"] { white-space: pre !important; }</style>
+
+
+
 
 <div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/4.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
@@ -325,6 +338,9 @@
         </div>
         <hr class="clearfix">
 
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.css">
         
 
         
@@ -436,7 +452,7 @@
 <p>其实<span class="math inline">\(\epsilon-CLOSURE(q)\)</span>就是0步集。</p>
 <h2 id="带输出的有穷自动机">5 带输出的有穷自动机</h2>
 <p>带输出的有穷自动机就是如下的系统：</p>
-<pre><code>输入序列x -&gt; 有穷自动机 -&gt; 输出序列y</code></pre>
+<pre class="line-numbers language-none"><code class="language-none">输入序列x -&gt; 有穷自动机 -&gt; 输出序列y<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>定义7. 一个<strong>Moore机</strong>是一个六元组<span class="math inline">\(M=(Q,\Sigma,\Delta,\delta,\lambda,q_0)\)</span>，其中<span class="math inline">\(Q,\Sigma,\delta,q_0\)</span>地意义和DFA相同。<span class="math inline">\(\Delta\)</span>是一个输出字母表，<span class="math inline">\(\lambda\)</span>是从Q到<span class="math inline">\(\Delta\)</span>的映射，称为输出函数。</p>
 <p>定义8. 一个<strong>Mealy机</strong>是一个一个六元组<span class="math inline">\(M=(Q,\Sigma,\Delta,\delta,\lambda,q_0)\)</span>，这里除了<span class="math inline">\(\lambda\)</span>是从<span class="math inline">\(Q\times\Sigma\)</span>到<span class="math inline">\(\Delta\)</span>的映射除外，其余和Moore机相同。<span class="math inline">\(\lambda(q,a)\)</span>指出了当状态q遇到符号a的输出。</p>
 <p>可以看出它们的区别就是：Moore的输出和输入无关，<strong>只与状态有关</strong>；Mealy的输出<strong>与状态和输入都有关</strong>。当输入n个符号，Moore输出长度为<code>n+1</code>的序列，Mealy输出长度为<code>n</code>的序列。</p>
@@ -454,75 +470,75 @@
 <p>例：设计一个识别单词<code>web</code>和<code>ebay</code>的<code>NFA</code></p>
 <p><img src="/picture/sbdc.png"></p>
 <p>我写了个<code>c++</code>代码来模拟这个NFA</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> words_recg<span class="op">(</span><span class="bu">std::</span>string<span class="op"> </span>s<span class="op">){</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> state <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> idx<span class="op">;</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">pid_t</span> pid<span class="op">;</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span><span class="op">(</span>idx <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> idx <span class="op">&lt;</span> s<span class="op">.</span>size<span class="op">();</span> idx<span class="op">++){</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">switch</span><span class="op">(</span>state<span class="op">){</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">1</span><span class="op">:</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span><span class="op">(</span>s<span class="op">[</span>idx<span class="op">]</span> <span class="op">==</span> <span class="ch">'w'</span><span class="op">){</span><span class="co">//识别到w</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>                pid <span class="op">=</span> fork<span class="op">();</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span><span class="op">(</span>pid <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> state <span class="op">=</span> <span class="dv">2</span><span class="op">;</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span> <span class="cf">continue</span><span class="op">;</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span> <span class="cf">if</span><span class="op">(</span>s<span class="op">[</span>idx<span class="op">]</span> <span class="op">==</span> <span class="ch">'e'</span><span class="op">){</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>                pid <span class="op">=</span> fork<span class="op">();</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span><span class="op">(</span>pid <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> state <span class="op">=</span> <span class="dv">5</span><span class="op">;</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span> <span class="cf">continue</span><span class="op">;</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span> <span class="cf">continue</span><span class="op">;</span></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">2</span><span class="op">:</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span><span class="op">(</span>s<span class="op">[</span>idx<span class="op">]</span> <span class="op">==</span> <span class="ch">'e'</span><span class="op">)</span> state <span class="op">=</span> <span class="dv">3</span><span class="op">;</span></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span> <span class="cf">goto</span> End<span class="op">;</span></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">3</span><span class="op">:</span></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span><span class="op">(</span>s<span class="op">[</span>idx<span class="op">]</span> <span class="op">==</span> <span class="ch">'b'</span><span class="op">)</span> state <span class="op">=</span> <span class="dv">4</span><span class="op">;</span></span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span> <span class="cf">goto</span> End<span class="op">;</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">4</span><span class="op">:</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>            printf<span class="op">(&lt;&lt;</span><span class="st">"Find web at </span><span class="sc">%d\n</span><span class="st">"</span><span class="op">,(</span>idx<span class="op">-</span><span class="dv">3</span><span class="op">));</span></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>            <span class="cf">goto</span> End<span class="op">;</span></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">5</span><span class="op">:</span></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span><span class="op">(</span>s<span class="op">[</span>idx<span class="op">]</span> <span class="op">==</span> <span class="ch">'b'</span><span class="op">)</span> state <span class="op">=</span> <span class="dv">6</span><span class="op">;</span></span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span> <span class="cf">goto</span> End<span class="op">;</span></span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">6</span><span class="op">:</span></span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span><span class="op">(</span>s<span class="op">[</span>idx<span class="op">]</span> <span class="op">==</span> <span class="ch">'a'</span><span class="op">)</span> state <span class="op">=</span> <span class="dv">7</span><span class="op">;</span></span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span> <span class="cf">goto</span> End<span class="op">;</span></span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">7</span><span class="op">:</span></span>
-<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span><span class="op">(</span>s<span class="op">[</span>idx<span class="op">]</span> <span class="op">==</span> <span class="ch">'y'</span><span class="op">)</span> state <span class="op">=</span> <span class="dv">8</span><span class="op">;</span></span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span> <span class="cf">goto</span> End<span class="op">;</span></span>
-<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">8</span><span class="op">:</span></span>
-<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>            printf<span class="op">(&lt;&lt;</span><span class="st">"Find ebay at </span><span class="sc">%d\n</span><span class="st">"</span><span class="op">,(</span>idx<span class="op">-</span><span class="dv">4</span><span class="op">));</span></span>
-<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>            <span class="cf">goto</span> End<span class="op">;</span></span>
-<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>        <span class="cf">default</span><span class="op">:</span></span>
-<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>End<span class="op">:;</span></span>
-<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(){</span></span>
-<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>string<span class="op"> </span>s<span class="op">;</span></span>
-<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> <span class="st">"I am looking for a picture on the web called ebay. This web is good."</span><span class="op">;</span></span>
-<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>    words_recg<span class="op">(</span>s<span class="op">);</span></span>
-<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">void words_recg(std::string s){
+    int state = 1;
+    int idx;
+    pid_t pid;
+    for(idx = 0; idx &lt; s.size(); idx++){
+        switch(state){
+        case 1:
+            if(s[idx] == 'w'){//识别到w
+                pid = fork();
+                if(pid == 0) state = 2;
+                else continue;
+            }
+            else if(s[idx] == 'e'){
+                pid = fork();
+                if(pid == 0) state = 5;
+                else continue;
+            }
+            else continue;
+        break;
+        
+        case 2:
+            if(s[idx] == 'e') state = 3;
+            else goto End;
+        break;
+        
+        case 3:
+            if(s[idx] == 'b') state = 4;
+            else goto End;
+        break;
+        
+        case 4:
+            printf(&lt;&lt;"Find web at %d\n",(idx-3));
+            goto End;
+        break;
+        
+        case 5:
+            if(s[idx] == 'b') state = 6;
+            else goto End;
+        break;
+
+        case 6:
+            if(s[idx] == 'a') state = 7;
+            else goto End;
+        break;
+
+        case 7:
+            if(s[idx] == 'y') state = 8;
+            else goto End;
+        break;
+
+        case 8:
+            printf(&lt;&lt;"Find ebay at %d\n",(idx-4));
+            goto End;
+        break;
+                
+        default:
+        break;
+        }
+    }
+End:;
+}
+
+
+int main(){
+    std::string s;
+    s = "I am looking for a picture on the web called ebay. This web is good.";
+    words_recg(s);
+
+}<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>下面是运行结果：</p>
 <p><img src="/picture/web.png"></p>
 <p>那么下面可以把NFA转化成DFA，然后用程序模拟这个DFA</p>
@@ -1005,6 +1021,7 @@
         tex2jax: {inlineMath: [['$', '$'],['\\(', '\\)']]}
     });
 </script>
+
 
 
 
