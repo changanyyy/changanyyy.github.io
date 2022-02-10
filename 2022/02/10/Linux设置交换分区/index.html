@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="DP-有向无环图的最长路径, yxz的博客">
+    <meta name="keywords" content="Linux设置交换分区, yxz的博客">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>DP-有向无环图的最长路径 | yxz的博客</title>
+    <title>Linux设置交换分区 | yxz的博客</title>
     <link rel="icon" type="image/jpeg" href="/logo.jpg">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -253,12 +253,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/6.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/14.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">DP-有向无环图的最长路径</h1>
+                    <h1 class="description center-align post-title">Linux设置交换分区</h1>
                 </div>
             </div>
         </div>
@@ -278,9 +278,13 @@
             <div class="row tag-cate">
                 <div class="col s7">
                     
-                          <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
-                          </div>
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Linux/">
+                                <span class="chip bg-color">Linux</span>
+                            </a>
+                        
+                    </div>
                     
                 </div>
                 <div class="col s5 right-align">
@@ -288,8 +292,8 @@
                     <div class="post-cate">
                         <i class="fas fa-bookmark fa-fw icon-category"></i>
                         
-                            <a href="/categories/%E7%AE%97%E6%B3%95/" class="post-category">
-                                算法
+                            <a href="/categories/Linux/" class="post-category">
+                                Linux
                             </a>
                         
                     </div>
@@ -305,14 +309,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1k
+                    599
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    4 分
+                    2 分
                 </div>
                 
 
@@ -327,90 +331,48 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="有向无环图中的最长路径">有向无环图中的最长路径</h1>
-<h2 id="输入">输入</h2>
-<p>第一行为一个数字<code>n</code>，表示总点数。之后点的标号为从<code>0</code>到<code>n-1</code>。</p>
-<p>之后的每一行，格式为<code>3</code>个数字，以空格隔开，分别为相连的两个点的编号，它们的边的权值。</p>
-<p>注：输入为有向图。如果出现了<code>“0 1 50”</code>表示点<code>0</code>到点<code>1</code>之间有一条边，权值为<code>50</code>。</p>
-<h2 id="输出">输出</h2>
-<p>点0到其他所有点的最长路径，以空格隔开。注：点0到其他所有点都是可达的。</p>
-<h2 id="复杂度">复杂度</h2>
-<p>复杂度要求在<strong>O(m+n)</strong></p>
-<p>样例输入输出</p>
-<pre><code>输入：
-6
-0 1 1
-0 3 2
-1 2 6
-2 4 1
-2 5 2
-3 4 3
-3 1 4
-4 5 1
-输出：
-6 12 2 13 14 </code></pre>
-<h2 id="思路解析">思路解析</h2>
-<p>首先，看到复杂度是线性时间复杂度，我们想到不太可能用类似<code>Dijkstra</code>，<code>Prime</code>之类的算法，大概是用一个<code>DFS</code>或者<code>BFS</code>框架来完成。</p>
-<p>对于有向无环图，我们会敏锐地发觉它的一些特性：从0经过某些顶点之前，路径上必然会经过另一些顶点！！！如果我们在处理顶点A之前，对它之前的所有顶点的路径进行处理的话，我们就可以依托之前的路径来对顶点A进行处理。这句话怎么听起来这么耳熟？没错，这似乎就是动态规划的具体做法！</p>
-<p>众所周知，动态规划的思路就是<strong>利用前面已经求出的子问题来解决其他的子问题</strong>。我们通过前面经过的顶点来求后面的顶点，与这个思想相符。那么我们怎么判断谁在前谁在后呢？联系算法需要的线性复杂度，我们联想到<code>Topo</code>排序，对顶点进行拓扑序小的在前面，拓扑序大的在后面。那么基本的思路逐渐清晰了。</p>
-<p>先利用拓扑排序对顶点进行排序，这样我在遍历某一个顶点A的时候，从0到A的路径上的所有顶点必然已经被遍历过！那么我们如何找到他前面的顶点呢？做法有两种，第一种是建立一个逆邻接表，这样就可以找到哪一个路径通向点A；第二种做法是在遍历A前面节点X的时候，直接对X的邻居进行处理，这样在遍历到A的时候，A已经被处理完了，A的任务就只变成了对A的邻居进行处理。这两种做法本质上是一样的，但是鉴于省下更多的时间和空间，我采用了第二种方法！</p>
-<p>复杂度分析：<code>topo</code>排序是线性复杂度，后面的<code>DP</code>也是线性复杂度</p>
-<h2 id="代码">代码</h2>
-<p>下面我们就可以进行Coding了！代码如下：</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define _CRT_SECURE_NO_WARNINGS</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include</span><span class="im">&lt;iostream&gt;</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include</span><span class="im">&lt;vector&gt;</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include</span><span class="im">&lt;stack&gt;</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> std<span class="op">;</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a> <span class="co">//邻接表节点，存储邻居节点和路径长度</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> node <span class="op">{</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> v<span class="op">,</span> weight<span class="op">;</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    node<span class="op">(</span><span class="dt">int</span> _v<span class="op">,</span> <span class="dt">int</span> _w<span class="op">)</span> <span class="op">{</span> v <span class="op">=</span> _v<span class="op">;</span> weight <span class="op">=</span> _w<span class="op">;</span> <span class="op">}</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">//邻接表，二维矩阵</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>vector<span class="op">&lt;</span>vector<span class="op">&lt;</span>node<span class="op">&gt;&gt;</span> table<span class="op">;</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">//topo的本质是DFS，需要visit数组</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>vector<span class="op">&lt;</span><span class="dt">bool</span><span class="op">&gt;</span> visit<span class="op">;</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">//存储topo序，顶端的topo序更小</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>stack<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> topo<span class="op">;</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">//存储答案</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> res<span class="op">;</span></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> dfs<span class="op">(</span><span class="dt">int</span> v<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    visit<span class="op">[</span>v<span class="op">]</span> <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> table<span class="op">[</span>v<span class="op">].</span>size<span class="op">();</span> i<span class="op">++)</span> <span class="op">{</span></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span><span class="op">(!</span>visit<span class="op">[</span>table<span class="op">[</span>v<span class="op">][</span>i<span class="op">].</span>v<span class="op">])</span>dfs<span class="op">(</span>table<span class="op">[</span>v<span class="op">][</span>i<span class="op">].</span>v<span class="op">);</span></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    topo<span class="op">.</span>push<span class="op">(</span>v<span class="op">);</span><span class="co">//在处理过v后面所有的节点之后，v的节点topo序要小于它后面的所有节点</span></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> n<span class="op">;</span></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    scanf<span class="op">(</span><span class="st">"</span><span class="sc">%d</span><span class="st">"</span><span class="op">,</span> <span class="op">&amp;</span>n<span class="op">);</span></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    <span class="co">//初始化     </span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;(</span>n<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    visit <span class="op">=</span> vector<span class="op">&lt;</span><span class="dt">bool</span><span class="op">&gt;(</span>n<span class="op">,</span> <span class="kw">false</span><span class="op">);</span></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    table <span class="op">=</span> vector<span class="op">&lt;</span>vector<span class="op">&lt;</span>node<span class="op">&gt;&gt;(</span>n<span class="op">);</span></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> v1<span class="op">,</span> v2<span class="op">,</span> w<span class="op">;</span></span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>scanf<span class="op">(</span><span class="st">"</span><span class="sc">%d</span><span class="st"> </span><span class="sc">%d</span><span class="st"> </span><span class="sc">%d</span><span class="st">"</span><span class="op">,&amp;</span>v1<span class="op">,&amp;</span>v2<span class="op">,&amp;</span>w<span class="op">)!=-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>        table<span class="op">[</span>v1<span class="op">].</span>push_back<span class="op">(</span>node<span class="op">(</span>v2<span class="op">,</span> w<span class="op">));</span></span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    dfs<span class="op">(</span><span class="dv">0</span><span class="op">);</span><span class="co">//topo排序</span></span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(!</span>topo<span class="op">.</span>empty<span class="op">())</span> <span class="op">{</span></span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>        <span class="dt">int</span> cur <span class="op">=</span> topo<span class="op">.</span>top<span class="op">();</span></span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        topo<span class="op">.</span>pop<span class="op">();</span></span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> table<span class="op">[</span>cur<span class="op">].</span>size<span class="op">();</span> i<span class="op">++)</span> <span class="op">{</span><span class="co">//处理cur的邻居</span></span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>            res<span class="op">[</span>table<span class="op">[</span>cur<span class="op">][</span>i<span class="op">].</span>v<span class="op">]</span> <span class="op">=</span> max<span class="op">(</span>res<span class="op">[</span>table<span class="op">[</span>cur<span class="op">][</span>i<span class="op">].</span>v<span class="op">],</span> res<span class="op">[</span>cur<span class="op">]</span> <span class="op">+</span> table<span class="op">[</span>cur<span class="op">][</span>i<span class="op">].</span>weight<span class="op">);</span></span>
-<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">1</span><span class="op">;</span> i <span class="op">&lt;</span> n<span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
-<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>        printf<span class="op">(</span><span class="st">"</span><span class="sc">%d</span><span class="st"> "</span><span class="op">,</span> res<span class="op">[</span>i<span class="op">]);</span></span>
-<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+                <h1 id="为虚拟机增加交换分区">为虚拟机增加交换分区</h1>
+<h2 id="背景">背景</h2>
+<p>在我编译LLVM的时候，会有如下报错：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">C++:</span> fatal error: Killed signal terminated program cc1plus</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">compilation</span> terminated.</span></code></pre></div>
+<p>查阅相关信息后，发现这是由于虚拟机内存不足造成的。通过创建swap分区解决了这个问题，编译成功。 下面总结一下swap分区的创建和激活等操作：</p>
+<h2 id="相关知识">相关知识</h2>
+<blockquote>
+<p>摘自百度百科</p>
+</blockquote>
+<p>SWAP就是LINUX下的虚拟内存分区，它的作用是在物理内存使用完之后,将磁盘空间（也就是SWAP分区）虚拟成内存来使用。它和Windows系统的交换文件作用类似，但是它是一段连续的磁盘空间，并且对用户不可见。</p>
+<p>需要注意的是,虽然这个SWAP分区能够作为"虚拟"的内存,但它的速度比物理内存可是慢多了,因此如果需要更快的速度的话,并不能寄厚望于SWAP,最好的办法仍然是加大物理内存。SWAP分区只是临时的解决办法.</p>
+<p>交换分区（swap）的合理值一般在内存的2倍左右？</p>
+<p>一种流行的、以讹传讹的说法是，安装Linux系统时，交换分区swap的大小应该是内存的两倍。也就是说，如果内存是2G，那么就应该分出4G的硬盘空间作为交换空间。其实这是严重的浪费。真实的情况是：可以根据你系统内存的大小，以及所使用的程序，自行决定交换分区的大小，甚至可以完全不用交换分区！</p>
+<h2 id="创建分区和删除分区">创建分区和删除分区</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#创建分区路径</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mkdir <span class="at">-p</span> /var/cache/swap/</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 设置分区的大小，bs=64M是块大小，count=64是块数量，所以swap空间大小是bs*count=4096MB=4GB</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dd if=/dev/zero of=/var/cache/swap/swap0 bs=64M count=64</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 设置该目录权限</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> chmod 0600 /var/cache/swap/swap0</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 创建SWAP文件</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mkswap /var/cache/swap/swap0</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 激活SWAP文件</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> swapon /var/cache/swap/swap0</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#查看SWAP信息是否正确</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> swapon <span class="at">-s</span></span></code></pre></div>
+<p>swap0文件的路径在/var/cache/swap/下，编译完后, 如果不想要交换分区了, 可以删除。</p>
+<p>删除交换分区的命令：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> swapoff /var/cache/swap/swap0</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> rm /var/cache/swap/swap0</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#释放空间</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> swapoff <span class="at">-a</span></span></code></pre></div>
+<p>详细的用法：</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">swapoff</span> <span class="at">--help</span></span></code></pre></div>
+<p>查看当前内存使用情况</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">free</span> <span class="at">-m</span></span></code></pre></div>
 
                 
             </div>
@@ -437,7 +399,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://changanyyy.github.io/2021/06/07/DP-%E6%9C%89%E5%90%91%E6%97%A0%E7%8E%AF%E5%9B%BE%E7%9A%84%E6%9C%80%E9%95%BF%E8%B7%AF%E5%BE%84/">http://changanyyy.github.io/2021/06/07/DP-%E6%9C%89%E5%90%91%E6%97%A0%E7%8E%AF%E5%9B%BE%E7%9A%84%E6%9C%80%E9%95%BF%E8%B7%AF%E5%BE%84/</a>
+                    <a href="http://changanyyy.github.io/2022/02/10/Linux%E8%AE%BE%E7%BD%AE%E4%BA%A4%E6%8D%A2%E5%88%86%E5%8C%BA/">http://changanyyy.github.io/2022/02/10/Linux%E8%AE%BE%E7%BD%AE%E4%BA%A4%E6%8D%A2%E5%88%86%E5%8C%BA/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -474,7 +436,11 @@
                 <div class="post-meta__tag-list" style="display: inline-block;">
                     
                         <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
+                            
+                                <a href="/tags/Linux/">
+                                    <span class="chip bg-color">Linux</span>
+                                </a>
+                            
                         </div>
                     
                 </div>
@@ -642,40 +608,50 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
-                <a href="/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E7%BD%91%E7%BB%9C%E5%B1%82/">
+                <a href="/2022/02/10/Linux%E8%AE%BE%E7%BD%AE%E4%BA%A4%E6%8D%A2%E5%88%86%E5%8C%BA/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/5.jpg" class="responsive-img" alt="计网笔记网络层">
+                        <img src="/medias/featureimages/14.jpg" class="responsive-img" alt="Linux设置交换分区">
                         
-                        <span class="card-title">计网笔记网络层</span>
+                        <span class="card-title">Linux设置交换分区</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            
+                            Linux
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2021-06-07
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-02-10
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="post-category">
-                                    计算机网络
+                            <a href="/categories/Linux/" class="post-category">
+                                    Linux
                                 </a>
                             
                             
                         </span>
                     </div>
+                </div>
+
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Linux/">
+                        <span class="chip bg-color">Linux</span>
+                    </a>
+                    
                 </div>
                 
             </div>
@@ -687,36 +663,44 @@
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2021/06/07/%E8%AE%A1%E7%BD%91%E7%AC%94%E8%AE%B0%E9%93%BE%E8%B7%AF%E5%B1%82/">
+                <a href="/2021/08/27/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/11.jpg" class="responsive-img" alt="计网笔记链路层">
+                        <img src="/medias/featureimages/4.jpg" class="responsive-img" alt="形式语言与自动机-正则表达式">
                         
-                        <span class="card-title">计网笔记链路层</span>
+                        <span class="card-title">形式语言与自动机-正则表达式</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            
+                            形式语言，自动机理论
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-07
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-08-27
                             </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="post-category">
-                                    计算机网络
+                            <a href="/categories/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%EF%BC%8C%E8%87%AA%E5%8A%A8%E6%9C%BA%E7%90%86%E8%AE%BA/" class="post-category">
+                                    形式语言，自动机理论
                                 </a>
                             
                             
                         </span>
                     </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%EF%BC%8C%E8%87%AA%E5%8A%A8%E6%9C%BA%E7%90%86%E8%AE%BA/">
+                        <span class="chip bg-color">形式语言，自动机理论</span>
+                    </a>
+                    
                 </div>
                 
             </div>

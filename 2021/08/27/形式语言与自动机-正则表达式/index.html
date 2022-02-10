@@ -309,14 +309,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    4.6k
+                    4.9k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    21 分
+                    22 分
                 </div>
                 
 
@@ -444,6 +444,8 @@
 <p>定理4. A language is regular <strong>if and only if</strong> some regular expression describes it.</p>
 <p>想要证明这个定理，我们需要从两个方向入手，</p>
 <h5 id="证明1">1-2-1-1 证明1</h5>
+<p>Lemma1. If a language is described by a regular expression, then it is regular.</p>
+<p>正则表达式表示的语言是正则语言，RE⇒FA</p>
 <p>先证明正则表达式表示的语言是正则语言，证明的要点就是把正则表达式表达的语言用相应的自动机来表示：</p>
 <ol type="1">
 <li><p>对于<span class="math inline">\(R=a\)</span>，<span class="math inline">\(L(R)= \{ a \}\)</span>，可以用如下自动机来识别它</p>
@@ -468,6 +470,8 @@
 <li><p>（还有一种证明方法是归纳证明，进行递归地证明即可，跟这个类似。）</p></li>
 </ol>
 <h5 id="证明2">1-2-1-2 证明2</h5>
+<p>Lemma2. If a language is regular, then it is described by a regular expression.</p>
+<p>正则语言可以用正则表达式表示，FA⇒RE</p>
 <p>下面证明正则语言可以被正则表达式描述</p>
 <p>证明方法1（GNFA法）：</p>
 <p>Let M have k states <span class="math inline">\(Q=\{q_1,...,q_k\}\)</span></p>
@@ -545,7 +549,24 @@ L(M)=\underset{q_f\in F}{\cup}R_{1f}^n
 <p>对于<span class="math inline">\(a_1a_2...a_n\in T^+\)</span>，</p>
 <p><span class="math inline">\(a_1a_2...a_n\in L(G)\Leftrightarrow S\Rightarrow^+a_1a_2...a_n\)</span></p>
 <p><span class="math inline">\(\Leftrightarrow S\Rightarrow a_1A_1\Rightarrow a_1a_2A_2\Rightarrow...\)</span></p>
-<p><span class="math inline">\(\Leftrightarrow S\rightarrow a_1A_1,A1\rightarrow a_2A_2,...,A_{n-1}\rightarrow a_n\in P\)</span></p></li>
+<p><span class="math inline">\(\Leftrightarrow S\rightarrow a_1A_1,A1\rightarrow a_2A_2,...,A_{n-1}\rightarrow a_n\in P\)</span></p>
+<p><span class="math inline">\(\Leftrightarrow A_1\in\delta(S,a_1),A_2\in \delta(A_1,a_2),...,f\in \delta(A_{n-1},a_n)\)</span></p>
+<p><span class="math inline">\(\Leftrightarrow f\in \delta(S,a_1a_2...a_n)\)</span></p>
+<p><span class="math inline">\(\Leftrightarrow a_1a_2...a_n\in L(M)\)</span></p></li>
+<li><p>得证。</p></li>
+</ol>
+<h4 id="构造正则表达式的一般性规则">1-2-3 构造正则表达式的一般性规则</h4>
+<ol type="1">
+<li><p>语言只含字符串本身：字符串作为正则表达式。</p>
+<p>例如：正则表达式00和11表示语言{00}和{11}</p></li>
+<li><p>语言含有多个字符串的连接得到的串：字符串连接作为正则表达式。</p>
+<p>例如：00和11连接得到0011</p></li>
+<li><p>语言含有0次或者多次出现的串：串的闭包作为正则表达式。</p>
+<p>例如：含有01的0次或多次出现的串，正则表达式为<span class="math inline">\((01)^*\)</span></p></li>
+<li><p>语言中串有多重可能的形式：用+运算符表达多种可能性。</p>
+<p>例如：<span class="math inline">\((01)^*+(10)^*+0(10)^*\)</span></p></li>
+<li><p>语言的串中含可有可无的子串：用<span class="math inline">\(\epsilon\)</span>和该子串的并与串的其余部分连接</p>
+<p>例如：<span class="math inline">\((\epsilon+1)(01)^*\)</span></p></li>
 </ol>
 <h2 id="正则表达式的代数定律">2 正则表达式的代数定律</h2>
 <h3 id="交换律和结合律">2-1 交换律和结合律</h3>
@@ -583,6 +604,8 @@ L(M)=\underset{q_f\in F}{\cup}R_{1f}^n
 <li><span class="math inline">\(L^+=LL^*=L^*L\)</span>，<span class="math inline">\(L^+\)</span>表示1个或多个<span class="math inline">\(L\)</span></li>
 <li><span class="math inline">\(L^*=L^++\epsilon\)</span></li>
 </ol>
+<h3 id="一些运算">2-6 一些运算</h3>
+<p><span class="math inline">\(\emptyset^*=\{\epsilon\}\)</span></p>
 <h2 id="正则表达式的应用">3 正则表达式的应用</h2>
 <ol type="1">
 <li>UNIX的正则表达式</li>
@@ -979,48 +1002,46 @@ L(M)=\underset{q_f\in F}{\cup}R_{1f}^n
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="far fa-dot-circle"></i>&nbsp;本篇
-            </div>
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/2021/08/27/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E6%9C%BA-%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/">
+                <a href="/2022/02/10/Linux%E8%AE%BE%E7%BD%AE%E4%BA%A4%E6%8D%A2%E5%88%86%E5%8C%BA/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/4.jpg" class="responsive-img" alt="形式语言与自动机-正则表达式">
+                        <img src="/medias/featureimages/14.jpg" class="responsive-img" alt="Linux设置交换分区">
                         
-                        <span class="card-title">形式语言与自动机-正则表达式</span>
+                        <span class="card-title">Linux设置交换分区</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            形式语言，自动机理论
+                            Linux
                         
                     </div>
                     <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2021-08-27
-                            </span>
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-02-10
+                        </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%EF%BC%8C%E8%87%AA%E5%8A%A8%E6%9C%BA%E7%90%86%E8%AE%BA/" class="post-category">
-                                    形式语言，自动机理论
+                            <a href="/categories/Linux/" class="post-category">
+                                    Linux
                                 </a>
                             
                             
                         </span>
                     </div>
                 </div>
-
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80%EF%BC%8C%E8%87%AA%E5%8A%A8%E6%9C%BA%E7%90%86%E8%AE%BA/">
-                        <span class="chip bg-color">形式语言，自动机理论</span>
+                    <a href="/tags/Linux/">
+                        <span class="chip bg-color">Linux</span>
                     </a>
                     
                 </div>
@@ -1159,7 +1180,7 @@ L(M)=\underset{q_f\in F}{\cup}R_{1f}^n
         <div class="col s12 m8 l8 copy-right">
             Copyright&nbsp;&copy;
             
-                <span id="year">2019-2021</span>
+                <span id="year">2019-2022</span>
             
             <span id="year">2019</span>
             <a href="/about" target="_blank">yxz</a>
